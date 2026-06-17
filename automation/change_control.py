@@ -120,8 +120,8 @@ COMMON_FUNDAMENTALS_BLOCK = f"""{FUNDAMENTALS_BLOCK_START}
 COMMON_GRAPHIFY_BLOCK = f"""{GRAPHIFY_BLOCK_START}
 ## Graphify Policy
 
-- Use the canonical Graphify governance file at `/home/adamgoodwin/code/Tools/graphify/docs/agent-governance.md`.
-- Before broad source exploration, architecture analysis, dependency tracing, unfamiliar large-surface work, or cross-repo planning, use Graphify first and reference `/home/adamgoodwin/code/Tools/graphify/workspace/out/graph.json`.
+- Use the canonical Graphify governance file at `~/code/Tools/graphify/docs/agent-governance.md`.
+- Before broad source exploration, architecture analysis, dependency tracing, unfamiliar large-surface work, or cross-repo planning, use Graphify first and reference `~/code/Tools/graphify/workspace/out/graph.json`.
 - Use the workspace graph for cross-repo routing.
 - Use normal repo inspection first for known-file edits, build/test errors, small scoped edits, and routine docs checks.
 - When a new repo becomes active, set up repo-local Graphify with `graphify-setup-project /path/to/repo`.
@@ -563,7 +563,6 @@ def render_template(template: Path, context: dict) -> str:
         text = text.replace("primary: Web application / SaaS", f"primary: {context.get('use_case', USE_CASE_BY_PROJECT_TYPE.get(context['project_type'], 'Web application / SaaS'))}")
         text = text.replace("risk_tier: medium", f"risk_tier: {context['risk_tier']}")
         text = text.replace("governance_level: 2", f"governance_level: {governance_level}")
-        text = text.replace("name: Project Owner", "name: Adam Goodwin")
         text = text.replace("name: Technical Lead", "name: governed promotion")
         text = text.replace("handles_sensitive_data: false", f"handles_sensitive_data: {'true' if context['handles_sensitive_data'] else 'false'}")
         text = text.replace("handles_money: false", f"handles_money: {'true' if context['handles_money'] else 'false'}")

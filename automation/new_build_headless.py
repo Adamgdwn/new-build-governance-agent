@@ -205,7 +205,6 @@ def main() -> None:
     pc = target_dir / "project-control.yaml"
     if pc.exists():
         text = pc.read_text()
-        text = text.replace("name: Project Owner", "name: Adam Goodwin")
         text = text.replace("name: Technical Lead", f"name: {primary_builder}")
         pc.write_text(text)
 
