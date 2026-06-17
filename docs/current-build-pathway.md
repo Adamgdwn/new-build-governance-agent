@@ -67,6 +67,7 @@ Use second-level Markdown headings for active and planned chunks:
 | Chunk Twenty-Nine - Token-Friendly Startup Tightening | complete | 2026-06-16T18:28:42-06:00 | Lean startup clarified; START_HERE.md made conditional; no-full-rebuild-after-clear rule propagated. |
 | Chunk Thirty - Compaction Restart Efficiency | complete | 2026-06-16T19:05:02-06:00 | Active-plan routing indirect through START_HERE.md; post-compaction restart guidance added. |
 | Chunk Thirty-One - Housekeeping | complete | 2026-06-16 | Hard-coded personal names removed from automation; AGENTS.md trimmed to router; pathway split. |
+| Chunk Thirty-Two - Document Supersession Enforcement | complete | 2026-06-16 | Supersession scanner in change_control.py; Document Supersession section in audit report; GUI summary; template banner. |
 
 Full history: `docs/archive/pathway-history.md`
 
