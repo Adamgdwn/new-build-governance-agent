@@ -92,7 +92,7 @@ class EnvSyncPathContainmentTests(unittest.TestCase):
             master = root / ".env.master"
             master.write_text("KEY=value\n", encoding="utf-8")
             plan = env_sync.build_sync_plan(project, master, ".env.local", False, [])
-            self.assertEqual(str(project), plan["project_path"])
+            self.assertEqual(str(project.resolve()), plan["project_path"])
 
 
 if __name__ == "__main__":
