@@ -54,6 +54,8 @@ class ScaffoldProjectTests(unittest.TestCase):
                 self.assertIn("Draft complete", instructions)
                 self.assertIn("Project completion is a human decision", instructions)
                 self.assertIn("repeated attempts stop producing new evidence", instructions)
+                self.assertIn("active plan named by `START_HERE.md`", instructions)
+                self.assertIn("After a compaction, context clear, or fresh restart", instructions)
                 self.assertIn("Graphify Policy", instructions)
                 self.assertIn("Tools/graphify/docs/agent-governance.md", instructions)
                 self.assertIn("Tools/graphify/workspace/out/graph.json", instructions)
@@ -95,6 +97,8 @@ class ScaffoldProjectTests(unittest.TestCase):
             self.assertIn("summary-only", context_hygiene)
             self.assertIn("Lean Startup And Preflight", context_hygiene)
             self.assertIn("Do not trigger a full `/graphify` rebuild", context_hygiene)
+            self.assertIn("On restart after compaction or a context clear", context_hygiene)
+            self.assertIn("query existing Graphify output", context_hygiene)
             self.assertIn("lean-out guides", context_hygiene)
             self.assertIn("Stop Low-Yield Loops", context_hygiene)
             self.assertIn("Do Not Expand Scope By Momentum", context_hygiene)
@@ -108,6 +112,7 @@ class ScaffoldProjectTests(unittest.TestCase):
             self.assertIn("Acceptance criteria", pathway)
             self.assertIn("Stop condition", pathway)
             self.assertIn("Known gaps", pathway)
+            self.assertIn("After compaction or a context clear", pathway)
 
     def test_scaffold_is_copy_if_missing(self):
         with tempfile.TemporaryDirectory() as tmp:

@@ -6,7 +6,7 @@ Owner: Adam Goodwin
 
 ## Current Plan
 
-This repository maintains the governance framework used to create and upgrade governed projects. For ordinary scoped work, start with the lean startup checklist below; read this file and follow the current build pathway for material work, unclear scope, handoffs, or changes that affect the active plan.
+This repository maintains the governance framework used to create and upgrade governed projects. For ordinary scoped work, start with the lean startup checklist below; read this file and follow the active plan named here for material work, unclear scope, handoffs, or changes that affect the active plan.
 
 Current priorities:
 
@@ -26,7 +26,10 @@ Current priorities:
 
 ## Current Build Pathway
 
-Use [docs/current-build-pathway.md](docs/current-build-pathway.md) as the live build route.
+Default live build route: [docs/current-build-pathway.md](docs/current-build-pathway.md).
+
+If a project later promotes a different active plan, name it in `START_HERE.md`
+and route agents there instead of rereading archived pathway history.
 
 For ordinary scoped work:
 
@@ -54,3 +57,7 @@ Risk-triggering work includes production, deployment, authentication, authorizat
 ## Agent Handoff
 
 Agents should leave enough context for the next session to resume without rereading the entire repo. Update the current build pathway when the active plan, status, risks, or next chunk changes.
+
+After compaction or a context clear, restart from the latest handoff/work packet,
+then run `git status --short`, read the short repo-local instructions, and open
+only the active plan and files needed for the next objective.

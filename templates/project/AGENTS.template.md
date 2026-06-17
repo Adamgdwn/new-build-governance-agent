@@ -17,7 +17,7 @@ Do not turn `START_HERE.md`, pathway docs, governance standards, Graphify, plugi
 Before making material or risk-triggering code or configuration changes in this repository:
 
 1. read `START_HERE.md`
-2. review `docs/current-build-pathway.md`
+2. review the active plan named in `START_HERE.md` (default `docs/current-build-pathway.md`)
 3. review `docs/standards/README.md`
 4. review `docs/standards/engineering-governance-by-use-case.md`
 5. review `docs/policy/durable-development-engineering-policy.md`
@@ -53,9 +53,9 @@ bash scripts/governance-preflight.sh
 - Define the target completion state for each meaningful chunk: `Draft complete`, `Task complete`, `Integration complete`, `Release ready`, or `Blocked`.
 - Project completion is a human decision. Agents may report only bounded completion states when the documented criteria and verification evidence support that label.
 - Stop when the chunk's definition of done is met, when its stop condition is reached, or when repeated attempts stop producing new evidence.
-- In `docs/current-build-pathway.md`, label active and planned chunks as second-level headings with spelled-out numbers, such as `## Chunk One - Short Objective`, `## Chunk Two - Short Objective`, and `## Chunk Three - Short Objective`.
+- In the active plan document, label active and planned chunks clearly and keep the document's existing heading pattern.
 - Timestamp material work, decisions, validation, and handoffs.
-- Update `docs/current-build-pathway.md` when the active plan, status, or next chunk changes.
+- Update the active plan named by `START_HERE.md` when the active plan, status, or next chunk changes.
 
 ## Fundamentals-First AI Coding
 
@@ -86,6 +86,8 @@ Treat tokens as a budget, but do not skip required governance, security, archite
 The repository remembers. Agents rent context. Keep work packets, scout summaries, validation, and handoffs durable enough that the next agent does not need the chat thread.
 
 Keep read-only scout outputs summary-only.
+
+After a compaction, context clear, or fresh restart, treat the latest handoff or active work packet as the resume point. Then check `git status --short`, read the short repo-local instructions, read the active plan named by `START_HERE.md` only when the task needs it, and avoid archived logs or broad scans unless the current objective requires them.
 
 ## Graphify Policy
 

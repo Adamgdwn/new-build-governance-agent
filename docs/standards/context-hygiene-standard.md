@@ -18,7 +18,7 @@ Context hygiene must not be used as an excuse to skip required governance, secur
 
 Use this standard alongside:
 
-- `docs/current-build-pathway.md`
+- the active plan named by `START_HERE.md`, normally `docs/current-build-pathway.md`
 - `docs/policy/durable-development-engineering-policy.md`
 - `docs/standards/engineering-governance-by-use-case.md`
 - `docs/standards/ship-ready-engineering-standard.md`
@@ -136,7 +136,7 @@ Integration note: `/home/adamgoodwin/Downloads/cost_effective_agentic_coding_con
 
 Divide substantial work into clear phases such as discovery, planning, implementation, testing, cleanup, and handoff.
 
-At phase boundaries, write or update a short durable summary instead of relying on transcript history. For governed builds, `docs/current-build-pathway.md` is the preferred live handoff location.
+At phase boundaries, write or update a short durable summary instead of relying on transcript history. For governed builds, the preferred live handoff location is the active plan named by `START_HERE.md`, normally `docs/current-build-pathway.md`.
 
 For meaningful tasks, separate discovery from implementation from review when
 the cost or risk justifies it. Tiny tasks may combine phases, but the agent
@@ -157,6 +157,15 @@ Use compaction or a fresh handoff when:
 - the next step can be stated more clearly than the transcript can preserve it
 
 After compaction, restate critical constraints: architecture decisions, safety limits, acceptance criteria, project risk, validation expectations, and exact next objective.
+
+On restart after compaction or a context clear:
+
+- treat the latest handoff or work packet as the resume point
+- run `git status --short`
+- read the short repo-local agent instructions
+- open `START_HERE.md` and the active plan only when the task needs material-work routing
+- avoid archived logs, superseded plans, generated output, and broad source scans unless the next objective requires them
+- query existing Graphify output for orientation instead of triggering a full semantic rebuild
 
 ### Control Repository Scope
 

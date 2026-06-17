@@ -41,7 +41,7 @@ COMMON_INSTRUCTION_BLOCK = f"""{GOVERNANCE_BLOCK_START}
 ## Governance Managed Instructions
 
 - For ordinary scoped work, start with `git status --short`, short repo-local instructions, targeted file reads, and task-relevant validation.
-- Read `START_HERE.md` and follow `docs/current-build-pathway.md` for material implementation work, unclear scope, handoffs, or changes that affect the active plan.
+- Read `START_HERE.md` and follow the active plan named there, defaulting to `docs/current-build-pathway.md`, for material implementation work, unclear scope, handoffs, or changes that affect the active plan.
 - Use `docs/standards/README.md` as the standards map for coding and release work.
 - Run `bash scripts/governance-preflight.sh` for material or risk-triggering work when available.
 - Review `project-control.yaml` and open exceptions before implementation.
@@ -89,6 +89,7 @@ COMMON_CONTEXT_HYGIENE_BLOCK = f"""{CONTEXT_HYGIENE_BLOCK_START}
 - Narrow file scope before reading and prefer targeted diffs over repeated whole-repo exploration.
 - Use lean startup: check git state, read short repo-local instructions, and trigger heavy governance, Graphify, plugin, MCP, and release checks by task risk or scope.
 - For meaningful tasks, define a budget class, use scoped work packets, and keep read-only scout outputs summary-only.
+- After compaction or a context clear, resume from the latest handoff or work packet, then load only the active plan and files needed for the next objective.
 - Stop when the current task's definition of done is met, when its stop condition is reached, or when repeated attempts stop producing new evidence.
 - Record newly discovered useful work as follow-up rather than silently expanding current scope.
 - Treat tokens as a budget, but do not skip required governance, security, architecture, or task-critical reading.
@@ -268,7 +269,7 @@ MANAGED_INSTRUCTION_BLOCKS = {
             "content": f"""{GOVERNANCE_BLOCK_START}
 ## Governance Managed Instructions
 
-For ordinary scoped work, start with `git status --short`, short repo-local instructions, targeted file reads, and task-relevant validation. Read `START_HERE.md` and `AI_BOOTSTRAP.md` for material or risk-triggering implementation work, unclear scope, handoffs, or changes that affect the active plan. Follow `docs/current-build-pathway.md` for active work, timestamps, validation, completion state, and handoff notes. Use `docs/standards/README.md` as the standards map for coding and release work. Project completion is a human decision; agents may report only bounded completion states when evidence supports them.
+For ordinary scoped work, start with `git status --short`, short repo-local instructions, targeted file reads, and task-relevant validation. Read `START_HERE.md` and `AI_BOOTSTRAP.md` for material or risk-triggering implementation work, unclear scope, handoffs, or changes that affect the active plan. Follow the active plan named by `START_HERE.md`, defaulting to `docs/current-build-pathway.md`, for active work, timestamps, validation, completion state, and handoff notes. Use `docs/standards/README.md` as the standards map for coding and release work. Project completion is a human decision; agents may report only bounded completion states when evidence supports them.
 {GOVERNANCE_BLOCK_END}
 """,
             "fragments": ["git status --short", "START_HERE.md", "AI_BOOTSTRAP.md", "docs/standards/README.md", "Project completion is a human decision"],

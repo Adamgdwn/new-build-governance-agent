@@ -39,6 +39,8 @@ The repository remembers. Agents rent context. Keep work packets, scout summarie
 
 Keep read-only scout outputs summary-only.
 
+After a compaction, context clear, or fresh restart, use the latest handoff or work packet as the resume point. Then check `git status --short`, read short repo-local instructions, follow the active plan named by `START_HERE.md` only when needed, and avoid archived logs or broad scans unless the current objective requires them.
+
 ## Graphify Policy
 
 Use the canonical Graphify governance file at `/home/adamgoodwin/code/Tools/graphify/docs/agent-governance.md`.

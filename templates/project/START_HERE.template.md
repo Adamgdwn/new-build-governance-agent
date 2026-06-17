@@ -6,7 +6,7 @@ Owner: Project Owner
 
 ## Current Plan
 
-For ordinary scoped work, agents should start with the lean startup checklist below. Read this file and follow the current build pathway for material work, unclear scope, handoffs, or changes that affect the active plan. Keep it short, current, and pointed at the active build path.
+For ordinary scoped work, agents should start with the lean startup checklist below. Read this file and follow the active plan named here for material work, unclear scope, handoffs, or changes that affect the active plan. Keep it short, current, and pointed at the active build path.
 
 Current priorities:
 
@@ -23,7 +23,10 @@ Current priorities:
 
 ## Current Build Pathway
 
-Use [docs/current-build-pathway.md](docs/current-build-pathway.md) as the live build route.
+Default live build route: [docs/current-build-pathway.md](docs/current-build-pathway.md).
+
+If this project later promotes a different active plan, name it here and route
+agents there instead of rereading archived pathway history.
 
 For ordinary scoped work:
 
@@ -50,4 +53,8 @@ Risk-triggering work includes production, deployment, authentication, authorizat
 
 ## Agent Handoff
 
-Update this file only when the top-level plan or handoff point changes. Put detailed step-by-step progress in `docs/current-build-pathway.md`.
+Update this file only when the top-level plan or handoff point changes. Put detailed step-by-step progress in the active plan named above.
+
+After compaction or a context clear, restart from the latest handoff/work packet,
+then run `git status --short`, read the short repo-local instructions, and open
+only the active plan and files needed for the next objective.

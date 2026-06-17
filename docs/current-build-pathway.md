@@ -115,6 +115,50 @@ Avoid mixing unrelated code, governance, deployment, and product decisions in on
 | Chunk Twenty-Seven - Cost-Effective Agentic Context Integration | complete | 2026-06-13T10:18:57-06:00 | Codex session | Integrated `/home/adamgoodwin/Downloads/cost_effective_agentic_coding_context_standard.md` into context hygiene, context routing, project controls, generated templates, managed upgrades, and tests without making the downloaded standard a mandatory startup read. |
 | Chunk Twenty-Eight - Governance Package Documentation Closeout | complete | 2026-06-13T10:25:50-06:00 | Codex session | Refreshed public docs, generated project docs, shared Claude handoff notes, and the external `01 Work Tracking` ledger path for the lean startup and cost-effective context baseline before commit and push. |
 | Chunk Twenty-Nine - Token-Friendly Startup Tightening | complete | 2026-06-16T18:28:42-06:00 | Codex session | Clarified that ordinary scoped work starts from lean repo instructions, made `START_HERE.md` conditional in project control, and propagated the no-full-Graphify-rebuild-after-clear rule into templates, managed upgrades, and tests. |
+| Chunk Thirty - Compaction Restart Efficiency | complete | 2026-06-16T19:05:02-06:00 | Codex session | Made active-plan routing indirect through `START_HERE.md`, added post-compaction/context-clear restart guidance, and propagated the behavior through templates, managed upgrades, and tests. |
+
+## Chunk Thirty - Compaction Restart Efficiency
+
+Status: complete
+
+Completion target: Task complete
+
+Budget class: Small
+
+Objective: make turnovers after compaction, context clear, and fresh restarts faster by routing agents through the latest handoff/work packet and the active plan named by `START_HERE.md` instead of hardcoding historical pathway reads.
+
+Acceptance criteria:
+
+- [x] Source instructions route material work to the active plan named by `START_HERE.md`, defaulting to `docs/current-build-pathway.md`.
+- [x] Generated project templates inherit the same active-plan indirection.
+- [x] Context hygiene source and template include a concise post-compaction/context-clear restart checklist.
+- [x] Existing-project managed instruction upgrades carry the restart guidance.
+- [x] Focused tests cover the new active-plan and restart guidance.
+
+Inputs:
+
+- `AGENTS.md`
+- `AI_BOOTSTRAP.md`
+- `CLAUDE.md`
+- `START_HERE.md`
+- `docs/context-map.md`
+- `docs/standards/context-hygiene-standard.md`
+- `templates/project/`
+- `automation/change_control.py`
+- `tests/test_scaffold_project.py`
+- `tests/test_change_control.py`
+
+Validation:
+
+- `python3 -m unittest tests.test_scaffold_project tests.test_change_control` passed.
+- `git diff --check` passed.
+- `bash automation/governance_check.sh .` passed with 0 required gaps; existing recommendations and the `data/` design warning remain unchanged.
+- `bash scripts/validate.sh` passed with 38 tests.
+- `graphify update . --no-cluster` passed with 1355 nodes and 7702 edges; graph output remained ignored by git status.
+
+Next handoff:
+
+- The compaction/startup side quest is task complete locally. Next agent can commit/push this package if Adam asks, or return to the caller repository's active chunk.
 
 ## Chunk Twenty-Nine - Token-Friendly Startup Tightening
 
@@ -1091,4 +1135,4 @@ date -Iseconds
 
 ## Next Handoff
 
-Next agent should use lean startup for ordinary scoped work: check `git status --short`, read short repo-local instructions, use `docs/context-map.md` when context routing is unclear, inspect targeted files, and run targeted validation. Use full governance preflight and standards review for material or risk-triggering work. Use budget classes for meaningful chunks, keep read-only scout outputs summary-only, and preserve decisions in durable pathway, handoff, ADR, or controlled-doc notes instead of relying on chat history. Use Graphify before broad source exploration, architecture analysis, unfamiliar large-surface work, dependency/path analysis, or cross-repo planning; use normal repo inspection first for known-file edits, build/test errors, small scoped edits, or routine docs checks. Completion states, stop rules, lean-startup preflight rules, and cost-effective context routing are now wired into context hygiene, generated pathway templates, managed upgrades, and agent instructions. The latest whole-repo standards audit is `docs/repository-audit-2026-06-07.md`. Use `## Audit Remediation Path` above as the active route. Start with `## Chunk Fifteen - Stripe Provisioning Validation` unless the owner explicitly re-scopes the session.
+Next agent should use lean startup for ordinary scoped work: check `git status --short`, read short repo-local instructions, use `docs/context-map.md` when context routing is unclear, inspect targeted files, and run targeted validation. After compaction or a context clear, resume from the latest handoff or work packet, then load only the active plan named by `START_HERE.md` plus files needed for the next objective. Use full governance preflight and standards review for material or risk-triggering work. Use Graphify before broad source exploration, architecture analysis, unfamiliar large-surface work, dependency/path analysis, or cross-repo planning; query existing graph output after restart and avoid full semantic rebuilds unless a major-change pass is explicitly needed. The latest compaction/startup efficiency package is Chunk Thirty and is task complete locally.

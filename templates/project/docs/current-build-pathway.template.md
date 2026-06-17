@@ -34,6 +34,10 @@ For material or risk-triggering work sessions:
 
 Risk-triggering work includes production, deployment, authentication, authorization, payments, secrets, sensitive data, database migrations, customer communications, external side effects, infrastructure or provider settings, destructive actions, autonomous tool use, risk classification, governance policy changes, or release readiness.
 
+After compaction or a context clear, restart from the latest handoff or active
+work packet, then run `git status --short`, read short repo-local instructions,
+and open only this plan plus the files needed for the next objective.
+
 ## Chunking Standard
 
 Each build chunk should be small enough to fit comfortably in an agent context window.
@@ -127,4 +131,4 @@ date -Iseconds
 
 ## Next Handoff
 
-Next agent should use lean startup for ordinary scoped work: check `git status --short`, read short repo-local instructions, use `docs/context-map.md` when routing is unclear, inspect targeted files, and run targeted validation. Use this file to identify the current chunk, budget class, target completion state, acceptance criteria, stop condition, validation status, known gaps, and next bounded action.
+Next agent should use lean startup for ordinary scoped work: check `git status --short`, read short repo-local instructions, use `docs/context-map.md` when routing is unclear, inspect targeted files, and run targeted validation. After compaction or a context clear, resume from the latest handoff/work packet before loading more context. Use this file to identify the current chunk, budget class, target completion state, acceptance criteria, stop condition, validation status, known gaps, and next bounded action.

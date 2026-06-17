@@ -15,7 +15,7 @@ using the same operating rules.
 
 ## Governance
 - For ordinary scoped work, start with `git status --short`, this file, and the specific files or errors relevant to the task.
-- Read `START_HERE.md` and follow `docs/current-build-pathway.md` for material implementation work, unclear scope, handoffs, or changes that affect the active plan.
+- Read `START_HERE.md` and follow the active plan named there, defaulting to `docs/current-build-pathway.md`, for material implementation work, unclear scope, handoffs, or changes that affect the active plan.
 - Use `docs/context-map.md` when deciding which docs, standards, or source areas to load.
 - Use `docs/standards/README.md` as the standards map for coding and release work.
 - Review `docs/standards/engineering-governance-by-use-case.md`, confirm the work matches `use_case.primary`, and do not override the selected `risk_tier` or `governance_level`.
@@ -36,8 +36,8 @@ using the same operating rules.
 - Each meaningful chunk should state its target completion state: `Draft complete`, `Task complete`, `Integration complete`, `Release ready`, or `Blocked`.
 - Project completion is a human decision. Agents may report only bounded completion states when criteria and verification evidence support them.
 - Stop when the chunk's definition of done is met, when its stop condition is reached, or when repeated attempts stop producing new evidence.
-- In `docs/current-build-pathway.md`, label active and planned chunks as second-level headings using spelled-out numbers, such as `## Chunk One - Short Objective`, `## Chunk Two - Short Objective`, and `## Chunk Three - Short Objective`.
-- Update `docs/current-build-pathway.md` when the active chunk or next handoff changes.
+- In the active plan document, keep active and planned chunk headings clear and consistent with that document's existing pattern.
+- Update the active plan named by `START_HERE.md` when the active chunk or next handoff changes.
 
 ## Fundamentals-First AI Coding
 
@@ -70,6 +70,8 @@ Use lean startup: keep always-on checks short, and trigger heavy governance, Gra
 The repository remembers. Agents rent context. Keep work packets, scout summaries, validation, and handoffs durable enough that the next agent does not need the chat thread.
 
 Keep read-only scout outputs summary-only.
+
+After a compaction, context clear, or fresh restart, use the latest handoff or work packet as the resume point. Then check `git status --short`, read short repo-local instructions, follow the active plan named by `START_HERE.md` only when needed, and avoid archived logs or broad scans unless the current objective requires them.
 
 ## Graphify Policy
 
