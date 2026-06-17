@@ -326,6 +326,7 @@ class App(TkBase):
         self._pending_known_project_path: str | None = None
         self._busy_job: str | None = None
         self._busy_step = 0
+        self._staged_file_vars: list[tuple[str, tk.BooleanVar]] = []
         self._intake_refreshing = False
         self._self_update_allowed = False
         self._activity_log_expanded = not ACTIVITY_LOG_COLLAPSED_BY_DEFAULT
@@ -1197,6 +1198,45 @@ class App(TkBase):
         )
         self._remediate_btn.pack(side="left", padx=(10, 0))
 
+        staged_card = self._card(
+            main,
+            "4b. Review Changed Files",
+            "Select which changed files to include in the commit. At least one file must be checked before GitHub publish is enabled.",
+        )
+        staged_controls = tk.Frame(staged_card, bg=SURFACE)
+        staged_controls.pack(fill="x", pady=(0, 8))
+        tk.Button(
+            staged_controls,
+            text="Refresh",
+            bg=SURFACE_ALT,
+            fg=FG,
+            font=BUTTON_FONT,
+            relief="flat",
+            bd=0,
+            padx=14,
+            pady=8,
+            cursor="hand2",
+            activebackground=BORDER,
+            activeforeground=FG,
+            command=self._on_refresh_staged_files,
+        ).pack(side="left")
+        tk.Label(
+            staged_controls,
+            text="Run after generating the release plan to see current changes.",
+            bg=SURFACE,
+            fg=FG_DIM,
+            font=SMALL,
+        ).pack(side="left", padx=(12, 0))
+        self._staged_files_inner = tk.Frame(staged_card, bg=SURFACE)
+        self._staged_files_inner.pack(fill="x")
+        tk.Label(
+            self._staged_files_inner,
+            text="No changes loaded — click Refresh to inspect git status.",
+            bg=SURFACE,
+            fg=FG_DIM,
+            font=SMALL,
+        ).pack(anchor="w")
+
         execute_card = self._card(
             main,
             "5. Publish To GitHub",
@@ -1221,6 +1261,7 @@ class App(TkBase):
             activebackground=ACCENT_DARK,
             activeforeground=CTA_FG,
             command=self._on_execute_github,
+            state="disabled",
         )
         self._execute_btn.pack(side="left")
         tk.Label(
@@ -2502,6 +2543,72 @@ class App(TkBase):
         finally:
             self.after(0, lambda: self._set_busy(False))
 
+    def _on_refresh_staged_files(self):
+        project = self.v_change_project.get().strip()
+        if not project:
+            messagebox.showerror("Required", "Choose a governed project path first.")
+            return
+        threading.Thread(
+            target=self._run_refresh_staged_files, args=(project,), daemon=True
+        ).start()
+
+    def _run_refresh_staged_files(self, project: str):
+        try:
+            proc = subprocess.run(
+                ["git", "status", "--porcelain"],
+                cwd=project,
+                capture_output=True,
+                text=True,
+                check=False,
+                timeout=15,
+            )
+            lines = [ln for ln in proc.stdout.splitlines() if ln.strip()]
+            self.after(0, lambda: self._rebuild_staged_files_list(lines))
+            if not lines:
+                self._out("No local changes detected in git status.", "info")
+        except subprocess.TimeoutExpired:
+            self._out("git status timed out.", "err")
+        except Exception as exc:
+            self._out(f"Could not read git status: {exc}", "err")
+
+    def _rebuild_staged_files_list(self, porcelain_lines: list[str]):
+        for widget in self._staged_files_inner.winfo_children():
+            widget.destroy()
+        self._staged_file_vars = []
+        for line in porcelain_lines:
+            path = line[3:].strip()
+            if " -> " in path:
+                path = path.split(" -> ", 1)[1].strip()
+            var = tk.BooleanVar(value=False)
+            self._staged_file_vars.append((path, var))
+            tk.Checkbutton(
+                self._staged_files_inner,
+                text=f"{line[:2].strip()}  {path}",
+                variable=var,
+                bg=SURFACE,
+                fg=FG,
+                selectcolor=ENTRY_BG,
+                activebackground=SURFACE,
+                activeforeground=FG,
+                font=SMALL,
+                anchor="w",
+                command=self._update_execute_btn_state,
+            ).pack(fill="x", pady=1)
+        if not porcelain_lines:
+            tk.Label(
+                self._staged_files_inner,
+                text="No changes — working tree is clean.",
+                bg=SURFACE,
+                fg=FG_DIM,
+                font=SMALL,
+            ).pack(anchor="w")
+        self._staged_files_inner.update_idletasks()
+        self._update_execute_btn_state()
+
+    def _update_execute_btn_state(self):
+        any_checked = any(var.get() for _, var in self._staged_file_vars)
+        self._execute_btn.config(state="normal" if any_checked else "disabled")
+
     def _on_apply_manifest(self):
         manifest = self.v_manifest.get().strip()
         if not manifest:
@@ -2691,6 +2798,13 @@ class App(TkBase):
         if not Path(plan_path).exists():
             messagebox.showerror("Missing file", f"Release plan not found:\n{plan_path}")
             return
+        include_files = [path for path, var in self._staged_file_vars if var.get()]
+        if not include_files:
+            messagebox.showerror(
+                "No files selected",
+                "Use 'Refresh' in step 4b to load changed files, then check at least one file to include in the commit.",
+            )
+            return
         if not messagebox.askyesno(
             "Execute GitHub publish",
             (
@@ -2703,7 +2817,7 @@ class App(TkBase):
         self._clear_output()
         threading.Thread(
             target=self._run_execute_github,
-            args=(plan_path, self.v_commit_message.get().strip()),
+            args=(plan_path, self.v_commit_message.get().strip(), include_files),
             daemon=True,
         ).start()
 
@@ -2862,7 +2976,7 @@ class App(TkBase):
         finally:
             self.after(0, lambda: self._set_busy(False))
 
-    def _run_execute_github(self, plan_path: str, commit_message: str):
+    def _run_execute_github(self, plan_path: str, commit_message: str, include_files: list[str]):
         try:
             command = [
                 sys.executable,
@@ -2871,8 +2985,9 @@ class App(TkBase):
                 plan_path,
                 "--target",
                 "github",
-                "--allow-stage-all",
             ]
+            for f in include_files:
+                command.extend(["--include-file", f])
             if commit_message:
                 command.extend(["--commit-message", commit_message])
             proc = subprocess.run(

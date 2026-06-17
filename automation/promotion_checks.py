@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import shlex
 import subprocess
 from datetime import datetime, timezone
@@ -15,6 +16,19 @@ from schema_validation import validate_promotion_plan
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 EXPORT_ROOT = REPO_ROOT / "data" / "new-build-governance-agent" / "exports"
+
+_OUTPUT_CAP = 8192
+_REDACT_PATTERN = re.compile(r"^[A-Z_][A-Z0-9_]*=.+$", re.MULTILINE)
+
+
+def _cap_output(text: str) -> str:
+    if len(text) > _OUTPUT_CAP:
+        return text[:_OUTPUT_CAP] + "\n[truncated]"
+    return text
+
+
+def _redact_output(text: str) -> str:
+    return _REDACT_PATTERN.sub("[redacted]", text)
 
 
 def build_check_env(project_path: Path) -> dict[str, str]:
@@ -162,16 +176,24 @@ def run_check(project_path: Path, check: dict) -> dict:
         ) + prerequisite_issue
         return result
 
-    proc = subprocess.run(
-        argv,
-        cwd=str(project_path),
-        text=True,
-        capture_output=True,
-        check=False,
-        env=build_check_env(project_path),
-    )
-    result["stdout"] = proc.stdout
-    result["stderr"] = proc.stderr
+    try:
+        proc = subprocess.run(
+            argv,
+            cwd=str(project_path),
+            text=True,
+            capture_output=True,
+            check=False,
+            env=build_check_env(project_path),
+            timeout=300,
+        )
+    except subprocess.TimeoutExpired:
+        result["status"] = "timed_out"
+        result["reason"] = (
+            (result["reason"] + " ") if result.get("reason") else ""
+        ) + "Check timed out after 300 seconds and was not completed."
+        return result
+    result["stdout"] = _redact_output(_cap_output(proc.stdout))
+    result["stderr"] = _redact_output(_cap_output(proc.stderr))
     result["returncode"] = proc.returncode
     if proc.returncode == 0:
         result["status"] = "passed"
@@ -187,7 +209,7 @@ def run_check(project_path: Path, check: dict) -> dict:
 
 
 def categorize_check_result(result: dict) -> str:
-    if result.get("status") == "failed":
+    if result.get("status") in ("failed", "timed_out"):
         return "required_gaps"
     if result.get("status") == "manual_required":
         return "owner_decisions_needed"
