@@ -88,12 +88,12 @@ Do not trigger a full `/graphify` rebuild to answer a question, at session start
 Preserve existing secret-handling rules: do not index, print, summarize, or commit secrets or environment files.
 
 ## Commands
-<!-- Replace these with the actual commands for this project -->
-- Install: `<fill in>`
-- Dev:     `<fill in>`
-- Lint:    `<fill in>`
-- Build:   `<fill in>`
-- Test:    `<fill in>`
+- Install: no pip packages required; core uses stdlib only. GUI requires tkinter (bundled with the python.org installer).
+- Dev:     `python3 automation/new_build_gui.py`
+- Lint:    `bash scripts/validate.sh`
+- Build:   _no build step — scripts run directly_
+- Test:    `python3 -m unittest discover -s tests -p 'test_*.py'`
+- Coverage: `python3 -m coverage run --source=automation -m unittest discover -s tests -p 'test_*.py' && python3 -m coverage report`
 
 ## Document control
 - Architecture decisions go in `docs/`
