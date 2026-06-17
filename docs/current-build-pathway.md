@@ -1,6 +1,6 @@
 # Current Build Pathway
 
-Last Updated: 2026-06-13
+Last Updated: 2026-06-16
 Status: active
 Owner: Technical Lead
 
@@ -114,6 +114,46 @@ Avoid mixing unrelated code, governance, deployment, and product decisions in on
 | Chunk Twenty-Six - Lean Startup And Preflight Integration | complete | 2026-06-13T09:13:03-06:00 | Codex session | Integrated `/home/adamgoodwin/Downloads/codex-startup-preflight-lean-out-plan.md` into context hygiene, live/generated agent instructions, managed upgrade blocks, and pathway guidance. The downloaded plan is not a new mandatory startup read. |
 | Chunk Twenty-Seven - Cost-Effective Agentic Context Integration | complete | 2026-06-13T10:18:57-06:00 | Codex session | Integrated `/home/adamgoodwin/Downloads/cost_effective_agentic_coding_context_standard.md` into context hygiene, context routing, project controls, generated templates, managed upgrades, and tests without making the downloaded standard a mandatory startup read. |
 | Chunk Twenty-Eight - Governance Package Documentation Closeout | complete | 2026-06-13T10:25:50-06:00 | Codex session | Refreshed public docs, generated project docs, shared Claude handoff notes, and the external `01 Work Tracking` ledger path for the lean startup and cost-effective context baseline before commit and push. |
+| Chunk Twenty-Nine - Token-Friendly Startup Tightening | complete | 2026-06-16T18:28:42-06:00 | Codex session | Clarified that ordinary scoped work starts from lean repo instructions, made `START_HERE.md` conditional in project control, and propagated the no-full-Graphify-rebuild-after-clear rule into templates, managed upgrades, and tests. |
+
+## Chunk Twenty-Nine - Token-Friendly Startup Tightening
+
+Status: complete
+
+Completion target: Task complete
+
+Budget class: Small
+
+Objective: tighten the New Build Agent guidance so ordinary startups and post-clear restarts remain token friendly while material work still routes to the current plan and governance standards.
+
+Acceptance criteria:
+
+- [x] `START_HERE.md` no longer presents itself as a mandatory first read for every ordinary scoped session.
+- [x] `project-control.yaml` and its template list only `AGENTS.md` as always-loaded, with plan, context map, and project control files loaded conditionally.
+- [x] Generated agent templates and managed upgrade blocks include the rule to query existing Graphify output instead of running full rebuilds at startup or after context clear.
+- [x] Public and automation docs avoid implying that every small edit begins with the full pathway.
+- [x] Focused scaffold and change-control tests cover the Graphify restart rule.
+
+Inputs:
+
+- `START_HERE.md`
+- `project-control.yaml`
+- `README.md`
+- `automation/change_control.py`
+- `automation/README.md`
+- `templates/project/`
+- `docs/standards/context-hygiene-standard.md`
+- `tests/test_scaffold_project.py`
+- `tests/test_change_control.py`
+
+Validation:
+
+- `python3 -m unittest tests.test_scaffold_project tests.test_change_control` passed.
+- `python3 -m unittest discover -s tests` passed.
+
+Next handoff:
+
+- Commit and push the token-friendly startup tightening, then leave the New Build Agent alone unless Adam asks for another pass.
 
 ## Chunk Twenty-Eight - Governance Package Documentation Closeout
 

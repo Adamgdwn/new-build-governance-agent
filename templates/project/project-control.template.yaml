@@ -55,7 +55,10 @@ agentic_coding:
   default_budget: medium
   always_loaded_files:
     - AGENTS.md
-    - START_HERE.md
+  conditional_loaded_files:
+    START_HERE.md: material work, unclear scope, handoffs, or active-plan changes
+    docs/context-map.md: unclear context routing or broader task scoping
+    project-control.yaml: risk, governance level, controls, or required docs
   context_limits:
     agents_md_target_kb: 6
     claude_md_target_kb: 6

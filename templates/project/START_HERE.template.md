@@ -6,7 +6,7 @@ Owner: Project Owner
 
 ## Current Plan
 
-This is the first file an agent should read when starting work in this project. Keep it short, current, and pointed at the active build path.
+For ordinary scoped work, agents should start with the lean startup checklist below. Read this file and follow the current build pathway for material work, unclear scope, handoffs, or changes that affect the active plan. Keep it short, current, and pointed at the active build path.
 
 Current priorities:
 

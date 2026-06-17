@@ -76,7 +76,7 @@ The Windows validator covers required governance files, project-control schema, 
 **Notes:**
 - Uses the cross-platform Python scaffolding engine. `bootstrap_project.sh` remains as the Linux/macOS shell entry point.
 - Will not overwrite existing files if the directory already exists.
-- Agents should start at `START_HERE.md`, then follow `docs/current-build-pathway.md`.
+- Agents should use lean startup for ordinary scoped work, then read `START_HERE.md` and follow `docs/current-build-pathway.md` for material work, unclear scope, handoffs, or active-plan changes.
 - Use-case classification is written to `project-control.yaml` for control selection guidance, but it does not override the chosen governance level or risk tier.
 - Coding sessions should use `docs/standards/README.md` as the standards map before opening task-specific standards.
 - Meaningful implementation work should also follow `docs/policy/durable-development-engineering-policy.md`.

@@ -81,6 +81,8 @@ For full semantic repo graphs in heavy active repos, run `/graphify /path/to/rep
 
 After code changes, update the relevant graph with `graphify update . --no-cluster`, or update the workspace graph for cross-repo work.
 
+Do not trigger a full `/graphify` rebuild to answer a question, at session start, or after a context clear; query the existing graph instead. A full semantic pass is a deliberate, once-per-major-change act, roughly 1M subagent tokens. Routine refreshes use the cheap incremental `graphify update . --no-cluster`.
+
 Preserve existing secret-handling rules: do not index, print, summarize, or commit secrets or environment files.
 
 ## Commands

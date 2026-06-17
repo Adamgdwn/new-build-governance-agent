@@ -6,7 +6,7 @@ Owner: Adam Goodwin
 
 ## Current Plan
 
-This repository maintains the governance framework used to create and upgrade governed projects. Start each work session by reading this file, then follow the current build pathway.
+This repository maintains the governance framework used to create and upgrade governed projects. For ordinary scoped work, start with the lean startup checklist below; read this file and follow the current build pathway for material work, unclear scope, handoffs, or changes that affect the active plan.
 
 Current priorities:
 

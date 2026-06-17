@@ -126,6 +126,7 @@ COMMON_GRAPHIFY_BLOCK = f"""{GRAPHIFY_BLOCK_START}
 - When a new repo becomes active, set up repo-local Graphify with `graphify-setup-project /path/to/repo`.
 - For full semantic repo graphs in heavy active repos, run `/graphify /path/to/repo` from Claude Code. Current Graphify skills can use Claude Code subagents when no Gemini key is set, so policy should constrain token burn through per-repo scope, caching, strict ignores, and cheap updates rather than hard-coding a provider or extraction backend.
 - After code changes, update the relevant graph with `graphify update . --no-cluster`, or update the workspace graph for cross-repo work.
+- Do not trigger a full `/graphify` rebuild to answer a question, at session start, or after a context clear; query the existing graph instead. A full semantic pass is a deliberate, once-per-major-change act, roughly 1M subagent tokens. Routine refreshes use the cheap incremental `graphify update . --no-cluster`.
 - Preserve existing secret-handling rules: do not index, print, summarize, or commit secrets or environment files.
 {GRAPHIFY_BLOCK_END}
 """
@@ -190,6 +191,7 @@ MANAGED_INSTRUCTION_BLOCKS = {
                 "Tools/graphify/docs/agent-governance.md",
                 "Tools/graphify/workspace/out/graph.json",
                 "routine docs checks",
+                "context clear",
                 "graphify update . --no-cluster",
             ],
         },
@@ -253,6 +255,7 @@ MANAGED_INSTRUCTION_BLOCKS = {
                 "Tools/graphify/docs/agent-governance.md",
                 "Tools/graphify/workspace/out/graph.json",
                 "routine docs checks",
+                "context clear",
                 "graphify update . --no-cluster",
             ],
         },
@@ -336,6 +339,7 @@ Review `docs/standards/ship-ready-engineering-standard.md` before declaring mean
                 "Tools/graphify/docs/agent-governance.md",
                 "Tools/graphify/workspace/out/graph.json",
                 "routine docs checks",
+                "context clear",
                 "graphify update . --no-cluster",
             ],
         },

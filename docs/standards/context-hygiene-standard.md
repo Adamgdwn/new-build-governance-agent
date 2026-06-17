@@ -124,7 +124,7 @@ For low-risk targeted work, do not run full governance preflight or read every g
 
 Run governance preflight and deeper standards review when the task involves production, deployment, authentication, authorization, payments, secrets, sensitive data, database migrations, customer communications, external side effects, infrastructure or provider settings, destructive actions, autonomous tool use, risk classification, governance policy changes, or release readiness.
 
-Use Graphify for broad architecture, cross-repo routing, dependency or path analysis, unfamiliar large surfaces, and explicit `/graphify` requests. For known files, build or test errors, small scoped edits, and routine docs checks, use normal repo inspection first.
+Use Graphify for broad architecture, cross-repo routing, dependency or path analysis, unfamiliar large surfaces, and explicit `/graphify` requests. For known files, build or test errors, small scoped edits, and routine docs checks, use normal repo inspection first. Do not trigger a full `/graphify` rebuild to answer a question, at session start, or after a context clear; query the existing graph instead.
 
 Use specialized plugins, MCP servers, hooks, and provider tools when they are relevant to the current task. Do not make one-off tool use permanent startup load unless repeated need, startup cost, narrow scope, and rollback path are documented.
 
