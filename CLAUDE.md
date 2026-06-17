@@ -69,3 +69,26 @@ After code changes, update the relevant graph with `graphify update . --no-clust
 Do not trigger a full `/graphify` rebuild to answer a question, at session start, or after a context clear; query the existing graph instead. A full semantic pass is a deliberate, once-per-major-change act, roughly 1M subagent tokens. Routine refreshes use the cheap incremental `graphify update . --no-cluster`.
 
 Preserve existing secret-handling rules: do not index, print, summarize, or commit secrets or environment files.
+
+## Chunk Close-Out Protocol
+
+At the end of every chunk of work:
+
+1. Check `CARRY_FORWARD.md` — if it has any open items, surface them to the
+   user before proceeding. If there are open flags that must survive the context
+   reset, read them aloud and wait for confirmation.
+2. Stage the relevant files, commit with a clear message, and push. Do this
+   automatically — do not ask unless a carry-forward flag or blocker requires
+   a decision first.
+3. Confirm the push succeeded, then suggest `/compact` to compress the context
+   window. Do not suggest `/clear` — compact preserves the summary of what was
+   done, which is cheaper to resume from than a cold start.
+4. `/clear` is an explicit user override only: use it when prior context had
+   persistent wrong assumptions, or the next chunk is in a completely unrelated
+   domain.
+5. Do not auto-compact. Do not skip the commit step without flagging why.
+
+A chunk ends when:
+- the current definition-of-done in `docs/current-build-pathway.md` is met, or
+- a stop condition is reached (blocker, repeated failure, scope boundary), or
+- the user signals done.

@@ -155,6 +155,7 @@ def scaffold_project(target_dir: Path | str, project_type: str, governance_input
         ("project-control.template.yaml", "project-control.yaml"),
         ("AGENTS.template.md", "AGENTS.md"),
         ("CLAUDE.template.md", "CLAUDE.md"),
+        ("CARRY_FORWARD.template.md", "CARRY_FORWARD.md"),
         ("AI_BOOTSTRAP.template.md", "AI_BOOTSTRAP.md"),
         ("docs/architecture.template.md", "docs/architecture.md"),
         ("docs/context-map.template.md", "docs/context-map.md"),
