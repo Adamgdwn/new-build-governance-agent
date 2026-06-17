@@ -45,5 +45,55 @@ class EnvSyncTests(unittest.TestCase):
             self.assertNotIn("service-role-secret", str(plan))
 
 
+class EnvSyncPathContainmentTests(unittest.TestCase):
+    def test_build_sync_plan_rejects_traversal(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            project = root / "project"
+            project.mkdir()
+            master = root / ".env.master"
+            master.write_text("KEY=value\n", encoding="utf-8")
+            with self.assertRaises(ValueError, msg="path traversal should raise ValueError"):
+                env_sync.build_sync_plan(project, master, "../../etc/env", False, [])
+
+    def test_build_sync_plan_rejects_absolute_outside_target(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            project = root / "project"
+            project.mkdir()
+            outside = root / "outside"
+            outside.mkdir()
+            master = root / ".env.master"
+            master.write_text("KEY=value\n", encoding="utf-8")
+            with self.assertRaises(ValueError):
+                env_sync.build_sync_plan(project, master, "../outside/.env", False, [])
+
+    def test_apply_sync_rejects_traversal(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            project = root / "project"
+            project.mkdir()
+            master = root / ".env.master"
+            master.write_text("KEY=value\n", encoding="utf-8")
+            bad_plan = {
+                "master_env": str(master),
+                "target_env": str(root / "outside" / ".env.local"),
+                "project_path": str(project),
+                "entries": [],
+            }
+            with self.assertRaises(ValueError):
+                env_sync.apply_sync(bad_plan, False, False)
+
+    def test_build_sync_plan_allows_valid_target(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            project = root / "project"
+            project.mkdir()
+            master = root / ".env.master"
+            master.write_text("KEY=value\n", encoding="utf-8")
+            plan = env_sync.build_sync_plan(project, master, ".env.local", False, [])
+            self.assertEqual(str(project), plan["project_path"])
+
+
 if __name__ == "__main__":
     unittest.main()

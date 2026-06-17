@@ -188,6 +188,12 @@ def build_sync_plan(
     master = master.expanduser().resolve()
     master_values = parse_env_file(master)
     project_target = project / target
+    try:
+        project_target.resolve().relative_to(project)
+    except ValueError:
+        raise ValueError(
+            f"--target {target!r} resolves outside the project root; path traversal is not allowed"
+        )
     target_values = parse_env_file(project_target)
     required = discover_required_keys(project, include_code_refs)
     for key in requested_keys:
@@ -257,6 +263,13 @@ def apply_sync(
 ) -> dict:
     master = Path(plan["master_env"])
     target = Path(plan["target_env"])
+    project_root = Path(plan["project_path"]).resolve()
+    try:
+        target.resolve().relative_to(project_root)
+    except ValueError:
+        raise ValueError(
+            f"target env path {str(target)!r} resolves outside the project root; aborting"
+        )
     master_values = parse_env_file(master)
     existing = parse_env_file(target)
     target.parent.mkdir(parents=True, exist_ok=True)

@@ -141,6 +141,15 @@ if ($captureScope -eq "yes") {
 }
 
 $slug = ConvertTo-Slug $ProjectName
+$reservedSlugs = @("con","prn","aux","nul","com1","com2","com3","com4","com5","com6","com7","com8","com9","lpt1","lpt2","lpt3","lpt4","lpt5","lpt6","lpt7","lpt8","lpt9")
+if ([string]::IsNullOrEmpty($slug) -or $slug.Length -lt 2) {
+    Write-Error "Project name '$ProjectName' produced an invalid slug '$slug'. Use ASCII letters, digits, or hyphens (minimum 2 characters)."
+    exit 1
+}
+if ($reservedSlugs -contains $slug.ToLowerInvariant()) {
+    Write-Error "Slug '$slug' is a reserved OS name. Choose a different project name."
+    exit 1
+}
 $codeRoot = Join-Path $HOME "code"
 if ($BuildType -eq "agent" -or $GovernanceType -eq "agent") {
     $targetDir = Join-Path (Join-Path $codeRoot "agents") $slug

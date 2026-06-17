@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import shlex
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -111,16 +112,16 @@ def build_local_checks(project: Path) -> dict[str, list[dict[str, str]]]:
         if root.exists():
             shell_files.extend(str(path.relative_to(project)) for path in sorted(root.rglob("*.sh")))
     if shell_files:
-        shell_script = "for f in " + " ".join(shell_files) + '; do bash -n "$f"; done'
-        pre_checks.append(
-            check(
-                "shell_syntax",
-                shell_script,
-                "automated",
-                "Validate shell script syntax before promotion.",
-                ["bash", "-c", shell_script],
+        for shell_file in shell_files:
+            pre_checks.append(
+                check(
+                    "shell_syntax",
+                    f"bash -n {shlex.quote(shell_file)}",
+                    "automated",
+                    "Validate shell script syntax before promotion.",
+                    ["bash", "-n", shell_file],
+                )
             )
-        )
 
     has_unittest_tests = (project / "tests").exists()
     if has_unittest_tests:

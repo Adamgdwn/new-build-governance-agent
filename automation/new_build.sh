@@ -144,6 +144,18 @@ fi
 # ── derive ────────────────────────────────────────────────────────────────────
 
 SLUG=$(slugify "$RAW_NAME")
+if [[ -z "$SLUG" || ${#SLUG} -lt 2 ]]; then
+  msg "Error: project name '${RAW_NAME}' produced an invalid slug '${SLUG}'."
+  msg "Use ASCII letters, digits, spaces, or hyphens (minimum 2 characters)."
+  exit 1
+fi
+RESERVED_SLUGS=("con" "prn" "aux" "nul" "com1" "com2" "com3" "com4" "com5" "com6" "com7" "com8" "com9" "lpt1" "lpt2" "lpt3" "lpt4" "lpt5" "lpt6" "lpt7" "lpt8" "lpt9")
+for r in "${RESERVED_SLUGS[@]}"; do
+  if [[ "${SLUG,,}" == "$r" ]]; then
+    msg "Error: slug '${SLUG}' is a reserved OS name. Choose a different project name."
+    exit 1
+  fi
+done
 TARGET_DIR="${TARGET_ROOT}/${SLUG}"
 
 # ── confirm ───────────────────────────────────────────────────────────────────

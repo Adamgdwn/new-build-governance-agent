@@ -54,8 +54,18 @@ def progress(msg: str) -> None:
     print(f"[new-build-governance-agent] {msg}", file=sys.stderr, flush=True)
 
 
-def fail(msg: str, **extra) -> None:
-    print(json.dumps({"ok": False, "error": msg, **extra}), flush=True)
+RESERVED_OS_NAMES = {
+    "con", "prn", "aux", "nul",
+    "com1", "com2", "com3", "com4", "com5", "com6", "com7", "com8", "com9",
+    "lpt1", "lpt2", "lpt3", "lpt4", "lpt5", "lpt6", "lpt7", "lpt8", "lpt9",
+}
+
+
+def fail(msg: str, slug: str = "", project_path: str = "") -> None:
+    print(
+        json.dumps({"status": "failed", "project_path": project_path, "slug": slug, "files_created": [], "error": msg}),
+        flush=True,
+    )
     sys.exit(1)
 
 
@@ -139,6 +149,21 @@ def main() -> None:
     audit_correlation_id = params.get("audit_correlation_id", "")
 
     slug = slugify(project_name)
+    if not slug:
+        fail(
+            f"project_name {project_name!r} produced an empty slug after normalization; "
+            "use ASCII letters, digits, spaces, or hyphens"
+        )
+    if len(slug) < 2:
+        fail(
+            f"project_name {project_name!r} produced a single-character slug {slug!r}; "
+            "provide a more descriptive name"
+        )
+    if "/" in slug or "\\" in slug:
+        fail(f"slug {slug!r} contains a path separator; this should not be possible after slugify")
+    if slug.lower() in RESERVED_OS_NAMES:
+        fail(f"slug {slug!r} is a reserved OS name; choose a different project name")
+
     root = resolve_target_root(build_type, governance_type)
     target_dir = root / slug
 
