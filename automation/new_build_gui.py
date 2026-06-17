@@ -2427,7 +2427,6 @@ class App(TkBase):
             pc = target_dir / "project-control.yaml"
             if pc.exists():
                 txt = pc.read_text(encoding="utf-8")
-                txt = txt.replace("name: Project Owner", "name: Adam Goodwin")
                 txt = txt.replace("name: Technical Lead", f"name: {builder} session")
                 pc.write_text(txt, encoding="utf-8")
 
@@ -3062,7 +3061,7 @@ class App(TkBase):
         self.after(0, _do)
 
 
-if __name__ == "__main__":
+def main() -> None:
     try:
         if tk is None:
             raise RuntimeError(
@@ -3087,3 +3086,7 @@ if __name__ == "__main__":
         print(f"New Build Governance Agent failed to start: {exc}", file=sys.stderr)
         print(f"Startup log: {LOG_PATH}", file=sys.stderr)
         raise SystemExit(1)
+
+
+if __name__ == "__main__":
+    main()

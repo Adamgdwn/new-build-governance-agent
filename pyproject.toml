@@ -1,3 +1,22 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "new-build-governance-agent"
+version = "0.1.0"
+description = "Governance scaffolding and promotion tooling for new software projects"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+
+[project.scripts]
+new-build-gui = "automation.new_build_gui:main"
+new-build-headless = "automation.new_build_headless:main"
+new-build-audit = "automation.governance_audit:main"
+
+[project.optional-dependencies]
+dev = ["pytest>=7", "coverage[toml]>=7"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
