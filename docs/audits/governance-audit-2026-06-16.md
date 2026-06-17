@@ -1,8 +1,8 @@
 # Governance Audit — New Build Agent
 
-Document ID: AUD-ENG-001
+Document ID: AUD-ENG-002
 Date: 2026-06-16
-Timestamp: 2026-06-16T21:43:10-06:00
+Timestamp: 2026-06-16T22:31:44-06:00
 Scope: /home/adamgoodwin/code/agents/New Build Agent
 Status: active
 Owner: Project Owner
@@ -11,7 +11,7 @@ Owner: Project Owner
 
 ## Executive Summary
 
-Automated governance audit of `New Build Agent`. 3 positive finding(s). 0 blocker(s), 55 required gap(s), 60 warning(s).
+Automated governance audit of `New Build Agent`. 3 positive finding(s). 0 blocker(s), 57 required gap(s), 62 warning(s).
 
 **Conclusion:** ATTENTION — required gaps or blockers need resolution before next release.
 
@@ -47,6 +47,7 @@ Checks performed:
 - [ ] `docs/adr-template.md` — add `Status: <draft|active|superseded|retired>` in the first 30 lines.
 - [ ] `docs/agent-inventory.md` — add `Status: <draft|active|superseded|retired>` in the first 30 lines.
 - [ ] `docs/architecture.md` — add `Status: <draft|active|superseded|retired>` in the first 30 lines.
+- [ ] `docs/archive/pathway-history.md` — add `Status: <draft|active|superseded|retired>` in the first 30 lines.
 - [ ] `docs/deployment-guide.md` — add `Status: <draft|active|superseded|retired>` in the first 30 lines.
 - [ ] `docs/domain-language.md` — add `Status: <draft|active|superseded|retired>` in the first 30 lines.
 - [ ] `docs/exception-record-template.md` — add `Status: <draft|active|superseded|retired>` in the first 30 lines.
@@ -77,6 +78,7 @@ Checks performed:
 - [ ] `docs/standards/testing-standard.md` — add `Status: <draft|active|superseded|retired>` in the first 30 lines.
 - [ ] `docs/tool-permission-matrix.md` — add `Status: <draft|active|superseded|retired>` in the first 30 lines.
 - [ ] `docs/user-guide.md` — add `Status: <draft|active|superseded|retired>` in the first 30 lines.
+- [ ] `docs/archive/pathway-history.md` is a plan/pathway/deployment doc with no `Status:` field — add one.
 - [ ] `docs/deployment-guide.md` is a plan/pathway/deployment doc with no `Status:` field — add one.
 - [ ] `docs/processes/new-build-governance-agent-consolidation-plan.md` is a plan/pathway/deployment doc with no `Status:` field — add one.
 - [ ] `docs/standards/deployment-and-release-standard.md` is a plan/pathway/deployment doc with no `Status:` field — add one.
@@ -105,6 +107,7 @@ Checks performed:
 - [ ] `docs/adr-template.md` — add `Owner: <name>` in the first 30 lines.
 - [ ] `docs/agent-inventory.md` — add `Owner: <name>` in the first 30 lines.
 - [ ] `docs/architecture.md` — add `Owner: <name>` in the first 30 lines.
+- [ ] `docs/archive/pathway-history.md` — add `Owner: <name>` in the first 30 lines.
 - [ ] `docs/deployment-guide.md` — add `Owner: <name>` in the first 30 lines.
 - [ ] `docs/domain-language.md` — add `Owner: <name>` in the first 30 lines.
 - [ ] `docs/exception-record-template.md` — add `Owner: <name>` in the first 30 lines.
@@ -137,6 +140,7 @@ Checks performed:
 - [ ] `docs/user-guide.md` — add `Owner: <name>` in the first 30 lines.
 - [ ] `docs/CHANGELOG.md` — add a date field (`Last Updated: YYYY-MM-DD`) in the first 30 lines.
 - [ ] `docs/adr-template.md` — add a date field (`Last Updated: YYYY-MM-DD`) in the first 30 lines.
+- [ ] `docs/archive/pathway-history.md` — add a date field (`Last Updated: YYYY-MM-DD`) in the first 30 lines.
 - [ ] `docs/context-map.md` — add a date field (`Last Updated: YYYY-MM-DD`) in the first 30 lines.
 - [ ] `docs/domain-language.md` — add a date field (`Last Updated: YYYY-MM-DD`) in the first 30 lines.
 - [ ] `docs/manual.md` — add a date field (`Last Updated: YYYY-MM-DD`) in the first 30 lines.
@@ -162,6 +166,18 @@ Checks performed:
 - [ ] `docs/standards/testing-standard.md` — add a date field (`Last Updated: YYYY-MM-DD`) in the first 30 lines.
 - [ ] `docs/user-guide.md` — add a date field (`Last Updated: YYYY-MM-DD`) in the first 30 lines.
 
+
+---
+
+## Document Supersession
+
+- All superseded docs reference their replacement.
+- Single active pathway document: `docs/current-build-pathway.md`.
+- `docs/archive/pathway-history.md` is a plan/pathway/deployment doc with no `Status:` field — add one.
+- `docs/deployment-guide.md` is a plan/pathway/deployment doc with no `Status:` field — add one.
+- `docs/processes/new-build-governance-agent-consolidation-plan.md` is a plan/pathway/deployment doc with no `Status:` field — add one.
+- `docs/standards/deployment-and-release-standard.md` is a plan/pathway/deployment doc with no `Status:` field — add one.
+
 ---
 
 ## Recommended Remediation Order
@@ -175,6 +191,6 @@ Checks performed:
 ## Audit Conclusion
 
 ATTENTION — required gaps or blockers need resolution before next release.
-Total findings: 115 (0 blocker, 55 required gap, 60 warning).
+Total findings: 119 (0 blocker, 57 required gap, 62 warning).
 
 _This report was generated automatically. Review each finding and tick the checkbox when resolved._
