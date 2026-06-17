@@ -24,6 +24,7 @@ PROMOTION_PLAN = GOVERNANCE_HOME / "automation" / "promotion_plan.py"
 PROMOTION_CHECKS = GOVERNANCE_HOME / "automation" / "promotion_checks.py"
 PROMOTION_REMEDIATE = GOVERNANCE_HOME / "automation" / "promotion_remediate.py"
 PROMOTION_EXECUTE = GOVERNANCE_HOME / "automation" / "promotion_execute.py"
+GOVERNANCE_AUDIT = GOVERNANCE_HOME / "automation" / "governance_audit.py"
 LOG_PATH = GOVERNANCE_HOME / "data" / "new-build-governance-agent" / "logs" / "gui-startup.log"
 CODE_ROOT = Path.home() / "code"
 AGENTS_ROOT = CODE_ROOT / "agents"
@@ -1006,6 +1007,38 @@ class App(TkBase):
             pady=8,
             command=self._browse_manifest,
         ).pack(side="left", padx=(8, 0))
+
+        audit_card = self._card(
+            main,
+            "2b. Run Governance Audit",
+            "Generate an AUD-class audit report with actionable checkboxes.",
+        )
+
+        audit_controls = tk.Frame(audit_card, bg=SURFACE)
+        audit_controls.pack(fill="x", pady=(0, 10))
+        self._audit_btn = tk.Button(
+            audit_controls,
+            text="Run Governance Audit",
+            bg=SURFACE_ALT,
+            fg=FG,
+            font=BUTTON_FONT,
+            relief="flat",
+            bd=0,
+            padx=18,
+            pady=9,
+            cursor="hand2",
+            activebackground=BORDER,
+            activeforeground=FG,
+            command=self._on_run_governance_audit,
+        )
+        self._audit_btn.pack(side="left")
+        tk.Label(
+            audit_controls,
+            text="Writes to docs/audits/ and opens in VS Code.",
+            bg=SURFACE,
+            fg=FG_DIM,
+            font=SMALL,
+        ).pack(side="left", padx=(12, 0))
 
         apply_card = self._card(
             main,
@@ -2433,6 +2466,39 @@ class App(TkBase):
                 manifest_data = json.loads(Path(manifest).read_text(encoding="utf-8"))
                 self.after(0, lambda data=manifest_data: self._update_change_summary(manifest=data))
                 self._out(Path(manifest).read_text(encoding="utf-8").strip(), "dim")
+        finally:
+            self.after(0, lambda: self._set_busy(False))
+
+    def _on_run_governance_audit(self):
+        project = self.v_change_project.get().strip()
+        if not project:
+            messagebox.showerror("Required", "Choose a governed project path first.")
+            return
+        self._set_busy(True)
+        self._clear_output()
+        threading.Thread(
+            target=self._run_governance_audit, args=(project,), daemon=True
+        ).start()
+
+    def _run_governance_audit(self, project: str):
+        try:
+            proc = subprocess.run(
+                [sys.executable, str(GOVERNANCE_AUDIT), project, "--open"],
+                capture_output=True,
+                text=True,
+                check=False,
+                env=build_subprocess_env(),
+            )
+            if proc.stderr.strip():
+                self._out(proc.stderr.strip(), "err")
+                return
+            output_lines = [ln for ln in proc.stdout.strip().splitlines() if ln.strip()]
+            if not output_lines:
+                self._out("Governance audit produced no output.", "err")
+                return
+            self._out(f"Governance audit report: {output_lines[0].strip()}", "ok")
+            if len(output_lines) > 1:
+                self._out(output_lines[1].strip(), "dim")
         finally:
             self.after(0, lambda: self._set_busy(False))
 
