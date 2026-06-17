@@ -2723,6 +2723,15 @@ class App(TkBase):
                 self.after(0, lambda p=project_path: self.v_doc_project.set(p))
                 self.after(0, lambda data=manifest_data: self._update_doc_summary(manifest=data))
                 self._out(manifest_path.read_text(encoding="utf-8").strip(), "dim")
+                sup = subprocess.run(
+                    [sys.executable, str(CHANGE_CONTROL), "supersession-status", "--project", project_path],
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                    env=build_subprocess_env(),
+                )
+                if sup.returncode == 0 and sup.stdout.strip():
+                    self._out(f"Supersession: {sup.stdout.strip()}", "ok")
                 self.after(0, lambda: messagebox.showinfo("Document control updated", "The document-control standard update is complete."))
         finally:
             self.after(0, lambda: self._set_busy(False))

@@ -4,6 +4,10 @@ Last Updated: YYYY-MM-DD
 Status: draft
 Owner: Technical Lead
 
+> **Single active pathway document.** This is the one active pathway for this project.
+> All prior pathway, deployment-plan, and build-plan documents in this repo must carry
+> `Status: superseded` and reference this file.
+
 ## Purpose
 
 This document is the live path from current plan to completed build. It keeps agent work small, timestamped, and easy to resume.

@@ -150,6 +150,7 @@ def run_audit(project_path: Path) -> dict:
     }
     positives: list[str] = []
     checks_run: list[str] = []
+    supersession_items: list[str] = []
 
     # Check 1: Document metadata presence
     checks_run.append(
@@ -203,12 +204,15 @@ def run_audit(project_path: Path) -> dict:
 
     if superseded_no_ref:
         for rel in superseded_no_ref:
-            findings["required_gaps"].append(
+            msg = (
                 f"`{rel}` has `Status: superseded` but no replacement reference "
                 "— add `Superseded by: <path>` near the top."
             )
+            findings["required_gaps"].append(msg)
+            supersession_items.append(msg)
     else:
         positives.append("All superseded docs reference their replacement.")
+        supersession_items.append("All superseded docs reference their replacement.")
 
     # Check 3: Multiple active pathways
     checks_run.append("At most one active pathway / build-plan document")
@@ -220,14 +224,20 @@ def run_audit(project_path: Path) -> dict:
 
     if len(active_pathways) > 1:
         joined = ", ".join(f"`{p}`" for p in active_pathways)
-        findings["blockers"].append(
+        msg = (
             f"Multiple active pathway/plan documents: {joined} "
             "— supersede all but one, or confirm which is authoritative."
         )
+        findings["blockers"].append(msg)
+        supersession_items.append(msg)
     elif len(active_pathways) == 1:
         positives.append(f"Single active pathway document: `{active_pathways[0]}`.")
+        supersession_items.append(f"Single active pathway document: `{active_pathways[0]}`.")
     else:
         positives.append(
+            "No active pathway/plan documents (expected if project is not yet underway)."
+        )
+        supersession_items.append(
             "No active pathway/plan documents (expected if project is not yet underway)."
         )
 
@@ -258,9 +268,9 @@ def run_audit(project_path: Path) -> dict:
         if _is_pathway_or_plan(f):
             if not _has_status(_read_header(f)):
                 rel = str(f.relative_to(project_path))
-                findings["required_gaps"].append(
-                    f"`{rel}` is a plan/pathway/deployment doc with no `Status:` field — add one."
-                )
+                msg = f"`{rel}` is a plan/pathway/deployment doc with no `Status:` field — add one."
+                findings["required_gaps"].append(msg)
+                supersession_items.append(msg)
 
     # Check 6: Document ID gaps in controlled dirs
     checks_run.append(
@@ -305,6 +315,7 @@ def run_audit(project_path: Path) -> dict:
         "checks_run": checks_run,
         "findings": findings,
         "positives": positives,
+        "supersession_items": supersession_items,
     }
 
 
@@ -316,6 +327,7 @@ def render_report(result: dict) -> str:
     checks_run = result["checks_run"]
     findings = result["findings"]
     positives = result["positives"]
+    supersession_items = result.get("supersession_items", [])
 
     blockers = findings["blockers"]
     required_gaps = findings["required_gaps"]
@@ -387,6 +399,14 @@ def render_report(result: dict) -> str:
 
     if not blockers and not required_gaps and not warnings:
         lines += ["No findings. All checks passed.", ""]
+
+    lines += ["", "---", "", "## Document Supersession", ""]
+    if supersession_items:
+        for item in supersession_items:
+            lines.append(f"- {item}")
+    else:
+        lines.append("- No pathway or build-plan documents found.")
+    lines.append("")
 
     lines += [
         "---",

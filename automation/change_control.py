@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -584,10 +585,71 @@ def write_manifest(manifest: dict, output: Path | None) -> Path:
     return output
 
 
+_PATHWAY_STATUS_RE = re.compile(r"^Status\s*:\s*(.+)$", re.IGNORECASE | re.MULTILINE)
+_PATHWAY_NAME_PATTERN = re.compile(r"pathway|build.plan", re.IGNORECASE)
+
+
+def _is_pathway_file(path: Path) -> bool:
+    return bool(_PATHWAY_NAME_PATTERN.search(path.stem))
+
+
+def _supersede_old_pathways(project_path: Path, canonical_rel: str, timestamp: str) -> list[str]:
+    """Rewrite all active pathway/build-plan docs (except canonical) to Status: superseded."""
+    superseded: list[str] = []
+    docs_dir = project_path / "docs"
+    if not docs_dir.is_dir():
+        return superseded
+    for f in sorted(docs_dir.rglob("*.md")):
+        if not _is_pathway_file(f):
+            continue
+        rel = str(f.relative_to(project_path))
+        if rel == canonical_rel:
+            continue
+        try:
+            text = f.read_text(encoding="utf-8", errors="ignore")
+        except OSError:
+            continue
+        header = "\n".join(text.splitlines()[:30])
+        m = _PATHWAY_STATUS_RE.search(header)
+        if not m or m.group(1).strip().lower() != "active":
+            continue
+        new_text = _PATHWAY_STATUS_RE.sub(
+            lambda _: f"Status: superseded\nSuperseded by: {canonical_rel} ({timestamp})",
+            text,
+            count=1,
+        )
+        f.write_text(new_text, encoding="utf-8")
+        superseded.append(rel)
+    return superseded
+
+
+def supersession_status(project_path: Path) -> dict:
+    """Return counts of superseded and missing-status pathway/build-plan docs."""
+    docs_dir = project_path / "docs"
+    superseded_count = 0
+    missing_status_count = 0
+    if docs_dir.is_dir():
+        for f in sorted(docs_dir.rglob("*.md")):
+            if not _is_pathway_file(f):
+                continue
+            try:
+                header = "\n".join(f.read_text(encoding="utf-8", errors="ignore").splitlines()[:30])
+            except OSError:
+                continue
+            m = _PATHWAY_STATUS_RE.search(header)
+            if m:
+                if m.group(1).strip().lower() == "superseded":
+                    superseded_count += 1
+            else:
+                missing_status_count += 1
+    return {"superseded": superseded_count, "missing_status": missing_status_count}
+
+
 def apply_manifest(manifest_path: Path) -> None:
     manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
     project_path = Path(manifest['project_path'])
     profile = manifest.get('project_profile', infer_project_profile(project_path))
+    pathway_created = False
     for action in manifest.get('actions', []):
         target = project_path / action['relative_path']
         if action.get('action') == 'create_file':
@@ -599,6 +661,8 @@ def apply_manifest(manifest_path: Path) -> None:
             target.write_text(content, encoding='utf-8')
             if action.get('chmod') == '+x':
                 target.chmod(target.stat().st_mode | 0o111)
+            if action['relative_path'] == 'docs/current-build-pathway.md':
+                pathway_created = True
         elif action.get('action') == 'append_managed_block':
             if not target.exists():
                 raise FileNotFoundError(f"Instruction file disappeared before apply: {target}")
@@ -621,8 +685,13 @@ def apply_manifest(manifest_path: Path) -> None:
             target.write_text(source.read_text(encoding='utf-8'), encoding='utf-8')
         else:
             raise ValueError(f"Unsupported action: {action}")
+    applied_at = datetime.now(timezone.utc).isoformat()
+    if pathway_created:
+        superseded = _supersede_old_pathways(project_path, 'docs/current-build-pathway.md', applied_at)
+        if superseded:
+            manifest['superseded_pathways'] = superseded
     manifest['status'] = 'applied'
-    manifest['applied_at'] = datetime.now(timezone.utc).isoformat()
+    manifest['applied_at'] = applied_at
     manifest_path.write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding='utf-8')
 
 
@@ -646,6 +715,15 @@ def cmd_apply(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_supersession_status(args: argparse.Namespace) -> int:
+    result = supersession_status(Path(args.project).expanduser().resolve())
+    print(
+        f"{result['superseded']} docs marked superseded, "
+        f"{result['missing_status']} docs missing status"
+    )
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description='Structured change control for New Build Governance Agent.')
     subparsers = parser.add_subparsers(dest='command', required=True)
@@ -663,6 +741,10 @@ def build_parser() -> argparse.ArgumentParser:
     apply_cmd = subparsers.add_parser('apply', help='Apply a previously generated manifest.')
     apply_cmd.add_argument('--manifest', required=True, help='Path to the manifest JSON')
     apply_cmd.set_defaults(func=cmd_apply)
+
+    sup_cmd = subparsers.add_parser('supersession-status', help='Show supersession summary for a project.')
+    sup_cmd.add_argument('--project', required=True, help='Path to the project')
+    sup_cmd.set_defaults(func=cmd_supersession_status)
 
     return parser
 
