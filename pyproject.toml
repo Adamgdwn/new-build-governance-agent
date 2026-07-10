@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "new-build-governance-agent"
-version = "0.1.0"
+version = "0.3.0"
 description = "Governance scaffolding and promotion tooling for new software projects"
 requires-python = ">=3.11"
 license = { text = "MIT" }
@@ -15,7 +15,7 @@ new-build-headless = "automation.new_build_headless:main"
 new-build-audit = "automation.governance_audit:main"
 
 [project.optional-dependencies]
-dev = ["pytest>=7", "coverage[toml]>=7"]
+dev = ["pytest>=7", "coverage[toml]>=7", "ruff>=0.15", "mypy>=1.14"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -28,5 +28,28 @@ source = ["automation"]
 branch = true
 
 [tool.coverage.report]
-fail_under = 60
+# Real, enforced floor (CI installs coverage as of 2026-07-10; the previous 60
+# was never actually run). Measured baseline is ~31% locally, ~28% without
+# tkinter. Ratchet upward as untested modules gain tests (backlog B-13).
+fail_under = 25
 show_missing = true
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+# Defaults (E4, E7, E9, F) plus import sorting.
+extend-select = ["I"]
+
+[tool.ruff.lint.per-file-ignores]
+# House pattern: flat script dir, sys.path.insert before local imports.
+"automation/*" = ["E402"]
+"tests/*" = ["E402"]
+
+[tool.mypy]
+python_version = "3.11"
+mypy_path = "automation"
+explicit_package_bases = true
+warn_unused_ignores = true
+no_implicit_optional = true

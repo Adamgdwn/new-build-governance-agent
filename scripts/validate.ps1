@@ -119,6 +119,24 @@ foreach ($file in $pythonFiles) {
     Invoke-Python -PythonCommand $python -Arguments @("-m", "py_compile", $file.FullName)
 }
 
+foreach ($tool in @("ruff", "mypy")) {
+    try {
+        Invoke-PythonCapture -PythonCommand $python -Arguments @("-m", $tool, "--version") | Out-Null
+    } catch {
+        throw "$tool is required by the validation gate. Install dev tools: python -m pip install ruff mypy"
+    }
+}
+Push-Location $RepoRoot
+try {
+    Invoke-Python -PythonCommand $python -Arguments @("-m", "ruff", "check", "automation", "tests", "scripts")
+    Invoke-Python -PythonCommand $python -Arguments @("-m", "ruff", "format", "--check", "automation", "tests")
+    Write-Host "PASS: ruff lint + format"
+    Invoke-Python -PythonCommand $python -Arguments @("-m", "mypy", "automation")
+    Write-Host "PASS: mypy"
+} finally {
+    Pop-Location
+}
+
 $psFiles = @(
     Get-ChildItem -Path (Join-Path $RepoRoot "automation") -Filter "*.ps1" -File
     Get-ChildItem -Path (Join-Path $RepoRoot "scripts") -Filter "*.ps1" -File
@@ -132,6 +150,34 @@ foreach ($file in $psFiles) {
     }
 }
 Write-Host "PASS: PowerShell syntax"
+
+if (Get-Module -ListAvailable PSScriptAnalyzer) {
+    $analyzerFindings = @(Invoke-ScriptAnalyzer -Path (Join-Path $RepoRoot "automation") -Severity Error) +
+        @(Invoke-ScriptAnalyzer -Path (Join-Path $RepoRoot "scripts") -Severity Error)
+    if ($analyzerFindings.Count -gt 0) {
+        $analyzerFindings | Format-Table RuleName, ScriptName, Line -AutoSize | Out-String | Write-Host
+        throw "PSScriptAnalyzer found $($analyzerFindings.Count) error-severity finding(s)."
+    }
+    Write-Host "PASS: PSScriptAnalyzer (error severity)"
+} else {
+    Write-Host "SKIP: PSScriptAnalyzer not installed locally (enforced in CI)."
+}
+
+$shellcheck = Get-Command shellcheck -ErrorAction SilentlyContinue
+if ($shellcheck) {
+    $shellFilesForLint = @(
+        Get-ChildItem -Path (Join-Path $RepoRoot "automation") -Filter "*.sh" -File
+        Get-ChildItem -Path (Join-Path $RepoRoot "scripts") -Filter "*.sh" -File
+        Get-ChildItem -Path (Join-Path $RepoRoot "templates/project/scripts") -Filter "*.sh" -File
+    ) | Sort-Object FullName | ForEach-Object { $_.FullName }
+    & $shellcheck.Source @shellFilesForLint
+    if ($LASTEXITCODE -ne 0) {
+        throw "shellcheck reported findings."
+    }
+    Write-Host "PASS: shellcheck"
+} else {
+    Write-Host "SKIP: shellcheck not installed locally (enforced in CI)."
+}
 
 $bash = Get-Command bash -ErrorAction SilentlyContinue
 if ($bash) {
@@ -154,6 +200,9 @@ if ($bash) {
 } else {
     Write-Host "SKIP: Shell syntax check requires bash."
 }
+
+Write-Host "Running secret-hygiene scan (tests/test_secret_hygiene.py)"
+Invoke-Python -PythonCommand $python -Arguments @("-m", "unittest", "discover", "-s", (Join-Path $RepoRoot "tests"), "-p", "test_secret_hygiene*.py")
 
 Invoke-Python -PythonCommand $python -Arguments @("-m", "unittest", "discover", "-s", (Join-Path $RepoRoot "tests"), "-p", "test_*.py")
 

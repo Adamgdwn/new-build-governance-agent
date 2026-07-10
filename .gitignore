@@ -25,3 +25,5 @@ Thumbs.db
 data/
 dist/
 graphify-out/
+.coverage
+_cov_nbga.json

@@ -15,4 +15,4 @@ if [[ ! -d "${project_path}" ]]; then
   exit 1
 fi
 
-python3 "${repo_root}/automation/compliance_report.py" "${project_path}"
+"${PYTHON:-python3}" "${repo_root}/automation/compliance_report.py" "${project_path}"

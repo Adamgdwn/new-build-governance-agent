@@ -41,6 +41,12 @@ controls:
     - docs/CHANGELOG.md
     - docs/risks/risk-register.md
   machine_enforcement:
+    # All four are enforced by scripts/validate.sh and scripts/validate.ps1, run
+    # identically in local development and CI (.github/workflows/validate.yml):
+    #   required-file-check -> required-files list + schema validation steps
+    #   lint -> ruff check, ruff format --check, mypy, shellcheck, PSScriptAnalyzer
+    #   tests -> unittest suite with coverage floor
+    #   secret-scan -> tests/test_secret_hygiene.py committed-secret scan step
     - required-file-check
     - lint
     - tests
