@@ -1,8 +1,11 @@
 # Ship-Ready Engineering Standard
 
+Document ID: STD-ENG-020
 Document type: engineering standard
 Status: active
 Owner: Project owner or human technical lead
+Last Reviewed: 2026-07-10
+Next Review: 2026-10-10
 Audience: project owners, coding teams, contractors, AI coding agents, technical reviewers, product reviewers, and release reviewers
 Applies to: internal tools, SaaS products, websites, automations, AI-assisted builds, prototypes intended to become products, and production systems.
 
@@ -412,6 +415,29 @@ Before production release:
 Rollback can mean reverting code, disabling a feature flag, rolling back deployment, running a corrective migration, restoring data, disabling an integration, hiding a route or entry point, or switching provider or adapter.
 
 If rollback is impossible or risky, state that before release.
+
+### Deployment And Release Controls
+
+This section absorbs the retired Deployment and Release Standard. Releases must be intentional, reproducible, and reversible, and environment drift should be minimized.
+
+Deployable projects should define, at minimum, `dev`, a `staging` or equivalent validation environment, and `prod`. Deviations are allowed for low-risk or non-deployable projects when documented.
+
+All deployable projects must define:
+
+- release owner
+- release process
+- rollback path
+- environment configuration model
+- post-deployment validation steps
+
+Release expectations scale with the risk tier defined in [Risk Classification Standard](risk-classification-standard.md):
+
+- Low: documented deploy steps and a basic smoke check.
+- Medium: repeatable deployment workflow, staging validation, and a release checklist.
+- High: approval before production deployment, rollback instructions, an operational runbook, and release evidence retained in CI or deployment tooling.
+- Critical: dual approval by project owner and technical lead, stronger change visibility, an incident communication path, and documented recovery expectations.
+
+Each project must retain a release history through one or more of: a changelog, tags and release notes, or CI deployment records.
 
 ## Agentic Delivery Model
 

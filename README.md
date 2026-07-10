@@ -40,6 +40,17 @@ The desktop GUI walks users through one decision at a time, then shows the techn
 | Review the active roadmap and handoff | [Current build pathway](docs/current-build-pathway.md) |
 | Review release and deployment expectations | [Deployment guide](docs/deployment-guide.md) |
 
+## Reading Order
+
+The canonical reading order for a new session or contributor:
+
+1. `README.md` (this file) — orientation
+2. `START_HERE.md` — current plan and priorities
+3. `AI_BOOTSTRAP.md` — canonical agent operating rules (`CLAUDE.md` and `AGENTS.md` route here)
+4. `docs/context-map.md` — what to load per task
+5. `docs/standards/README.md` — standards map; then the standards the task touches
+6. `docs/policy/durable-development-engineering-policy.md` before meaningful implementation; `docs/standards/ship-ready-engineering-standard.md` before declaring work complete
+
 ---
 
 ## Download / Use By Operating System

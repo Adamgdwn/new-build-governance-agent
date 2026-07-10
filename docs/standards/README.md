@@ -1,8 +1,10 @@
 # Engineering Standards Index
 
+Document ID: STD-ENG-016
 Document type: standards index
 Status: active
 Owner: Project owner or human technical lead
+Last Updated: 2026-07-10
 Audience: coding agents, human coders, reviewers, project owners, and release reviewers
 
 ## Purpose
@@ -32,16 +34,20 @@ Use these when the work touches the matching area:
 
 | Standard | Use When |
 |---|---|
-| [AI Agent Governance Standard](ai-agent-governance-standard.md) | Building or changing agents, tools, autonomy, prompt registries, model registries, or agent permissions. |
 | [Context Hygiene Standard](context-hygiene-standard.md) | Managing long agent sessions, context windows, token budgets, compaction, scoped repo reads, or handoffs. |
-| [Deployment And Release Standard](deployment-and-release-standard.md) | Changing deployment, release, rollback, environments, external providers, or production promotion. |
-| [Document Control Standard](document-control-standard.md) | Creating or maintaining durable docs, handoffs, records, standards, pathway logs, ADRs, audits, or runbooks. |
-| [Documentation Standard](documentation-standard.md) | Writing user, operator, architecture, setup, process, or support documentation. |
-| [Monorepo Standard](monorepo-standard.md) | Structuring or changing a monorepo, package boundaries, shared libraries, or workspace layout. |
-| [Repository And Naming Standard](repository-and-naming-standard.md) | Naming repositories, files, modules, directories, and common project structure. |
-| [Risk Classification Standard](risk-classification-standard.md) | Classifying risk tier, governance level, sensitive surfaces, or escalation needs. |
+| [Document Control Standard](document-control-standard.md) | Creating or maintaining durable docs, handoffs, records, standards, pathway logs, ADRs, audits, or runbooks. Also owns the required project document set. |
+| [Governance Level Standard](governance-level-standard.md) | Selecting or interpreting `governance_level` 0-4, or mapping levels to risk tiers and agent-action tiers. |
+| [Repository And Naming Standard](repository-and-naming-standard.md) | Naming repositories, files, modules, directories, common project structure, or monorepo layout. |
+| [Risk Classification Standard](risk-classification-standard.md) | Classifying risk tier, sensitive surfaces, or escalation needs. Sole definition of the Low/Medium/High/Critical tiers. |
 | [Security And Secrets Standard](security-and-secrets-standard.md) | Handling secrets, auth, permissions, private data, external credentials, or trust boundaries. |
 | [Testing Standard](testing-standard.md) | Choosing test levels, writing validation evidence, or judging test adequacy. |
+
+Retired standards (kept as tombstones; content merged into their parents on 2026-07-10):
+
+- `ai-agent-governance-standard.md` → [Engineering Governance By Use Case](engineering-governance-by-use-case.md)
+- `deployment-and-release-standard.md` → [Ship-Ready Engineering Standard](ship-ready-engineering-standard.md)
+- `documentation-standard.md` → [Document Control Standard](document-control-standard.md)
+- `monorepo-standard.md` → [Repository And Naming Standard](repository-and-naming-standard.md)
 
 ## Context Routing
 

@@ -1,103 +1,86 @@
 # AI Bootstrap Rules
 
-## Purpose
-This repository must be workable by Claude, Codex, and local coding agents
-using the same operating rules.
+This is the canonical agent-instruction file for this repository, for Claude, Codex, and local coding agents alike. `CLAUDE.md` and `AGENTS.md` are short routers into this file.
 
-## Change rules
-- Prefer editing existing files over creating duplicate replacements.
-- Keep changes small and reversible.
-- Do not rename or move core files unless explicitly instructed.
-- Explain new dependencies before adding them.
-- Update docs when behavior, interfaces, or architecture change.
-- Build the smallest useful thing in the safest durable way.
-- Treat "works locally" as incomplete until validation, security/privacy impact, documentation, and rollback expectations are addressed.
+This repository is the governance source for all projects on this machine. It is not an application project and not a build target. Use `templates/project/` to scaffold new projects and `automation/` scripts to bootstrap and validate governed projects.
 
-## Governance
-- For ordinary scoped work, start with `git status --short`, this file, and the specific files or errors relevant to the task.
-- Read `START_HERE.md` and follow the active plan named there, defaulting to `docs/current-build-pathway.md`, for material implementation work, unclear scope, handoffs, or changes that affect the active plan.
+## Startup
+
+- For ordinary scoped work: run `git status --short`, read the repo-local instruction file, then only the specific files or errors relevant to the task.
 - Use `docs/context-map.md` when deciding which docs, standards, or source areas to load.
-- Use `docs/standards/README.md` as the standards map for coding and release work.
-- Review `docs/standards/engineering-governance-by-use-case.md`, confirm the work matches `use_case.primary`, and do not override the selected `risk_tier` or `governance_level`.
-- Review `docs/policy/durable-development-engineering-policy.md` before meaningful implementation work.
-- Review `docs/standards/ship-ready-engineering-standard.md` before declaring meaningful work complete.
-- Use `docs/standards/context-hygiene-standard.md` for long sessions, scoped repository reads, compaction, and handoffs.
-- Run governance preflight for material or risk-triggering work:
-  `bash scripts/governance-preflight.sh`
-- Governance triggers include production, deployment, authentication, authorization, payments, secrets, sensitive data, database migrations, customer communications, external side effects, infrastructure or provider settings, destructive actions, autonomous tool use, risk classification, governance policy changes, or release readiness.
-- Review `project-control.yaml` for risk tier and required controls.
-- Do not add temporary lean-out plans or one-off tool notes as permanent mandatory startup reads.
-- Record deviations as exceptions rather than ignoring them.
-- Capture the work timestamp with `date -Iseconds` and use it in material work notes, decisions, validation, and handoffs.
+- Keep startup lean: do not turn heavy standards, Graphify, plugins, or MCP servers into an automatic startup chain for small edits. Trigger them by task risk or scope.
+- After a compaction, context clear, or restart: resume from the latest handoff or work packet, run `git status --short`, and open only the active plan and files needed for the next objective.
 
-## Work chunking
-- Work in context-window-friendly chunks.
-- Each chunk should have one objective, clear input files, clear output files or behavior, and explicit validation.
-- Each meaningful chunk should state its target completion state: `Draft complete`, `Task complete`, `Integration complete`, `Release ready`, or `Blocked`.
-- Project completion is a human decision. Agents may report only bounded completion states when criteria and verification evidence support them.
-- Stop when the chunk's definition of done is met, when its stop condition is reached, or when repeated attempts stop producing new evidence.
-- In the active plan document, keep active and planned chunk headings clear and consistent with that document's existing pattern.
-- Update the active plan named by `START_HERE.md` when the active chunk or next handoff changes.
+## Governance Triggers
 
-## Fundamentals-First AI Coding
+For material or risk-triggering work, unclear scope, handoffs, or changes that affect the active plan:
 
-Build fundamentals-first software. AI speed does not make bad code cheap.
+1. Read `START_HERE.md` and follow the active plan named there (default `docs/current-build-pathway.md`).
+2. Run the preflight: `bash scripts/governance-preflight.sh` here, or `bash automation/governance_check.sh /path/to/project` for a governed project.
+3. Use `docs/standards/README.md` as the standards map. Review `docs/policy/durable-development-engineering-policy.md` before meaningful implementation and `docs/standards/ship-ready-engineering-standard.md` before declaring meaningful work complete.
+4. Review `project-control.yaml`, confirm the work matches `use_case.primary`, and capture a timestamp with `date -Iseconds`.
 
-Before meaningful coding, reach shared understanding. Use consistent domain language. Prefer deep modules with simple interfaces over shallow pass-through layers.
+Risk-triggering work includes: production, deployment, authentication, authorization, payments, secrets, sensitive data, database migrations, customer communications, external side effects, infrastructure or provider settings, destructive or autonomous actions, risk classification, governance policy changes, or release readiness.
 
-Let feedback loops set the pace: types, tests, linting, runtime checks, and user-visible validation.
+- Do not override the selected `risk_tier` or `governance_level`; changes require an explicit owner decision (see `docs/standards/governance-level-standard.md`).
+- Do not modify standards or templates without explicit instruction.
+- Record deviations as exceptions; do not silently ignore missing governance files.
+- Escalate if a request increases risk, autonomy, money handling, or sensitive data exposure.
 
-Design interfaces deliberately, then implement in small vertical slices.
+## Completion And Stopping
 
-Avoid flimsy pass-through layers, generic helpers, premature abstractions, swallowed errors, untyped blobs, duplicated business rules, hidden production assumptions, and fake validation claims.
+- Work in context-window-friendly chunks: one objective, clear input and output files, explicit validation.
+- Use bounded completion labels: `Draft complete`, `Task complete`, `Integration complete`, `Release ready`, or `Blocked`. Project completion is a human decision.
+- Stop when the chunk's definition of done is met, its stop condition is reached, or repeated attempts stop producing new evidence.
+- A task is not complete until relevant validation is run or a blocker is clearly stated. "Works locally" is not complete.
 
-When you see weak design, flag it and propose the smallest safe improvement instead of rewriting the project.
+## Chunk Close-Out Protocol
 
-Every change should make the next correct change easier.
+At the end of every chunk of work:
+
+1. Check `CARRY_FORWARD.md` — if it has open items, surface them to the user before proceeding. If open flags must survive the context reset, read them aloud and wait for confirmation.
+2. Stage the relevant files, commit with a clear message, and push. Do this automatically — do not ask unless a carry-forward flag or blocker requires a decision first.
+3. Confirm the push succeeded, then suggest `/compact`. Do not suggest `/clear` — compact preserves the summary of what was done, which is cheaper to resume from than a cold start.
+4. `/clear` is an explicit user override only: use it when prior context had persistent wrong assumptions, or the next chunk is in a completely unrelated domain.
+5. Do not auto-compact. Do not skip the commit step without flagging why.
+
+A chunk ends when the definition-of-done in the active plan is met, a stop condition is reached (blocker, repeated failure, scope boundary), or the user signals done.
+
+## Fundamentals First
+
+- Build the smallest useful thing in the safest durable way. AI speed does not make bad code cheap.
+- Reach shared understanding before meaningful coding; use consistent domain language; prefer deep modules with simple interfaces; implement in small vertical slices paced by feedback loops (types, tests, linting, runtime checks).
+- Avoid pass-through layers, premature abstractions, swallowed errors, duplicated business rules, and fake validation claims.
+- When you see weak design, flag it and propose the smallest safe improvement instead of rewriting the project.
 
 ## Context Hygiene
 
-Operate with strict context hygiene. Keep active context minimal, relevant, current, and recoverable.
+Essentials (full standard: `docs/standards/context-hygiene-standard.md`):
 
-Work in clear phases. Summarize at phase boundaries. Compact or reset before quality degrades. Re-state critical constraints after compaction.
+- Keep active context minimal, relevant, current, and recoverable. Narrow file scope before reading; prefer targeted diffs over whole-repo exploration.
+- Summarize at phase boundaries; compact before quality degrades; re-state critical constraints after compaction.
+- The repository remembers, agents rent context: keep work packets, validation notes, and handoffs durable enough that the next agent does not need the chat thread. Keep read-only scout outputs summary-only.
 
-Narrow file scope before reading. Prefer targeted diffs and specific files over whole-repo exploration.
+## Graphify
 
-Treat tokens as a budget, but do not skip required governance, security, architecture, or task-critical reading.
+- Before broad source exploration, architecture analysis, dependency tracing, or cross-repo planning, query the existing graph first (`graphify query/path/explain`); use the workspace graph in the Graphify tool repo for cross-repo routing. For known files, small scoped edits, or build/test errors, use normal repo inspection.
+- After code changes, run the cheap incremental `graphify update . --no-cluster`. Never trigger a full `/graphify` rebuild to answer a question or at session start — a full semantic pass is a deliberate, once-per-major-change act.
+- Full governance policy: `docs/agent-governance.md` in the Graphify tool repo.
 
-Use lean startup: keep always-on checks short, and trigger heavy governance, Graphify, plugin, MCP, and release checks by task risk or scope.
+## Secrets
 
-The repository remembers. Agents rent context. Keep work packets, scout summaries, validation, and handoffs durable enough that the next agent does not need the chat thread.
+Do not index, print, summarize, or commit secrets or environment files.
 
-Keep read-only scout outputs summary-only.
+## Change Rules
 
-After a compaction, context clear, or fresh restart, use the latest handoff or work packet as the resume point. Then check `git status --short`, read short repo-local instructions, follow the active plan named by `START_HERE.md` only when needed, and avoid archived logs or broad scans unless the current objective requires them.
-
-## Graphify Policy
-
-Use the canonical Graphify governance file at `/home/adamgoodwin/code/Tools/graphify/docs/agent-governance.md`.
-
-Before broad source exploration, architecture analysis, dependency tracing, unfamiliar large-surface work, or cross-repo planning, use Graphify first and reference `/home/adamgoodwin/code/Tools/graphify/workspace/out/graph.json`. Use the workspace graph for cross-repo routing. For known files, build or test errors, small scoped edits, or routine docs checks, use normal repo inspection first. When a new repo becomes active, set up repo-local Graphify with `graphify-setup-project /path/to/repo`.
-
-For full semantic repo graphs in heavy active repos, run `/graphify /path/to/repo` from Claude Code. Current Graphify skills can use Claude Code subagents when no Gemini key is set, so policy should constrain token burn through per-repo scope, caching, strict ignores, and cheap updates rather than hard-coding a provider or extraction backend.
-
-After code changes, update the relevant graph with `graphify update . --no-cluster`, or update the workspace graph for cross-repo work.
-
-Do not trigger a full `/graphify` rebuild to answer a question, at session start, or after a context clear; query the existing graph instead. A full semantic pass is a deliberate, once-per-major-change act, roughly 1M subagent tokens. Routine refreshes use the cheap incremental `graphify update . --no-cluster`.
-
-Preserve existing secret-handling rules: do not index, print, summarize, or commit secrets or environment files.
+- Prefer editing existing files over creating duplicates; keep changes small and reversible; explain new dependencies before adding them.
+- Update docs when behavior, interfaces, or architecture change; if code behavior changes, update the nearest controlled document in the same task.
 
 ## Commands
-- Install: no pip packages required; core uses stdlib only. GUI requires tkinter (bundled with the python.org installer).
+
+- Install: runtime uses stdlib only; GUI requires tkinter (bundled with the python.org installer). The validation gate needs dev tools: `python3 -m pip install ruff mypy coverage`.
 - Dev:     `python3 automation/new_build_gui.py`
-- Lint:    `bash scripts/validate.sh`
+- Lint:    `bash scripts/validate.sh` (ruff + mypy + shellcheck + secret scan + tests — the one binary gate, identical in CI)
 - Build:   _no build step — scripts run directly_
 - Test:    `python3 -m unittest discover -s tests -p 'test_*.py'`
 - Coverage: `python3 -m coverage run --source=automation -m unittest discover -s tests -p 'test_*.py' && python3 -m coverage report`
-
-## Document control
-- Architecture decisions go in `docs/`
-- If code behavior changes, update the nearest controlled document in the same task
-
-## Completion standard
-A task is not complete until relevant validation is run or a blocker is clearly stated. Use honest completion labels: `Draft complete`, `Task complete`, `Integration complete`, `Release ready`, or `Blocked`. Do not declare a whole project complete unless an authorized human has made that decision.

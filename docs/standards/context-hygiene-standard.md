@@ -1,8 +1,11 @@
 # Context Hygiene Standard
 
+Document ID: STD-ENG-011
 Document type: supporting engineering standard
 Status: active
 Owner: Project owner or human technical lead
+Last Reviewed: 2026-07-10
+Next Review: 2026-10-10
 Audience: coding agents, human coders, reviewers, and project owners
 Applies to: coding sessions, agent workflows, long-running implementation threads, reviews, handoffs, and governed build upgrades.
 

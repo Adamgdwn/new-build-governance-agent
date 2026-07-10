@@ -1,5 +1,14 @@
 # Risk Classification Standard
 
+Document ID: STD-ENG-018
+Version: 1.0.0
+Status: active
+Owner: Technical Lead
+Approver: Project Owner
+Effective Date: 2026-07-10
+Last Reviewed: 2026-07-10
+Next Review: 2026-10-10
+
 ## Purpose
 
 This standard defines the default risk model used to scale controls across projects.

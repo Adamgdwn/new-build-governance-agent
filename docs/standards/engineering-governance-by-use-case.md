@@ -1,5 +1,13 @@
 # Engineering Governance By Use Case
 
+Document ID: STD-ENG-014
+Version: 1.0.0
+Status: active
+Owner: Technical Lead
+Approver: Project Owner
+Effective Date: 2026-07-10
+Last Reviewed: 2026-07-10
+Next Review: 2026-10-10
 Document type: use-case governance standard
 Audience: project owners, coding teams, contractors, AI coding agents, and reviewers
 Purpose: define engineering and governance expectations for the main kinds of systems built under this framework.
@@ -301,6 +309,39 @@ Agent action risk tiers:
 | Tier 4 | Destructive or production action | Delete files, deploy code, modify DB, change permissions | Explicit approval, dry-run, backups, rollback, strong audit |
 | Tier 5 | Irreversible/high-stakes action | Payments, legal/HR action, public posting, safety-critical control | Human decision required; agent may assist only |
 
+For how these action tiers map to the numeric `governance_level` and the default risk tier, use the crosswalk in [Governance Level Standard](governance-level-standard.md).
+
+### Agent Governance Records And Autonomy
+
+This subsection absorbs the retired AI Agent Governance Standard. Agents must be governable, observable, and constrainable; autonomy must be matched to risk; and prompt, model, and tool changes must be traceable.
+
+Every governed agent project must maintain:
+
+- agent inventory
+- model registry
+- prompt or instruction register
+- tool permission matrix
+- evaluation set or evaluation approach
+- human oversight rules
+- rollback or disable procedure
+
+Each agent must document its intended purpose, disallowed actions, approved tool classes, maximum autonomy level, and escalation path for ambiguous or risky situations.
+
+Suggested default autonomy levels:
+
+- `A0`: advisory only, no actions
+- `A1`: proposes actions for approval
+- `A2`: performs bounded actions with logging
+- `A3`: performs broader actions with strong guardrails and review
+
+Higher autonomy requires stronger controls, especially at high or critical risk. Default autonomy by governance level is given in the crosswalk in [Governance Level Standard](governance-level-standard.md).
+
+For each tool or integration, document the tool name, purpose, allowed operations, prohibited operations, approval requirements, and failure behavior.
+
+Agents must be evaluated for instruction adherence, unsafe action resistance, tool-use correctness, escalation behavior, and regression after meaningful changes.
+
+Material agent changes — model change, prompt or policy change, tool access change, autonomy increase, or deployment target change — require documented review and re-evaluation.
+
 ## Workflow Automations
 
 Examples include n8n workflows, scheduled syncs, notifications, CRM updates, report generation, SharePoint/Forms automation, and invoice routing.
@@ -417,12 +458,7 @@ A prototype cannot become production until it has security review, data review, 
 
 ## Minimum Review Level By Risk
 
-| Risk Level | Examples | Required Review |
-|---|---|---|
-| Low | Static content update, styling fix, typo | Self-check or light peer review |
-| Medium | Form, dashboard, non-sensitive data workflow | Peer review, tests for logic |
-| High | Auth, permissions, customer data, API, database migration | Senior review, security review, tests, rollback |
-| Critical | Production infrastructure, destructive automation, AI agent with tools, payment/legal/safety actions | Formal approval, threat model, strong tests, monitoring, rollback, human gate |
+Risk tiers (Low/Medium/High/Critical) are defined in [Risk Classification Standard](risk-classification-standard.md). The review controls each tier requires, and the recommended default `governance_level` for each tier, are defined in the crosswalk in [Governance Level Standard](governance-level-standard.md).
 
 ## Best-Practice Decision Tree
 

@@ -1,6 +1,7 @@
 # Context Map
 
 Document type: project context routing map
+Last Updated: 2026-07-10
 Status: active
 Owner: Technical Lead
 Audience: coding agents, human coders, reviewers, and project owners
@@ -15,7 +16,7 @@ it.
 
 ## Always Load
 
-- `AGENTS.md` or the active agent instruction file
+- `AI_BOOTSTRAP.md` (the canonical agent instruction file; `CLAUDE.md` and `AGENTS.md` route to it)
 - `START_HERE.md` for material work, unclear scope, or changes to the active plan
 - `project-control.yaml` when risk, governance level, controls, or required docs matter
 
@@ -29,7 +30,9 @@ Keep these files compact. They should route to durable docs, not duplicate them.
 | Engineering standards map | `docs/standards/README.md` |
 | Context windows, token budgets, compaction, scoped reads, or handoffs | `docs/standards/context-hygiene-standard.md` |
 | Durable implementation, design quality, testing discipline, or AI coding fundamentals | `docs/policy/durable-development-engineering-policy.md` |
-| Use-case controls, risk tier, governance level, or owner decisions | `docs/standards/engineering-governance-by-use-case.md` |
+| Governance level meaning, level-to-tier crosswalk, or agent-action tiers | `docs/standards/governance-level-standard.md` |
+| Use-case controls, agent governance records, or owner decisions | `docs/standards/engineering-governance-by-use-case.md` |
+| Risk tier definitions or reclassification | `docs/standards/risk-classification-standard.md` |
 | Completion labels, Definition of Shipped, release evidence, or finish reports | `docs/standards/ship-ready-engineering-standard.md` |
 | Architecture decisions or system shape | `docs/architecture.md` and relevant ADRs |
 | Domain terms or naming | `docs/domain-language.md` |
@@ -79,4 +82,4 @@ Update this file when the repo's routing paths change or when agents repeatedly
 load the wrong material. Keep it short enough to read at startup when context
 routing is unclear.
 
-Integration note: `/home/adamgoodwin/Downloads/cost_effective_agentic_coding_context_standard.md` was integrated into this map on 2026-06-13. Do not add that downloaded standard as a new mandatory startup read.
+Integration note: a downloaded cost-effective agentic coding context standard was integrated into this map on 2026-06-13. Do not add that downloaded standard as a new mandatory startup read.

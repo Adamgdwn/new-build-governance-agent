@@ -1,5 +1,13 @@
 # Durable Development Engineering Policy
 
+Document ID: POL-ENG-002
+Version: 1.0.0
+Status: active
+Owner: Technical Lead
+Approver: Project Owner
+Effective Date: 2026-07-10
+Last Reviewed: 2026-07-10
+Next Review: 2026-10-10
 Document type: risk-scaled operating policy
 Audience: coding team, contractors, AI coding agents, technical reviewers, and project leads
 Applies to: internal tools, SaaS products, websites, automations, AI-assisted builds, scripts, prototypes intended to become products, and production systems.
@@ -343,38 +351,11 @@ Before production release:
 - Monitoring is in place.
 - Release notes are written if users or operators are affected.
 
-## Definition of Ready
+## Definition of Ready and Definition of Done
 
-A meaningful implementation task is ready when the team has enough clarity for the risk involved:
+The canonical Definition of Ready and Definition of Done checklists are owned by [Ship-Ready Engineering Standard](../standards/ship-ready-engineering-standard.md). Use them there; this policy does not maintain a separate copy.
 
-- Clear problem statement.
-- Owner.
-- Acceptance criteria.
-- Known dependencies.
-- Relevant design notes or links.
-- Security and privacy notes where needed.
-- Test expectations.
-- Rollback expectations for risky work.
-
-If "done" cannot be explained before starting, either narrow the task or record the uncertainty as part of the chunk.
-
-## Definition of Done
-
-A change is done only when:
-
-- Acceptance criteria are met.
-- Code is reviewed or self-reviewed at a level appropriate to the risk.
-- Automated checks pass.
-- Tests are appropriate to the risk.
-- Security and privacy concerns are addressed.
-- Errors are handled.
-- Logs and metrics are added where useful.
-- Documentation is updated.
-- Dead code is removed.
-- Rollback path is known.
-- The result can be operated and debugged.
-
-"Works locally" is not done.
+In short: a task is ready only when it has enough clarity for the risk involved — problem statement, owner, acceptance criteria, dependencies, test and rollback expectations. A change is done only when acceptance criteria are met, checks and risk-appropriate tests pass, security and errors are handled, documentation is current, rollback is known, and the result can be operated and debugged. "Works locally" is not done.
 
 ## Definition of Shipped
 

@@ -1,5 +1,14 @@
 # Repository and Naming Standard
 
+Document ID: STD-ENG-017
+Version: 1.0.0
+Status: active
+Owner: Technical Lead
+Approver: Project Owner
+Effective Date: 2026-07-10
+Last Reviewed: 2026-07-10
+Next Review: 2026-10-10
+
 ## Purpose
 
 This standard defines naming conventions and repository structure expectations for consistency across project types.
@@ -105,6 +114,8 @@ Any significant deviation should be documented.
 
 ## Monorepo Handling
 
+This section absorbs the retired Monorepo Standard.
+
 Monorepos are supported when:
 
 - the root defines shared governance controls
@@ -112,4 +123,29 @@ Monorepos are supported when:
 - release boundaries are clear
 - secrets and deployments are scoped to the correct subproject
 
-See the monorepo standard for details.
+The monorepo root should include a root `README.md`, a root `project-control.yaml`, shared standards or conventions, CI and enforcement configuration, and ownership boundaries.
+
+Each independently deployable or governed subproject should include a local `README.md`, local documentation as needed, an explicit owner, a risk classification, and a release boundary.
+
+Preferred structure:
+
+```text
+monorepo/
+  README.md
+  project-control.yaml
+  apps/
+    customer-portal/
+    marketing-site/
+  services/
+    billing-api/
+  agents/
+    deployment-governance-agent/
+  packages/
+  docs/
+```
+
+Control rules:
+
+- Shared controls may be centralized.
+- Risk and release decisions must remain traceable per governed subproject.
+- A high-risk subproject may require stronger controls than the rest of the monorepo.

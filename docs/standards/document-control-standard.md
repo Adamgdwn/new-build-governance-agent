@@ -180,6 +180,33 @@ date -Iseconds
 
 Use date-only values for review metadata, such as `Last Reviewed`, when a full timestamp would add noise. Use full timestamps for event records where sequence matters.
 
+## Required Project Document Set
+
+This section absorbs the retired Documentation Standard. Documentation must support delivery, operation, and handover; documents should be concise, current, and owned. Required documents may be lightweight, but they may not be absent.
+
+Every governed project must provide:
+
+- `README.md`
+- `START_HERE.md`
+- `project-control.yaml`
+- architecture overview
+- current build pathway
+- deployment guide for deployable systems
+- runbook for operable systems
+- change log or release history
+- risk register
+
+Type-specific additions:
+
+- Applications, services, and websites: environment and configuration notes, dependency and integration notes, user-facing availability or support assumptions.
+- Internal tools and automations: execution and scheduling model, operational owner, failure handling notes.
+- Infrastructure repositories: environment topology, state handling notes, change approval expectations.
+- AI agents: model registry, prompt or instruction record, tool permission matrix, evaluation strategy, human oversight rules, rollback or kill-switch guidance.
+
+Major architectural or governance decisions should be captured in ADR form — at minimum, decisions affecting security posture, production architecture, deployment model, data handling, agent autonomy, or external dependencies with high lock-in risk.
+
+Required documents must state owner and last review date where practical, timestamp material work and handoffs, be written for maintainers and operators, and avoid stale promises or plans that are no longer accurate.
+
 ## Required Document Patterns
 
 ### Pathway And Handoff Documents

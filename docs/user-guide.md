@@ -1,5 +1,9 @@
 # User Guide
 
+Last Updated: 2026-07-10
+Status: active
+Owner: Technical Lead
+
 This guide covers how to use the framework day-to-day: creating projects, validating governance, customising templates, and understanding what each file does.
 
 ---
@@ -400,8 +404,10 @@ The second proposal should show no repeated governance actions. The git status r
 Project types: `application` `website` `service` `internal-tool` `automation` `infrastructure` `documentation` `agent`
 
 Governance levels: `0` full autonomy, `1` light guardrails, `2` standard supervised,
-`3` strict review, `4` critical controls. The framework derives
-`risk_tier` as `low`, `medium`, `high`, or `critical` for compatibility.
+`3` strict review, `4` critical controls. The levels are defined in
+`docs/standards/governance-level-standard.md`. `risk_tier` (`low`, `medium`,
+`high`, or `critical`) is set independently; when only one of the two values is
+supplied, the tooling fills in the recommended default for the other.
 
 ---
 
@@ -550,7 +556,7 @@ agent_controls:
   autonomy_level: A0          # A0 = human-in-the-loop, A1 = supervised, A2 = autonomous
 ```
 
-Change `governance_level` if the project evolves. A prototype that becomes a production system should usually move toward `3` or `4`, which derives a higher `risk_tier` and implies tighter controls.
+Change `governance_level` if the project evolves. A prototype that becomes a production system should usually move toward `3` or `4`, and `risk_tier` should usually be reclassified upward at the same time. The two fields are set independently; justify any deliberate mismatch in `project-control.yaml` notes. See `docs/standards/governance-level-standard.md` for the level definitions and the level-to-tier crosswalk.
 
 ---
 
@@ -586,7 +592,7 @@ Changes to templates only affect new projects. Existing projects are unaffected.
 
 ## Governance Levels
 
-| Level | Meaning | Derived risk tier |
+| Level | Meaning | Default risk tier |
 |-------|---------|-------------------|
 | `0` | Full autonomy | `low` |
 | `1` | Light guardrails | `low` |
@@ -594,7 +600,7 @@ Changes to templates only affect new projects. Existing projects are unaffected.
 | `3` | Strict review | `high` |
 | `4` | Critical controls | `critical` |
 
-The framework stores both `governance_level` and `risk_tier`. The 0-4 level is the primary selection; the tier remains for compatibility with existing checks and registry records.
+The framework stores both `governance_level` and `risk_tier`, and the two are set independently. The 0-4 level is the primary selection; the tier column above is the recommended default pairing, applied automatically when only one value is supplied. The full level definitions, required controls, and the crosswalk to agent-action tiers live in `docs/standards/governance-level-standard.md`.
 
 ---
 

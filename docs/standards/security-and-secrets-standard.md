@@ -1,5 +1,14 @@
 # Security and Secrets Standard
 
+Document ID: STD-ENG-019
+Version: 1.0.0
+Status: active
+Owner: Technical Lead
+Approver: Project Owner
+Effective Date: 2026-07-10
+Last Reviewed: 2026-07-10
+Next Review: 2026-10-10
+
 ## Purpose
 
 This standard defines baseline controls for secrets, sensitive data, and secure delivery.
