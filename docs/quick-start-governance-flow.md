@@ -1,5 +1,9 @@
 # Quick-Start Governance Flow
 
+Last Updated: 2026-07-10
+Status: active
+Owner: Technical Lead
+
 ## Purpose
 
 This is the shortest practical path for bringing a new project under governance.

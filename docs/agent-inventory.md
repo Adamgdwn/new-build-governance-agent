@@ -1,6 +1,8 @@
 # Agent Inventory
 
 Last reviewed: 2026-05-31T11:06:01-06:00
+Status: active
+Owner: Technical Lead
 
 | Agent ID | Name | Purpose | Autonomy | Model | Owner | Status |
 | --- | --- | --- | --- | --- | --- | --- |

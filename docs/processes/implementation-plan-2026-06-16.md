@@ -2,11 +2,13 @@
 
 Document ID: PATH-ENG-002
 Date: 2026-06-16
-Status: active
+Last Updated: 2026-07-10
+Status: retired
 Owner: Adam Goodwin
 Approver: Adam Goodwin
+Note: Executed 2026-07-10 — plan delivered; retained for traceability.
 
-Source: audit `new-build-governance-agent-audit-2026-06-17.md` + conversation review.
+Source: audit `docs/audits/governance-audit-2026-06-16.md` + conversation review.
 
 ## Execution Order
 
@@ -31,8 +33,8 @@ so this is a human-guided pass, not a bulk automation.
 
 | File | Likely status | Confirm? |
 |---|---|---|
-| `docs/repository-audit-2026-05-19.md` | archived | — |
-| `docs/repository-audit-2026-06-07.md` | archived | — |
+| `docs/repository-audit-2026-05-19.md` | retired | — |
+| `docs/repository-audit-2026-06-07.md` | retired | — |
 | `docs/processes/new-build-governance-agent-consolidation-plan.md` | retired (decision executed) | — |
 | `docs/standards/*.md` (11 files) | active | confirm each |
 | `docs/policy/*.md` (2 files) | active | confirm each |
@@ -44,7 +46,7 @@ so this is a human-guided pass, not a bulk automation.
 
 ### What gets created
 - `docs/archive/` folder
-- Old audit reports moved to `docs/archive/` with `Status: archived` header
+- Old audit reports moved to `docs/archive/` with `Status: retired` header
 - Retired plan marked `Status: retired` in place (not moved — stays for traceability)
 - All remaining docs get appropriate `Status:` header added
 
@@ -283,7 +285,7 @@ time out after 5 minutes. Stdout/stderr are capped and redacted before report st
 
 | File | Change |
 |---|---|
-| `docs/current-build-pathway.md` | Split: keep active plan (current chunk + next handoff + validation log). Archive pre-June-2026 history to `docs/archive/pathway-log-2026.md` with `Status: archived`. |
+| `docs/current-build-pathway.md` | Split: keep active plan (current chunk + next handoff + validation log). Archive pre-June-2026 history to `docs/archive/pathway-log-2026.md` with `Status: retired`. |
 | `automation/new_build_headless.py` line 183 | Replace hard-coded `"Adam Goodwin"` with owner from governance home `project-control.yaml`, defaulting to `"Project Owner"`. |
 | `automation/change_control.py` | Replace hard-coded `/home/adamgoodwin/...` Graphify paths with runtime-resolved paths via `GOVERNANCE_HOME` and `Path.home()`. |
 | Root `AGENTS.md` | Trim to startup router only. Target: under 80 lines. Heavy governance text stays in the standards it already references. |

@@ -2,6 +2,8 @@
 
 Date: 2026-05-31
 Timestamp: 2026-05-31T10:53:42-06:00
+Status: retired
+Owner: Project Owner
 Scope: `New Build Governance Agent` repository only
 Classification audited: `project_type: agent`, `use_case.primary: AI agent with tools`, secondary use case `Infrastructure / deployment code`, `risk_tier: high`, `governance_level: 3`
 

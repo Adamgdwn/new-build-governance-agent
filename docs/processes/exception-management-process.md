@@ -1,5 +1,14 @@
 # Exception Management Process
 
+Document ID: PRC-ENG-002
+Version: 1.0.0
+Status: active
+Owner: Technical Lead
+Approver: Project Owner
+Effective Date: 2026-07-10
+Last Reviewed: 2026-07-10
+Next Review: 2026-10-10
+
 ## Purpose
 
 This process governs how deviations from standards are requested, approved, tracked, and reviewed.

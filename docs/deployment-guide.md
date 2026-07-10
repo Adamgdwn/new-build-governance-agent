@@ -1,6 +1,8 @@
 # Deployment Guide
 
 Last reviewed: 2026-05-31T11:06:01-06:00
+Status: draft
+Owner: Technical Lead
 
 ## Environments
 

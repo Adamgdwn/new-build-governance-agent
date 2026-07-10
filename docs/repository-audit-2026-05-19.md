@@ -1,6 +1,8 @@
 # New Build Governance Agent Repository Audit
 
 Date: 2026-05-19
+Status: retired
+Owner: Project Owner
 Scope: `New Build Governance Agent` repository only
 Auditor context: repository access, limited product context, no secret values inspected or reported
 

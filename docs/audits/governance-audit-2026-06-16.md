@@ -7,6 +7,8 @@ Scope: /home/adamgoodwin/code/agents/New Build Agent
 Status: active
 Owner: Project Owner
 
+> Remediation executed 2026-07-10 — see governance-audit-2026-07-10.md for the clean run.
+
 ---
 
 ## Executive Summary

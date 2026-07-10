@@ -1,5 +1,8 @@
 # Domain Language
 
+Last Updated: 2026-07-10
+Status: active
+Owner: Technical Lead
 Document type: shared vocabulary
 Audience: project owner, builders, AI coding agents, reviewers, and operators
 Purpose: define the terms used consistently across code, docs, tests, UI, prompts, runbooks, and release notes.

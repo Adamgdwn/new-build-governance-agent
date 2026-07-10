@@ -2,6 +2,8 @@
 
 Date: 2026-06-07
 Timestamp: 2026-06-07T10:09:10-06:00
+Status: retired
+Owner: Project Owner
 Scope: whole repository standards audit
 Classification audited: `project_type: agent`, primary use case `AI agent with tools`, secondary use case `Infrastructure / deployment code`, `risk_tier: high`, `governance_level: 3`
 Auditor: Codex session

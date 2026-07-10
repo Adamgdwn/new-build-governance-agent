@@ -1,6 +1,8 @@
 # Prompt Register
 
 Last reviewed: 2026-05-31T11:06:01-06:00
+Status: active
+Owner: Technical Lead
 
 | Prompt ID | Agent | Purpose | Current Version | Change Type | Last Reviewed |
 | --- | --- | --- | --- | --- | --- |

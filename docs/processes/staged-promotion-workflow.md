@@ -1,5 +1,14 @@
 # Staged Promotion Workflow
 
+Document ID: PRC-ENG-003
+Version: 1.0.0
+Status: active
+Owner: Technical Lead
+Approver: Project Owner
+Effective Date: 2026-07-10
+Last Reviewed: 2026-07-10
+Next Review: 2026-10-10
+
 ## Purpose
 
 This workflow separates local compliance work from any external push or deployment action.

@@ -1,6 +1,6 @@
 # Current Build Pathway
 
-Last Updated: 2026-06-16
+Last Updated: 2026-07-10
 Status: active
 Owner: Technical Lead
 
@@ -123,3 +123,28 @@ Validation:
 
 - `python3 -m py_compile automation/change_control.py automation/new_build_headless.py` passed.
 - `bash scripts/validate.sh` passed.
+
+## Chunk Thirty-Three - Audit Tier-1 Remediation
+
+Status: complete
+
+Completion target: Integration complete
+
+Budget class: Large
+
+Objective: execute the five Tier-1 recommendations from docs/audits/repository-audit-2026-07-10.md and record the remaining tiers as a durable backlog.
+
+Acceptance criteria:
+
+- [x] Real validation gate: ruff (lint+format), mypy, shellcheck, PSScriptAnalyzer, and an explicit secret-hygiene step wired into `scripts/validate.sh` and `scripts/validate.ps1`, with CI installing the tools; `machine_enforcement` entries in `project-control.yaml` now map to real steps.
+- [x] `docs/standards/governance-level-standard.md` (STD-ENG-009) defines levels 0-4 with a single crosswalk to risk tiers and autonomy; derive-vs-independent contradiction resolved in `docs/user-guide.md`.
+- [x] One canonical doc home per rule: `AI_BOOTSTRAP.md` (86 lines) is the canonical agent-instruction source; `CLAUDE.md` (32) and `AGENTS.md` (17) are routers; DoR/DoD owned by ship-ready; four stub standards folded into parents and tombstoned.
+- [x] One canonical code implementation per behavior: `automation/env_file.py` (shared .env parsing), `automation/project_naming.py` (slugify, reserved names, governance/risk tables, INITIAL_SCOPE); `new_build.sh` rewritten as a thin wrapper over `new_build_headless.py`; GUI gains reserved-name and slug-length guards and a Windows-correct PATH.
+- [x] June metadata remediation executed: 40 docs given compliant headers; `python automation/governance_audit.py .` reports 0 blockers, 0 required gaps, 0 warnings (was 119); implementation plan's illegal `archived` statuses and bogus citation fixed.
+- [x] Tier 2/3 recommendations and Tier-1 residuals recorded in `docs/audits/remediation-backlog-2026-07-10.md` (AUD-ENG-004).
+
+Validation:
+
+- `bash scripts/validate.sh` passed end-to-end on Windows Git Bash (compliance, schema, ruff, mypy, shellcheck, secret scan, 120 unit tests).
+- `python automation/governance_audit.py .` exit 0, zero findings.
+- `./scripts/validate.ps1` (including the Windows launcher build) run at close-out.

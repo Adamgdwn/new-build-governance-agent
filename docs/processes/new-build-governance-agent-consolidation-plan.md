@@ -1,5 +1,14 @@
 # New Build Governance Agent Consolidation Plan
 
+Document ID: PRC-ENG-004
+Version: 1.0.0
+Status: retired
+Owner: Technical Lead
+Approver: Project Owner
+Effective Date: 2026-07-10
+Last Reviewed: 2026-07-10
+Note: Decision executed — retained for traceability.
+
 ## Decision
 
 `New Build Governance Agent` should remain the primary product and operator entrypoint.

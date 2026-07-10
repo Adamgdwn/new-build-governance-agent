@@ -1,5 +1,9 @@
 # Manual
 
+Last Updated: 2026-07-10
+Status: active
+Owner: Technical Lead
+
 ## What This Project Is
 
 Describe the project in operator-friendly terms.

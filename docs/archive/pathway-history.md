@@ -1,5 +1,9 @@
 # Pathway History
 
+Last Updated: 2026-07-10
+Status: retired
+Owner: Technical Lead
+
 Archived from `docs/current-build-pathway.md` on 2026-06-16 as part of Chunk Thirty-One (housekeeping).
 
 The live pathway is at `docs/current-build-pathway.md`. This file preserves the full history for audit and reference.

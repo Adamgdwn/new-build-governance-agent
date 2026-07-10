@@ -1,5 +1,9 @@
 # Change Log
 
+Last Updated: 2026-07-10
+Status: active
+Owner: Technical Lead
+
 ## Unreleased
 
 - Refreshed the public README, user guide, quick-start governance flow, project manual, and generated README/manual templates so the latest governance baseline points to lean startup, `docs/context-map.md`, budget classes, and risk-triggered preflight.

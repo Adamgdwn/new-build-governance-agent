@@ -1,6 +1,8 @@
 # Risk Register
 
 Last reviewed: 2026-05-31T11:35:07-06:00
+Status: active
+Owner: Technical Lead
 
 ## Current Risk Classification
 

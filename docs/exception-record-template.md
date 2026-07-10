@@ -1,5 +1,9 @@
 # Exception Record
 
+Last Updated: 2026-07-10
+Status: active
+Owner: Technical Lead
+
 ## Metadata
 
 - Exception ID:
