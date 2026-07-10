@@ -11,8 +11,19 @@ set -euo pipefail
 
 GOVERNANCE_HOME="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BOOTSTRAP="${GOVERNANCE_HOME}/automation/bootstrap_project.sh"
-AGENTS_ROOT="${HOME}/code/agents"
-APPS_ROOT="${HOME}/code/Applications"
+if [[ -n "${NEW_BUILD_CODE_ROOT:-}" ]]; then
+  CODE_ROOT="${NEW_BUILD_CODE_ROOT}"
+else
+  parent="$(cd "${GOVERNANCE_HOME}/.." && pwd)"
+  parent_name="$(basename "$parent")"
+  if [[ "$parent_name" == "code" || "$parent_name" == "01. Code Projects" ]]; then
+    CODE_ROOT="$parent"
+  else
+    CODE_ROOT="${HOME}/code"
+  fi
+fi
+AGENTS_ROOT="${CODE_ROOT}/agents"
+APPS_ROOT="${CODE_ROOT}/Applications"
 NOW="$(date -Iseconds 2>/dev/null || date +%Y-%m-%dT%H:%M:%S%z)"
 REGISTRY="${GOVERNANCE_HOME}/automation/project_registry.py"
 

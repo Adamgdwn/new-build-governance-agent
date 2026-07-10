@@ -19,14 +19,15 @@ from pathlib import Path
 
 GOVERNANCE_HOME = Path(__file__).resolve().parent.parent
 REGISTRY = GOVERNANCE_HOME / "automation" / "project_registry.py"
-AGENTS_ROOT = Path.home() / "code" / "agents"
-APPS_ROOT = Path.home() / "code" / "Applications"
 
 sys.path.insert(0, str(GOVERNANCE_HOME / "automation"))
 from scaffold_project import scaffold_project  # noqa: E402
 from version import get_version_string  # noqa: E402
 from update_check import check_for_updates, format_result  # noqa: E402
 from self_update import self_update, format_result as format_self_update_result  # noqa: E402
+from workspace_paths import category_roots  # noqa: E402
+
+AGENTS_ROOT, APPS_ROOT = category_roots(GOVERNANCE_HOME)
 
 GOV_TYPES = {
     "application", "website", "service", "internal-tool",

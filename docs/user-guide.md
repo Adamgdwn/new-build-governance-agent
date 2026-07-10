@@ -80,6 +80,29 @@ flowchart TD
 
 ## Creating a new project
 
+### Project root and categories
+
+New Build Governance Agent keeps generated projects in the same two categories on every machine:
+
+| Category | Created under | Used for |
+|---|---|---|
+| Agent projects | `<project-root>/agents` | AI agents and agentic systems |
+| Applications | `<project-root>/Applications` | apps, tools, automations, and other builds |
+
+By default, `<project-root>` is inferred from the install location. If the agent is installed inside a folder named `code` or `01. Code Projects`, that parent folder is used. Otherwise, the default is `~/code`.
+
+Define `NEW_BUILD_CODE_ROOT` before launch when the generated projects should live somewhere else:
+
+```powershell
+$env:NEW_BUILD_CODE_ROOT = "C:\Users\you\01. Code Projects"
+```
+
+```bash
+export NEW_BUILD_CODE_ROOT="$HOME/code"
+```
+
+Create the category folders before first use if they do not already exist. The launchers also create them automatically when they can.
+
 ### Windows and version-update roadmap
 
 Windows support and version updates should be added in small, reviewable chunks. The goal is that a user can clone the repository from GitHub on Windows, run the framework without WSL, and later keep the checkout current without guessing which files or commands matter.

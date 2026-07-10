@@ -26,15 +26,16 @@ PROMOTION_REMEDIATE = GOVERNANCE_HOME / "automation" / "promotion_remediate.py"
 PROMOTION_EXECUTE = GOVERNANCE_HOME / "automation" / "promotion_execute.py"
 GOVERNANCE_AUDIT = GOVERNANCE_HOME / "automation" / "governance_audit.py"
 LOG_PATH = GOVERNANCE_HOME / "data" / "new-build-governance-agent" / "logs" / "gui-startup.log"
-CODE_ROOT = Path.home() / "code"
-AGENTS_ROOT = CODE_ROOT / "agents"
-APPS_ROOT = CODE_ROOT / "Applications"
 
 sys.path.insert(0, str(GOVERNANCE_HOME / "automation"))
 from scaffold_project import scaffold_project  # noqa: E402
 from version import get_version  # noqa: E402
 from update_check import check_for_updates, format_result as format_update_check_result  # noqa: E402
 from self_update import STATUS_UP_TO_DATE, STATUS_WOULD_UPDATE, self_update, format_result as format_self_update_result  # noqa: E402
+from workspace_paths import default_code_root, ensure_category_roots  # noqa: E402
+
+CODE_ROOT = default_code_root(GOVERNANCE_HOME)
+AGENTS_ROOT, APPS_ROOT = ensure_category_roots(GOVERNANCE_HOME)
 
 try:
     import tkinter as tk

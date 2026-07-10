@@ -79,6 +79,20 @@ function ConvertTo-Slug {
     return $slug.Trim("-")
 }
 
+function Get-CodeRoot {
+    if (-not [string]::IsNullOrWhiteSpace($env:NEW_BUILD_CODE_ROOT)) {
+        return $env:NEW_BUILD_CODE_ROOT
+    }
+
+    $parent = Split-Path -Parent $RepoRoot
+    $parentName = Split-Path -Leaf $parent
+    if ($parentName -in @("code", "01. Code Projects")) {
+        return $parent
+    }
+
+    return (Join-Path $HOME "code")
+}
+
 $python = Get-PythonCommand
 $pythonExe = $python[0]
 $pythonPrefix = @()
@@ -150,11 +164,14 @@ if ($reservedSlugs -contains $slug.ToLowerInvariant()) {
     Write-Error "Slug '$slug' is a reserved OS name. Choose a different project name."
     exit 1
 }
-$codeRoot = Join-Path $HOME "code"
+$codeRoot = Get-CodeRoot
+$agentsRoot = Join-Path $codeRoot "agents"
+$applicationsRoot = Join-Path $codeRoot "Applications"
+New-Item -ItemType Directory -Force -Path $agentsRoot, $applicationsRoot | Out-Null
 if ($BuildType -eq "agent" -or $GovernanceType -eq "agent") {
-    $targetDir = Join-Path (Join-Path $codeRoot "agents") $slug
+    $targetDir = Join-Path $agentsRoot $slug
 } else {
-    $targetDir = Join-Path (Join-Path $codeRoot "Applications") $slug
+    $targetDir = Join-Path $applicationsRoot $slug
 }
 
 Write-Host ""

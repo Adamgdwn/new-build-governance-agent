@@ -8,6 +8,7 @@ import json
 import os
 import re
 import shlex
+import sys
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -17,7 +18,10 @@ from typing import Any
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 EXPORT_ROOT = REPO_ROOT / "data" / "new-build-governance-agent" / "exports"
-DEFAULT_MASTER = Path.home() / "code" / ".env.master"
+sys.path.insert(0, str(REPO_ROOT / "automation"))
+from workspace_paths import default_code_root  # noqa: E402
+
+DEFAULT_MASTER = default_code_root(REPO_ROOT) / ".env.master"
 DEFAULT_MANIFEST = "stripe.billing.json"
 STRIPE_API_BASE = "https://api.stripe.com/v1"
 

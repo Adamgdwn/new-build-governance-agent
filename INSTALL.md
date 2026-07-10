@@ -34,7 +34,8 @@ For non-technical Windows users, download the release package from GitHub **Rele
 
 1. Download `NewBuildGovernanceAgent-Windows.zip`.
 2. Unzip it.
-3. Double-click `NewBuildGovernanceAgent.exe`.
+3. If your projects should live somewhere other than the default code workspace, set `NEW_BUILD_CODE_ROOT` as described below.
+4. Double-click `NewBuildGovernanceAgent.exe`.
 
 The `.exe` opens the desktop GUI and shows a Windows error dialog if Python or the full package is missing.
 
@@ -66,11 +67,21 @@ If PowerShell blocks local scripts, run this from the cloned repository for the 
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 ```
 
-The Windows launchers create projects under:
+The Windows launchers keep these categories:
 
 ```text
-%USERPROFILE%\code\agents
-%USERPROFILE%\code\Applications
+agents        AI agent projects
+Applications  apps, tools, automations, and other builds
+```
+
+By default, generated projects are created under your code workspace. If this agent is installed inside `code` or `01. Code Projects`, that parent folder is used. Otherwise, the default is `%USERPROFILE%\code`.
+
+Set `NEW_BUILD_CODE_ROOT` before launching when you want a specific project root:
+
+```powershell
+$env:NEW_BUILD_CODE_ROOT = "C:\Users\you\01. Code Projects"
+New-Item -ItemType Directory -Force -Path "$env:NEW_BUILD_CODE_ROOT\agents", "$env:NEW_BUILD_CODE_ROOT\Applications"
+.\automation\launch_gui.ps1
 ```
 
 Run Windows validation with:
@@ -97,23 +108,28 @@ chmod +x automation/check_required_files.sh
 
 ---
 
-## 4. Set your Linux/macOS project roots
+## 4. Set your Linux/macOS project root
 
-Open `automation/new_build.sh` in any editor and change the two path variables near the top to wherever you want projects created on your machine:
+The Linux/macOS launchers use the same categories:
+
+```text
+agents        AI agent projects
+Applications  apps, tools, automations, and other builds
+```
+
+By default, generated projects are created under your code workspace. If this agent is installed inside `code` or `01. Code Projects`, that parent folder is used. Otherwise, the default is `~/code`.
+
+Set `NEW_BUILD_CODE_ROOT` before launching when you want a specific project root:
 
 ```bash
-AGENTS_ROOT="${HOME}/code/agents"       # agent projects go here
-APPS_ROOT="${HOME}/code/Applications"   # apps, tools, and automation go here
+export NEW_BUILD_CODE_ROOT="$HOME/code"
+mkdir -p "$NEW_BUILD_CODE_ROOT/agents" "$NEW_BUILD_CODE_ROOT/Applications"
+bash automation/new_build.sh
 ```
 
-Do the same in `automation/new_build_gui.py` (lines 19–20):
+For a persistent setting, add the `export NEW_BUILD_CODE_ROOT=...` line to your shell profile.
 
-```python
-AGENTS_ROOT = Path.home() / "code" / "agents"
-APPS_ROOT   = Path.home() / "code" / "Applications"
-```
-
-Make the target directories if they don't exist:
+If you use the default root, make the target directories if they do not exist:
 
 ```bash
 mkdir -p ~/code/agents ~/code/Applications

@@ -38,7 +38,10 @@ def read_project_metadata(path: Path) -> dict:
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-PROJECT_ROOTS = [Path.home() / "code" / "agents", Path.home() / "code" / "Applications"]
+sys.path.insert(0, str(REPO_ROOT / "automation"))
+from workspace_paths import category_roots  # noqa: E402
+
+PROJECT_ROOTS = list(category_roots(REPO_ROOT))
 CHECKER = REPO_ROOT / "automation" / "governance_check.sh"
 REGISTRY = REPO_ROOT / "automation" / "project_registry.py"
 

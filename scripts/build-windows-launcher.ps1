@@ -2,6 +2,7 @@ $ErrorActionPreference = "Stop"
 
 $RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 $SourcePath = Join-Path $RepoRoot "windows/NewBuildGovernanceAgentLauncher.cs"
+$IconPath = Join-Path $RepoRoot "windows/NewBuildGovernanceAgent.ico"
 $DistRoot = Join-Path $RepoRoot "dist"
 $WindowsDist = Join-Path $DistRoot "windows"
 $ExePath = Join-Path $WindowsDist "NewBuildGovernanceAgent.exe"
@@ -57,6 +58,9 @@ function Copy-TrackedFiles {
 if (-not (Test-Path $SourcePath)) {
     throw "Missing launcher source: $SourcePath"
 }
+if (-not (Test-Path $IconPath)) {
+    throw "Missing launcher icon: $IconPath"
+}
 
 New-Item -ItemType Directory -Force -Path $WindowsDist | Out-Null
 
@@ -67,6 +71,7 @@ $csc = Get-CSharpCompiler
     "/optimize+" `
     "/reference:System.Windows.Forms.dll" `
     "/reference:System.Drawing.dll" `
+    "/win32icon:$IconPath" `
     "/out:$ExePath" `
     $SourcePath
 
@@ -83,6 +88,9 @@ Remove-Item -Force -Path $PackageZip -ErrorAction SilentlyContinue
 New-Item -ItemType Directory -Force -Path $PackageRoot | Out-Null
 
 Copy-TrackedFiles -TargetRoot $PackageRoot
+Copy-Item -Path (Join-Path $RepoRoot "automation/workspace_paths.py") -Destination (Join-Path $PackageRoot "automation/workspace_paths.py") -Force
+New-Item -ItemType Directory -Force -Path (Join-Path $PackageRoot "windows") | Out-Null
+Copy-Item -Path $IconPath -Destination (Join-Path $PackageRoot "windows/NewBuildGovernanceAgent.ico") -Force
 Copy-Item -Path $ExePath -Destination (Join-Path $PackageRoot "NewBuildGovernanceAgent.exe") -Force
 
 Compress-Archive -Path (Join-Path $PackageRoot "*") -DestinationPath $PackageZip -Force

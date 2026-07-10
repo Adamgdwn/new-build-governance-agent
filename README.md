@@ -65,6 +65,32 @@ Windows users should run commands in PowerShell from the cloned repo folder. mac
 
 The self-update path is guarded. It only updates a clean cloned checkout when Git can fast-forward the current branch from its upstream. It does not reset, stash, rebase, force-pull, change branches, or overwrite local work.
 
+### Project Location and Categories
+
+New Build Governance Agent keeps the same project categories on every machine:
+
+- `agents` for AI agent projects
+- `Applications` for apps, tools, automations, and other builds
+
+By default, generated projects are created under your code workspace. If the agent is installed inside a folder named `code` or `01. Code Projects`, that parent folder becomes the project root. Otherwise, the default is `~/code`.
+
+Set `NEW_BUILD_CODE_ROOT` before launching the agent when you want a different project root:
+
+```powershell
+$env:NEW_BUILD_CODE_ROOT = "C:\Users\you\01. Code Projects"
+```
+
+```bash
+export NEW_BUILD_CODE_ROOT="$HOME/code"
+```
+
+Create the two category folders before first use if they do not already exist. The launchers also create them automatically when they can:
+
+```text
+<project-root>/agents
+<project-root>/Applications
+```
+
 ## Windows EXE Download
 
 For non-technical Windows users, use the release package:
@@ -72,7 +98,8 @@ For non-technical Windows users, use the release package:
 1. Open the GitHub **Releases** page.
 2. Download `NewBuildGovernanceAgent-Windows.zip`.
 3. Unzip it.
-4. Double-click `NewBuildGovernanceAgent.exe`.
+4. If needed, set `NEW_BUILD_CODE_ROOT` to the folder that should contain `agents` and `Applications`.
+5. Double-click `NewBuildGovernanceAgent.exe`.
 
 The `.exe` opens the desktop GUI and uses the same safe launcher scripts under the hood. If something is missing, it shows a Windows error dialog instead of requiring the user to debug PowerShell.
 

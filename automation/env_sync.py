@@ -8,13 +8,16 @@ import json
 import os
 import re
 import shlex
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 EXPORT_ROOT = REPO_ROOT / "data" / "new-build-governance-agent" / "exports"
+sys.path.insert(0, str(REPO_ROOT / "automation"))
+from workspace_paths import default_code_root  # noqa: E402
 
-DEFAULT_MASTER = Path.home() / "code" / ".env.master"
+DEFAULT_MASTER = default_code_root(REPO_ROOT) / ".env.master"
 DEFAULT_TARGET = ".env.local"
 ENV_TEMPLATE_NAMES = [
     ".env.example",

@@ -11,7 +11,11 @@ import shlex
 import sys
 from pathlib import Path
 
-DEFAULT_MASTER = Path.home() / "code" / ".env.master"
+REPO_ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(REPO_ROOT / "automation"))
+from workspace_paths import default_code_root  # noqa: E402
+
+DEFAULT_MASTER = default_code_root(REPO_ROOT) / ".env.master"
 CONTROL_PLANE_KEYS = [
     "SUPABASE_ACCESS_TOKEN",
     "SUPABASE_ORG_ID",

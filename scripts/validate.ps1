@@ -141,7 +141,11 @@ if ($bash) {
         Get-ChildItem -Path (Join-Path $RepoRoot "templates/project/scripts") -Filter "*.sh" -File
     ) | Sort-Object FullName
     foreach ($file in $shellFiles) {
-        & $bash.Source -n $file.FullName
+        $shellPath = $file.FullName
+        if ($bash.Source -like "*\WindowsApps\bash.exe") {
+            $shellPath = (Resolve-Path -Path $file.FullName -Relative).Replace("\", "/")
+        }
+        & $bash.Source -n $shellPath
         if ($LASTEXITCODE -ne 0) {
             throw "Shell syntax failed for $($file.FullName)"
         }

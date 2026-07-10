@@ -67,6 +67,14 @@ class FailOutputSchemaTests(unittest.TestCase):
         self.assertNotIn("ok", data)
 
 
+class TargetRootTests(unittest.TestCase):
+    def test_agent_projects_route_to_agents_category(self):
+        self.assertEqual(new_build_headless.AGENTS_ROOT, new_build_headless.resolve_target_root("agent", "agent"))
+
+    def test_application_projects_route_to_applications_category(self):
+        self.assertEqual(new_build_headless.APPS_ROOT, new_build_headless.resolve_target_root("app", "application"))
+
+
 class SlugValidationTests(unittest.TestCase):
     def _call_fail_guard(self, slug, project_name):
         """Simulate the post-slugify guard by running the validation inline."""
