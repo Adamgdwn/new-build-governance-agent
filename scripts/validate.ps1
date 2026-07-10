@@ -2,9 +2,12 @@ $ErrorActionPreference = "Stop"
 $RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 
 function Get-PythonCommand {
+    # "python" first: it is the interpreter CI installs the gate tools into
+    # (the Microsoft Store alias stub fails the version probe below and falls
+    # through to the py launcher).
     $candidates = @(
-        @("py", "-3"),
         @("python"),
+        @("py", "-3"),
         @("python3")
     )
 
