@@ -9,8 +9,12 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 
-from schema_validation import SimpleYamlError, get_path, load_project_control, validate_project_control_data
-
+from schema_validation import (
+    SimpleYamlError,
+    get_path,
+    load_project_control,
+    validate_project_control_data,
+)
 
 FINDING_CATEGORIES = [
     "required_gaps",
@@ -43,8 +47,14 @@ AGENT_REQUIRED_FILES = [
 ]
 
 RECOMMENDED_FILES = [
-    ("docs/domain-language.md", "Recommended when the project has meaningful domain logic or repeated domain terms."),
-    ("docs/standards/context-hygiene-standard.md", "Recommended for agent-assisted work, long sessions, scoped context, compaction, and handoffs."),
+    (
+        "docs/domain-language.md",
+        "Recommended when the project has meaningful domain logic or repeated domain terms.",
+    ),
+    (
+        "docs/standards/context-hygiene-standard.md",
+        "Recommended for agent-assisted work, long sessions, scoped context, compaction, and handoffs.",
+    ),
     (".env.example", "Recommended when setup or deployment depends on environment variables."),
     ("SECURITY.md", "Recommended for vulnerability reporting and secret-handling expectations."),
 ]
@@ -181,7 +191,11 @@ def governance_mismatch_findings(control: dict[str, Any] | None) -> list[Finding
                     "project-control.yaml",
                 )
             )
-    if get_path(control, "data_classification.handles_money") is True and isinstance(governance_level, int) and governance_level < 3:
+    if (
+        get_path(control, "data_classification.handles_money") is True
+        and isinstance(governance_level, int)
+        and governance_level < 3
+    ):
         findings.append(
             Finding(
                 "owner_decisions_needed",
@@ -189,7 +203,11 @@ def governance_mismatch_findings(control: dict[str, Any] | None) -> list[Finding
                 "project-control.yaml",
             )
         )
-    if get_path(control, "data_classification.handles_sensitive_data") is True and isinstance(governance_level, int) and governance_level < 3:
+    if (
+        get_path(control, "data_classification.handles_sensitive_data") is True
+        and isinstance(governance_level, int)
+        and governance_level < 3
+    ):
         findings.append(
             Finding(
                 "owner_decisions_needed",
@@ -206,7 +224,7 @@ def build_compliance_report(project_path: Path | str) -> dict[str, Any]:
         raise NotADirectoryError(f"Project path does not exist: {project}")
 
     control, schema_errors = load_control(project)
-    findings = {category: [] for category in FINDING_CATEGORIES}
+    findings: dict[str, list[Any]] = {category: [] for category in FINDING_CATEGORIES}
     passes: list[str] = []
 
     for relative_path in required_files_from_control(control):
@@ -219,7 +237,9 @@ def build_compliance_report(project_path: Path | str) -> dict[str, Any]:
 
     for error in schema_errors:
         findings["required_gaps"].append(
-            Finding("required_gaps", f"project-control.yaml schema gap: {error}", "project-control.yaml")
+            Finding(
+                "required_gaps", f"project-control.yaml schema gap: {error}", "project-control.yaml"
+            )
         )
 
     for relative_path, reason in RECOMMENDED_FILES:
@@ -227,7 +247,9 @@ def build_compliance_report(project_path: Path | str) -> dict[str, Any]:
             passes.append(f"Recommended file present: {relative_path}")
         else:
             findings["recommended_improvements"].append(
-                Finding("recommended_improvements", f"Missing {relative_path}. {reason}", relative_path)
+                Finding(
+                    "recommended_improvements", f"Missing {relative_path}. {reason}", relative_path
+                )
             )
 
     ai_bootstrap_path = project / "AI_BOOTSTRAP.md"
@@ -244,7 +266,11 @@ def build_compliance_report(project_path: Path | str) -> dict[str, Any]:
                 )
     else:
         findings["recommended_improvements"].append(
-            Finding("recommended_improvements", "AI_BOOTSTRAP.md is recommended for agent-readable commands.", "AI_BOOTSTRAP.md")
+            Finding(
+                "recommended_improvements",
+                "AI_BOOTSTRAP.md is recommended for agent-readable commands.",
+                "AI_BOOTSTRAP.md",
+            )
         )
 
     for relative_path in find_suspicious_names(project):
@@ -263,7 +289,11 @@ def build_compliance_report(project_path: Path | str) -> dict[str, Any]:
     if isinstance(exceptions, list):
         for exception in exceptions:
             findings["accepted_exceptions"].append(
-                Finding("accepted_exceptions", f"Accepted exception recorded: {exception}", "project-control.yaml")
+                Finding(
+                    "accepted_exceptions",
+                    f"Accepted exception recorded: {exception}",
+                    "project-control.yaml",
+                )
             )
 
     serialized_findings = {
@@ -317,9 +347,13 @@ def print_report(report: dict[str, Any]) -> None:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Generate a categorized governance compliance report.")
+    parser = argparse.ArgumentParser(
+        description="Generate a categorized governance compliance report."
+    )
     parser.add_argument("project", help="Path to the governed project")
-    parser.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
+    parser.add_argument(
+        "--json", action="store_true", help="Print JSON instead of human-readable output"
+    )
     args = parser.parse_args()
 
     try:

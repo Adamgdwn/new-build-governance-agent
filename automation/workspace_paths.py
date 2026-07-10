@@ -3,7 +3,6 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-
 ENV_CODE_ROOT = "NEW_BUILD_CODE_ROOT"
 
 

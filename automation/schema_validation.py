@@ -42,7 +42,9 @@ def parse_scalar(value: str) -> Any:
         return {}
     if value == '""' or value == "''":
         return ""
-    if (value.startswith('"') and value.endswith('"')) or (value.startswith("'") and value.endswith("'")):
+    if (value.startswith('"') and value.endswith('"')) or (
+        value.startswith("'") and value.endswith("'")
+    ):
         return value[1:-1]
     if value == "true":
         return True
@@ -126,7 +128,9 @@ def require_string_value(data: dict[str, Any], dotted: str, errors: list[str]) -
         errors.append(f"{dotted} must be a string")
 
 
-def require_string_list(data: dict[str, Any], dotted: str, errors: list[str], *, allow_empty: bool = True) -> None:
+def require_string_list(
+    data: dict[str, Any], dotted: str, errors: list[str], *, allow_empty: bool = True
+) -> None:
     value = get_path(data, dotted)
     if not isinstance(value, list):
         errors.append(f"{dotted} must be a list")
@@ -227,7 +231,11 @@ def validate_check(check: Any, path: str, errors: list[str]) -> None:
         errors.append(f"{path}.kind has unsupported value: {kind!r}")
     if kind != "manual":
         argv = check.get("argv")
-        if not isinstance(argv, list) or not argv or not all(isinstance(item, str) and item for item in argv):
+        if (
+            not isinstance(argv, list)
+            or not argv
+            or not all(isinstance(item, str) and item for item in argv)
+        ):
             errors.append(f"{path}.argv must be a non-empty string list for automated checks")
 
 
@@ -245,10 +253,17 @@ def validate_promotion_plan(plan: dict[str, Any]) -> list[str]:
     if not isinstance(policy, dict):
         errors.append("policy must be a mapping")
     else:
-        for field in ["local_changes_allowed", "external_pushes_allowed_by_default", "require_explicit_approval_per_target"]:
+        for field in [
+            "local_changes_allowed",
+            "external_pushes_allowed_by_default",
+            "require_explicit_approval_per_target",
+        ]:
             if not isinstance(policy.get(field), bool):
                 errors.append(f"policy.{field} must be true or false")
-        if not isinstance(policy.get("rollback_expectation"), str) or not policy.get("rollback_expectation", "").strip():
+        if (
+            not isinstance(policy.get("rollback_expectation"), str)
+            or not policy.get("rollback_expectation", "").strip()
+        ):
             errors.append("policy.rollback_expectation must be a non-empty string")
 
     stages = plan.get("stages")
@@ -316,19 +331,35 @@ def print_errors(label: str, errors: list[str]) -> None:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Validate New Build Governance Agent governance schemas.")
+    parser = argparse.ArgumentParser(
+        description="Validate New Build Governance Agent governance schemas."
+    )
     parser.add_argument("--project", help="Project directory containing project-control.yaml")
     parser.add_argument("--project-control", help="Specific project-control.yaml path")
-    parser.add_argument("--promotion-plan", action="append", default=[], help="Promotion plan JSON path; can be passed more than once")
+    parser.add_argument(
+        "--promotion-plan",
+        action="append",
+        default=[],
+        help="Promotion plan JSON path; can be passed more than once",
+    )
     args = parser.parse_args()
 
     checks: list[tuple[str, list[str]]] = []
     if args.project:
-        checks.append(("project-control.yaml schema", validate_project_control(Path(args.project) / "project-control.yaml")))
+        checks.append(
+            (
+                "project-control.yaml schema",
+                validate_project_control(Path(args.project) / "project-control.yaml"),
+            )
+        )
     if args.project_control:
-        checks.append(("project-control.yaml schema", validate_project_control(Path(args.project_control))))
+        checks.append(
+            ("project-control.yaml schema", validate_project_control(Path(args.project_control)))
+        )
     for plan_path in args.promotion_plan:
-        checks.append((f"promotion plan schema: {plan_path}", validate_promotion_plan_file(Path(plan_path))))
+        checks.append(
+            (f"promotion plan schema: {plan_path}", validate_promotion_plan_file(Path(plan_path)))
+        )
 
     if not checks:
         parser.error("Provide --project, --project-control, or --promotion-plan")

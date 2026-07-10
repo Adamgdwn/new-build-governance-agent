@@ -19,9 +19,13 @@ class UpdateCheckTests(unittest.TestCase):
     def test_reports_current_from_latest_release(self):
         result = update_check.check_for_updates(
             local_version="0.3.0",
-            fetch_json=fake_fetch({
-                "https://api.github.com/repos/Adamgdwn/new-build-governance-agent/releases/latest": {"tag_name": "v0.3.0"}
-            }),
+            fetch_json=fake_fetch(
+                {
+                    "https://api.github.com/repos/Adamgdwn/new-build-governance-agent/releases/latest": {
+                        "tag_name": "v0.3.0"
+                    }
+                }
+            ),
         )
 
         self.assertEqual(update_check.STATUS_CURRENT, result.status)
@@ -31,13 +35,17 @@ class UpdateCheckTests(unittest.TestCase):
     def test_reports_behind_from_tags_when_release_is_not_semver(self):
         result = update_check.check_for_updates(
             local_version="0.3.0",
-            fetch_json=fake_fetch({
-                "https://api.github.com/repos/Adamgdwn/new-build-governance-agent/releases/latest": {"tag_name": "preview"},
-                "https://api.github.com/repos/Adamgdwn/new-build-governance-agent/tags?per_page=50": [
-                    {"name": "v0.4.0"},
-                    {"name": "v0.2.0"},
-                ],
-            }),
+            fetch_json=fake_fetch(
+                {
+                    "https://api.github.com/repos/Adamgdwn/new-build-governance-agent/releases/latest": {
+                        "tag_name": "preview"
+                    },
+                    "https://api.github.com/repos/Adamgdwn/new-build-governance-agent/tags?per_page=50": [
+                        {"name": "v0.4.0"},
+                        {"name": "v0.2.0"},
+                    ],
+                }
+            ),
         )
 
         self.assertEqual(update_check.STATUS_BEHIND, result.status)
@@ -47,9 +55,13 @@ class UpdateCheckTests(unittest.TestCase):
     def test_reports_ahead(self):
         result = update_check.check_for_updates(
             local_version="0.5.0",
-            fetch_json=fake_fetch({
-                "https://api.github.com/repos/Adamgdwn/new-build-governance-agent/releases/latest": {"tag_name": "0.4.0"}
-            }),
+            fetch_json=fake_fetch(
+                {
+                    "https://api.github.com/repos/Adamgdwn/new-build-governance-agent/releases/latest": {
+                        "tag_name": "0.4.0"
+                    }
+                }
+            ),
         )
 
         self.assertEqual(update_check.STATUS_AHEAD, result.status)
@@ -57,10 +69,16 @@ class UpdateCheckTests(unittest.TestCase):
     def test_reports_unable_when_no_semver_remote_exists(self):
         result = update_check.check_for_updates(
             local_version="0.3.0",
-            fetch_json=fake_fetch({
-                "https://api.github.com/repos/Adamgdwn/new-build-governance-agent/releases/latest": {"tag_name": "preview"},
-                "https://api.github.com/repos/Adamgdwn/new-build-governance-agent/tags?per_page=50": [{"name": "preview"}],
-            }),
+            fetch_json=fake_fetch(
+                {
+                    "https://api.github.com/repos/Adamgdwn/new-build-governance-agent/releases/latest": {
+                        "tag_name": "preview"
+                    },
+                    "https://api.github.com/repos/Adamgdwn/new-build-governance-agent/tags?per_page=50": [
+                        {"name": "preview"}
+                    ],
+                }
+            ),
         )
 
         self.assertEqual(update_check.STATUS_UNABLE, result.status)

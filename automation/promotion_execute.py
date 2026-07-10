@@ -95,7 +95,10 @@ def parse_porcelain_path(line: str) -> str:
 def secret_like_path(path: str) -> bool:
     normalized = path.replace("\\", "/").lower()
     name = Path(normalized).name
-    return any(name == pattern or name.startswith(pattern) or name.endswith(pattern) for pattern in SECRET_PATH_PATTERNS)
+    return any(
+        name == pattern or name.startswith(pattern) or name.endswith(pattern)
+        for pattern in SECRET_PATH_PATTERNS
+    )
 
 
 def choose_stage_files(
@@ -117,7 +120,8 @@ def choose_stage_files(
         unknown = [path for path in requested if path not in changed_set]
         if unknown:
             raise RuntimeError(
-                "Requested include files are not present in git status: " + ", ".join(sorted(unknown))
+                "Requested include files are not present in git status: "
+                + ", ".join(sorted(unknown))
             )
         return "explicit_file_list", requested
 
@@ -144,7 +148,9 @@ def execute_github(
     if not github_target.get("relevant"):
         raise RuntimeError("GitHub is not a relevant target for this plan.")
 
-    require_success(git(project_path, env, "rev-parse", "--show-toplevel"), "Project is not a git repository")
+    require_success(
+        git(project_path, env, "rev-parse", "--show-toplevel"), "Project is not a git repository"
+    )
     require_success(gh(project_path, env, "auth", "status"), "GitHub CLI is not authenticated")
 
     status_proc = git(project_path, env, "status", "--porcelain")
@@ -158,7 +164,9 @@ def execute_github(
     require_success(branch_proc, "Unable to determine current git branch")
     branch = branch_proc.stdout.strip()
     if not branch:
-        raise RuntimeError("Detached HEAD is not supported for execute mode. Check out a branch first.")
+        raise RuntimeError(
+            "Detached HEAD is not supported for execute mode. Check out a branch first."
+        )
 
     remote_proc = git(project_path, env, "remote", "get-url", "origin")
     require_success(remote_proc, "Unable to resolve git remote 'origin'")
@@ -177,7 +185,11 @@ def execute_github(
     add_proc = git(project_path, env, "add", "--", *staged_files)
     require_success(add_proc, "Unable to stage local changes")
 
-    message = commit_message.strip() if commit_message and commit_message.strip() else f"Promote {plan['project_slug']} via New Build Governance Agent"
+    message = (
+        commit_message.strip()
+        if commit_message and commit_message.strip()
+        else f"Promote {plan['project_slug']} via New Build Governance Agent"
+    )
     commit_proc = git(project_path, env, "commit", "-m", message)
     require_success(commit_proc, "Unable to create git commit")
 
@@ -223,13 +235,9 @@ def execute_github(
         f"git push origin {branch}",
     ]
     if branch == default_branch:
-        rollback_note = (
-            "The current branch is the default branch, so rollback is a revert commit that pushes a new correction to production."
-        )
+        rollback_note = "The current branch is the default branch, so rollback is a revert commit that pushes a new correction to production."
     else:
-        rollback_note = (
-            "The current branch is not the default branch, so rollback can be handled by closing the draft PR or reverting the pushed branch commit before merge."
-        )
+        rollback_note = "The current branch is not the default branch, so rollback can be handled by closing the draft PR or reverting the pushed branch commit before merge."
 
     return {
         "target": "github",
@@ -258,7 +266,10 @@ def write_report(report: dict, output: Path | None) -> Path:
     EXPORT_ROOT.mkdir(parents=True, exist_ok=True)
     if output is None:
         stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-        output = EXPORT_ROOT / f"execute-{report['target']}-{Path(report['project_path']).name}-{stamp}.json"
+        output = (
+            EXPORT_ROOT
+            / f"execute-{report['target']}-{Path(report['project_path']).name}-{stamp}.json"
+        )
     output = output.expanduser().resolve()
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
@@ -266,9 +277,13 @@ def write_report(report: dict, output: Path | None) -> Path:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Execute an approved target from a promotion plan.")
+    parser = argparse.ArgumentParser(
+        description="Execute an approved target from a promotion plan."
+    )
     parser.add_argument("--plan", required=True, help="Path to the promotion plan JSON")
-    parser.add_argument("--target", required=True, choices=["github"], help="Which target to execute")
+    parser.add_argument(
+        "--target", required=True, choices=["github"], help="Which target to execute"
+    )
     parser.add_argument("--commit-message", help="Commit message to use for the publish step")
     parser.add_argument(
         "--include-file",
@@ -288,7 +303,9 @@ def main() -> int:
     plan = load_plan(plan_path)
     try:
         if args.target == "github":
-            result = execute_github(plan, args.commit_message, args.include_file, args.allow_stage_all)
+            result = execute_github(
+                plan, args.commit_message, args.include_file, args.allow_stage_all
+            )
         else:
             raise RuntimeError(f"Unsupported target: {args.target}")
         report = {

@@ -161,8 +161,12 @@ def record_audit(result: dict) -> None:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Audit governed projects under the standard workspace roots.")
-    parser.add_argument("--json", action="store_true", help="Print JSON lines instead of human output.")
+    parser = argparse.ArgumentParser(
+        description="Audit governed projects under the standard workspace roots."
+    )
+    parser.add_argument(
+        "--json", action="store_true", help="Print JSON lines instead of human output."
+    )
     args = parser.parse_args()
 
     for project in discover_projects():

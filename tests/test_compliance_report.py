@@ -22,7 +22,10 @@ class ComplianceReportTests(unittest.TestCase):
 
             self.assertEqual("failed", report["overall_status"])
             self.assertTrue(
-                any("README.md" == finding["path"] for finding in report["findings"]["required_gaps"])
+                any(
+                    "README.md" == finding["path"]
+                    for finding in report["findings"]["required_gaps"]
+                )
             )
 
     def test_advisory_findings_do_not_block_low_risk_project(self):
@@ -36,7 +39,10 @@ class ComplianceReportTests(unittest.TestCase):
             self.assertEqual("passed", report["overall_status"])
             self.assertFalse(report["findings"]["required_gaps"])
             self.assertTrue(
-                any("docs/domain-language.md" == finding["path"] for finding in report["findings"]["recommended_improvements"])
+                any(
+                    "docs/domain-language.md" == finding["path"]
+                    for finding in report["findings"]["recommended_improvements"]
+                )
             )
 
     def test_riskier_use_case_creates_owner_decision_not_override(self):
@@ -51,7 +57,10 @@ class ComplianceReportTests(unittest.TestCase):
             self.assertIn("governance_level: 1", control)
             self.assertTrue(report["findings"]["owner_decisions_needed"])
             self.assertTrue(
-                any("Governance mismatch warning" in finding["message"] for finding in report["findings"]["owner_decisions_needed"])
+                any(
+                    "Governance mismatch warning" in finding["message"]
+                    for finding in report["findings"]["owner_decisions_needed"]
+                )
             )
 
     def test_promotion_checks_classify_failed_and_manual_results(self):

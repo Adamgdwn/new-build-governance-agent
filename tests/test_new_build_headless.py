@@ -37,6 +37,7 @@ class FailOutputSchemaTests(unittest.TestCase):
         """fail() must emit the four required fields from freedom.tool.yaml."""
         import io
         from contextlib import redirect_stdout
+
         buf = io.StringIO()
         try:
             with redirect_stdout(buf):
@@ -57,6 +58,7 @@ class FailOutputSchemaTests(unittest.TestCase):
         """Ensure the old ok:false schema is gone."""
         import io
         from contextlib import redirect_stdout
+
         buf = io.StringIO()
         try:
             with redirect_stdout(buf):
@@ -69,10 +71,15 @@ class FailOutputSchemaTests(unittest.TestCase):
 
 class TargetRootTests(unittest.TestCase):
     def test_agent_projects_route_to_agents_category(self):
-        self.assertEqual(new_build_headless.AGENTS_ROOT, new_build_headless.resolve_target_root("agent", "agent"))
+        self.assertEqual(
+            new_build_headless.AGENTS_ROOT, new_build_headless.resolve_target_root("agent", "agent")
+        )
 
     def test_application_projects_route_to_applications_category(self):
-        self.assertEqual(new_build_headless.APPS_ROOT, new_build_headless.resolve_target_root("app", "application"))
+        self.assertEqual(
+            new_build_headless.APPS_ROOT,
+            new_build_headless.resolve_target_root("app", "application"),
+        )
 
 
 class SlugValidationTests(unittest.TestCase):

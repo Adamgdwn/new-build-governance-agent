@@ -76,7 +76,7 @@ def read_package_scripts(project: Path) -> dict[str, str]:
     return {}
 
 
-def build_local_checks(project: Path) -> dict[str, list[dict[str, str]]]:
+def build_local_checks(project: Path) -> dict[str, list[dict[str, str | list[str]]]]:
     pre_checks: list[dict[str, str | list[str]]] = []
     post_checks: list[dict[str, str | list[str]]] = []
 
@@ -92,10 +92,14 @@ def build_local_checks(project: Path) -> dict[str, list[dict[str, str]]]:
             )
         )
 
-    automation_py_files = sorted((project / "automation").glob("*.py")) if (project / "automation").exists() else []
+    automation_py_files = (
+        sorted((project / "automation").glob("*.py")) if (project / "automation").exists() else []
+    )
     root_py_files = sorted(path for path in project.glob("*.py") if path.is_file())
     if automation_py_files or root_py_files:
-        py_targets = [str(path.relative_to(project)) for path in [*automation_py_files, *root_py_files]]
+        py_targets = [
+            str(path.relative_to(project)) for path in [*automation_py_files, *root_py_files]
+        ]
         pre_checks.append(
             check(
                 "python_compile",
@@ -106,11 +110,17 @@ def build_local_checks(project: Path) -> dict[str, list[dict[str, str]]]:
             )
         )
 
-    shell_roots = [project / "automation", project / "scripts", project / "templates" / "project" / "scripts"]
+    shell_roots = [
+        project / "automation",
+        project / "scripts",
+        project / "templates" / "project" / "scripts",
+    ]
     shell_files: list[str] = []
     for root in shell_roots:
         if root.exists():
-            shell_files.extend(str(path.relative_to(project)) for path in sorted(root.rglob("*.sh")))
+            shell_files.extend(
+                str(path.relative_to(project)) for path in sorted(root.rglob("*.sh"))
+            )
     if shell_files:
         for shell_file in shell_files:
             pre_checks.append(
@@ -248,13 +258,22 @@ def detect_targets(project: Path) -> dict[str, dict]:
     has_governance = (project / "project-control.yaml").exists()
     has_vercel = (project / "vercel.json").exists() or (project / ".vercel").exists()
     has_supabase = (project / "supabase").exists()
-    has_next = (project / "next.config.js").exists() or (project / "next.config.mjs").exists() or (project / ".next").exists()
+    has_next = (
+        (project / "next.config.js").exists()
+        or (project / "next.config.mjs").exists()
+        or (project / ".next").exists()
+    )
     uses_stripe = file_contains_any(project, ["stripe", "stripe_secret", "stripe_publishable"])
     uses_resend = file_contains_any(project, ["resend", "resend_api_key"])
 
     return {
         "github": {
-            "relevant": has_git or has_package or has_pyproject or has_requirements or has_readme or has_governance,
+            "relevant": has_git
+            or has_package
+            or has_pyproject
+            or has_requirements
+            or has_readme
+            or has_governance,
             "approval_required": True,
             "auto_execute": False,
             "execution_mode": "git_commit_push_current_branch",

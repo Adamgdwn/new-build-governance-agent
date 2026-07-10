@@ -34,7 +34,9 @@ class SelfUpdateTests(unittest.TestCase):
         self.seed = self.root / "seed"
         self.work = self.root / "work"
 
-        subprocess.run(["git", "init", "--bare", str(self.remote)], check=True, capture_output=True, text=True)
+        subprocess.run(
+            ["git", "init", "--bare", str(self.remote)], check=True, capture_output=True, text=True
+        )
         subprocess.run(["git", "init", str(self.seed)], check=True, capture_output=True, text=True)
         git(self.seed, "config", "user.email", "test@example.com")
         git(self.seed, "config", "user.name", "Test User")
@@ -48,7 +50,12 @@ class SelfUpdateTests(unittest.TestCase):
             capture_output=True,
             text=True,
         )
-        subprocess.run(["git", "clone", str(self.remote), str(self.work)], check=True, capture_output=True, text=True)
+        subprocess.run(
+            ["git", "clone", str(self.remote), str(self.work)],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
         git(self.work, "config", "user.email", "test@example.com")
         git(self.work, "config", "user.name", "Test User")
 

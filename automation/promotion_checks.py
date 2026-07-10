@@ -98,7 +98,9 @@ def missing_runtime(result: dict) -> bool:
 def detect_missing_prerequisites(project_path: Path, argv: list[str], command: str) -> str | None:
     normalized = command.strip().lower()
     executable = argv[0] if argv else ""
-    if (normalized.startswith("npm ") or executable == "npm") and (project_path / "package.json").exists():
+    if (normalized.startswith("npm ") or executable == "npm") and (
+        project_path / "package.json"
+    ).exists():
         node_modules = project_path / "node_modules"
         if not node_modules.exists():
             return (
@@ -255,7 +257,10 @@ def write_report(report: dict, output: Path | None) -> Path:
     EXPORT_ROOT.mkdir(parents=True, exist_ok=True)
     if output is None:
         stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-        output = EXPORT_ROOT / f"check-report-{report['project_slug']}-{report['stage_name']}-{stamp}.json"
+        output = (
+            EXPORT_ROOT
+            / f"check-report-{report['project_slug']}-{report['stage_name']}-{stamp}.json"
+        )
     output = output.expanduser().resolve()
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
@@ -263,9 +268,16 @@ def write_report(report: dict, output: Path | None) -> Path:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Run pre/post promotion checks from a promotion plan.")
+    parser = argparse.ArgumentParser(
+        description="Run pre/post promotion checks from a promotion plan."
+    )
     parser.add_argument("--plan", required=True, help="Path to the promotion plan JSON")
-    parser.add_argument("--stage", default="pre_promotion_checks", choices=["pre_promotion_checks", "post_promotion_checks"], help="Which check stage to run")
+    parser.add_argument(
+        "--stage",
+        default="pre_promotion_checks",
+        choices=["pre_promotion_checks", "post_promotion_checks"],
+        help="Which check stage to run",
+    )
     parser.add_argument("--output", help="Optional output path for the check report JSON")
     args = parser.parse_args()
 

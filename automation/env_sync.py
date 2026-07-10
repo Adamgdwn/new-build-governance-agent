@@ -7,7 +7,6 @@ import argparse
 import json
 import os
 import re
-import shlex
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -15,6 +14,7 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parent.parent
 EXPORT_ROOT = REPO_ROOT / "data" / "new-build-governance-agent" / "exports"
 sys.path.insert(0, str(REPO_ROOT / "automation"))
+from env_file import format_env_value, parse_env_file, parse_env_value  # noqa: E402,F401
 from workspace_paths import default_code_root  # noqa: E402
 
 DEFAULT_MASTER = default_code_root(REPO_ROOT) / ".env.master"
@@ -91,41 +91,6 @@ IGNORED_CODE_REF_KEYS = {
     "USER",
     "WAYLAND_DISPLAY",
 }
-
-
-def parse_env_value(raw: str) -> str:
-    value = raw.strip()
-    if not value:
-        return ""
-    if value[:1] in {"'", '"'}:
-        try:
-            return shlex.split(value, comments=False)[0]
-        except ValueError:
-            return value.strip("'\"")
-    return re.split(r"\s+#", value, maxsplit=1)[0].strip()
-
-
-def parse_env_file(path: Path) -> dict[str, str]:
-    values: dict[str, str] = {}
-    if not path.exists():
-        return values
-    for line in path.read_text(encoding="utf-8", errors="ignore").splitlines():
-        stripped = line.strip()
-        if not stripped or stripped.startswith("#") or "=" not in stripped:
-            continue
-        key, raw_value = stripped.split("=", 1)
-        key = key.removeprefix("export ").strip()
-        if re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", key):
-            values[key] = parse_env_value(raw_value)
-    return values
-
-
-def format_env_value(value: str) -> str:
-    if not value:
-        return ""
-    if re.search(r"\s|#", value):
-        return '"' + value.replace('"', '\\"') + '"'
-    return value
 
 
 def is_privileged_key(key: str) -> bool:
@@ -238,7 +203,9 @@ def build_sync_plan(
             "required_keys": len(entries),
             "ready": sum(1 for entry in entries if entry["status"] == "ready"),
             "already_set": sum(1 for entry in entries if entry["status"] == "already_set"),
-            "missing_from_master": sum(1 for entry in entries if entry["status"] == "missing_from_master"),
+            "missing_from_master": sum(
+                1 for entry in entries if entry["status"] == "missing_from_master"
+            ),
             "privileged_ready": sum(
                 1 for entry in entries if entry["status"] == "ready" and entry["privileged"]
             ),
@@ -360,27 +327,53 @@ def cmd_apply(args: argparse.Namespace) -> int:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Governed env sync from .env.master into a project env file.")
+    parser = argparse.ArgumentParser(
+        description="Governed env sync from .env.master into a project env file."
+    )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
-    plan_cmd = subparsers.add_parser("plan", help="Create a redacted sync plan without writing project env values.")
+    plan_cmd = subparsers.add_parser(
+        "plan", help="Create a redacted sync plan without writing project env values."
+    )
     plan_cmd.add_argument("--project", required=True, help="Path to the target project")
-    plan_cmd.add_argument("--master", default=str(DEFAULT_MASTER), help="Path to the master env file")
-    plan_cmd.add_argument("--target", default=DEFAULT_TARGET, help="Target env file relative to the project")
-    plan_cmd.add_argument("--key", action="append", default=[], help="Additional required key to include")
-    plan_cmd.add_argument("--include-code-refs", action="store_true", help="Also inspect code for env references")
+    plan_cmd.add_argument(
+        "--master", default=str(DEFAULT_MASTER), help="Path to the master env file"
+    )
+    plan_cmd.add_argument(
+        "--target", default=DEFAULT_TARGET, help="Target env file relative to the project"
+    )
+    plan_cmd.add_argument(
+        "--key", action="append", default=[], help="Additional required key to include"
+    )
+    plan_cmd.add_argument(
+        "--include-code-refs", action="store_true", help="Also inspect code for env references"
+    )
     plan_cmd.add_argument("--output", help="Optional output path for the JSON plan")
     plan_cmd.set_defaults(func=cmd_plan)
 
     apply_cmd = subparsers.add_parser("apply", help="Apply a sync plan or generate-and-apply one.")
     apply_cmd.add_argument("--plan", help="Path to an env sync plan JSON")
-    apply_cmd.add_argument("--project", help="Path to the target project, required when --plan is omitted")
-    apply_cmd.add_argument("--master", default=str(DEFAULT_MASTER), help="Path to the master env file")
-    apply_cmd.add_argument("--target", default=DEFAULT_TARGET, help="Target env file relative to the project")
-    apply_cmd.add_argument("--key", action="append", default=[], help="Additional required key to include")
-    apply_cmd.add_argument("--include-code-refs", action="store_true", help="Also inspect code for env references")
-    apply_cmd.add_argument("--include-privileged", action="store_true", help="Allow copying privileged/admin keys")
-    apply_cmd.add_argument("--overwrite", action="store_true", help="Overwrite existing target env values")
+    apply_cmd.add_argument(
+        "--project", help="Path to the target project, required when --plan is omitted"
+    )
+    apply_cmd.add_argument(
+        "--master", default=str(DEFAULT_MASTER), help="Path to the master env file"
+    )
+    apply_cmd.add_argument(
+        "--target", default=DEFAULT_TARGET, help="Target env file relative to the project"
+    )
+    apply_cmd.add_argument(
+        "--key", action="append", default=[], help="Additional required key to include"
+    )
+    apply_cmd.add_argument(
+        "--include-code-refs", action="store_true", help="Also inspect code for env references"
+    )
+    apply_cmd.add_argument(
+        "--include-privileged", action="store_true", help="Allow copying privileged/admin keys"
+    )
+    apply_cmd.add_argument(
+        "--overwrite", action="store_true", help="Overwrite existing target env values"
+    )
     apply_cmd.set_defaults(func=cmd_apply)
 
     return parser

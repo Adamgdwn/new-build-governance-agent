@@ -24,7 +24,9 @@ class SecretHygieneTests(unittest.TestCase):
         matches = []
         for root_name in SCAN_ROOTS:
             root = REPO_ROOT / root_name
-            paths = [root] if root.is_file() else [path for path in root.rglob("*") if path.is_file()]
+            paths = (
+                [root] if root.is_file() else [path for path in root.rglob("*") if path.is_file()]
+            )
             for path in paths:
                 relative = path.relative_to(REPO_ROOT)
                 if any(part in SKIP_PARTS for part in relative.parts):

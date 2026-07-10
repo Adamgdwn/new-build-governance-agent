@@ -10,16 +10,13 @@ import sys
 from datetime import date, datetime
 from pathlib import Path
 
-
 _DATE_FIELDS = re.compile(
     r"(Last Updated|Effective Date|Last Reviewed|Date)\s*:\s*(\S+)", re.IGNORECASE
 )
 _STATUS_FIELD = re.compile(r"^Status\s*:\s*(.+)$", re.IGNORECASE | re.MULTILINE)
 _OWNER_FIELD = re.compile(r"^Owner\s*:\s*(.+)$", re.IGNORECASE | re.MULTILINE)
 _DOC_ID_FIELD = re.compile(r"^Document ID\s*:\s*(.+)$", re.IGNORECASE | re.MULTILINE)
-_SUPERSEDED_BY = re.compile(
-    r"(Superseded by|Replaced by|See|See also)\s*:\s*\S+", re.IGNORECASE
-)
+_SUPERSEDED_BY = re.compile(r"(Superseded by|Replaced by|See|See also)\s*:\s*\S+", re.IGNORECASE)
 _STALE_THRESHOLD_DAYS = 30
 _CARRY_FORWARD_THRESHOLD_DAYS = 7
 
@@ -179,9 +176,7 @@ def run_audit(project_path: Path) -> dict:
 
     if missing_owner:
         for rel in missing_owner:
-            findings["warnings"].append(
-                f"`{rel}` — add `Owner: <name>` in the first 30 lines."
-            )
+            findings["warnings"].append(f"`{rel}` — add `Owner: <name>` in the first 30 lines.")
     else:
         positives.append("All docs/ files have an Owner field.")
 
@@ -273,9 +268,7 @@ def run_audit(project_path: Path) -> dict:
                 supersession_items.append(msg)
 
     # Check 6: Document ID gaps in controlled dirs
-    checks_run.append(
-        "Standards, policies, and processes have Document ID fields"
-    )
+    checks_run.append("Standards, policies, and processes have Document ID fields")
     controlled_dirs = ["docs/standards", "docs/policy", "docs/processes"]
     id_gaps: list[str] = []
     for rel_dir in controlled_dirs:
@@ -442,9 +435,7 @@ def write_audit_report(project_path: Path, report_text: str, date_str: str) -> P
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(
-        description="Generate an AUD-class governance audit report."
-    )
+    parser = argparse.ArgumentParser(description="Generate an AUD-class governance audit report.")
     parser.add_argument("project", help="Path to the governed project")
     parser.add_argument(
         "--open", action="store_true", help="Open the report in VS Code after writing"
@@ -462,11 +453,7 @@ def main() -> int:
 
     print(str(report_path))
     findings = result["findings"]
-    total = (
-        len(findings["blockers"])
-        + len(findings["required_gaps"])
-        + len(findings["warnings"])
-    )
+    total = len(findings["blockers"]) + len(findings["required_gaps"]) + len(findings["warnings"])
     print(
         f"Audit complete: {len(findings['blockers'])} blocker(s), "
         f"{len(findings['required_gaps'])} required gap(s), "

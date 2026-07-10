@@ -12,7 +12,9 @@ import version
 
 class VersionTests(unittest.TestCase):
     def test_version_file_is_source_of_truth(self):
-        self.assertEqual((REPO_ROOT / "VERSION").read_text(encoding="utf-8").strip(), version.get_version())
+        self.assertEqual(
+            (REPO_ROOT / "VERSION").read_text(encoding="utf-8").strip(), version.get_version()
+        )
         self.assertEqual("New Build Governance Agent 0.3.0", version.get_version_string())
 
     def test_freedom_manifest_matches_version_file(self):

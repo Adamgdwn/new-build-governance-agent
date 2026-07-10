@@ -7,7 +7,6 @@ import argparse
 import json
 import re
 import socket
-import sys
 import urllib.error
 import urllib.request
 from dataclasses import asdict, dataclass
@@ -56,7 +55,8 @@ def parse_semver(value: str) -> tuple[int, int, int] | None:
     match = _SEMVER_RE.match(value.strip())
     if not match:
         return None
-    return tuple(int(part) for part in match.groups())
+    major, minor, patch = (int(part) for part in match.groups())
+    return (major, minor, patch)
 
 
 def normalize_version(value: str) -> str:
@@ -64,7 +64,9 @@ def normalize_version(value: str) -> str:
 
 
 def default_fetch_json(url: str, timeout: float) -> Any:
-    request = urllib.request.Request(url, headers={"Accept": "application/vnd.github+json", "User-Agent": USER_AGENT})
+    request = urllib.request.Request(
+        url, headers={"Accept": "application/vnd.github+json", "User-Agent": USER_AGENT}
+    )
     with urllib.request.urlopen(request, timeout=timeout) as response:
         return json.loads(response.read().decode("utf-8"))
 
@@ -120,9 +122,17 @@ def fetch_latest_remote_version(
             return loader(repository, fetch_json, timeout)
         except urllib.error.HTTPError as exc:
             errors.append(f"{exc.code} from {exc.url}")
-        except (urllib.error.URLError, TimeoutError, socket.timeout, json.JSONDecodeError, UpdateCheckError) as exc:
+        except (
+            urllib.error.URLError,
+            TimeoutError,
+            socket.timeout,
+            json.JSONDecodeError,
+            UpdateCheckError,
+        ) as exc:
             errors.append(str(exc))
-    detail = "; ".join(error for error in errors if error) or "unable to read GitHub releases or tags"
+    detail = (
+        "; ".join(error for error in errors if error) or "unable to read GitHub releases or tags"
+    )
     raise UpdateCheckError(detail)
 
 
@@ -143,7 +153,9 @@ def check_for_updates(
         )
 
     try:
-        remote = fetch_latest_remote_version(repository=repository, fetch_json=fetch_json, timeout=timeout)
+        remote = fetch_latest_remote_version(
+            repository=repository, fetch_json=fetch_json, timeout=timeout
+        )
     except UpdateCheckError as exc:
         return UpdateCheckResult(
             status=STATUS_UNABLE,
@@ -202,8 +214,12 @@ def format_result(result: UpdateCheckResult) -> str:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Check GitHub releases or tags for available updates.")
-    parser.add_argument("--json", action="store_true", help="Print the update check result as JSON.")
+    parser = argparse.ArgumentParser(
+        description="Check GitHub releases or tags for available updates."
+    )
+    parser.add_argument(
+        "--json", action="store_true", help="Print the update check result as JSON."
+    )
     parser.add_argument("--timeout", type=float, default=5.0, help="Network timeout in seconds.")
     return parser
 

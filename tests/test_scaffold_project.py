@@ -23,8 +23,12 @@ class ScaffoldProjectTests(unittest.TestCase):
             self.assertTrue((target / "docs" / "context-map.md").exists())
             self.assertTrue((target / "docs" / "domain-language.md").exists())
             self.assertTrue((target / "docs" / "standards" / "README.md").exists())
-            self.assertTrue((target / "docs" / "standards" / "ship-ready-engineering-standard.md").exists())
-            self.assertTrue((target / "docs" / "standards" / "context-hygiene-standard.md").exists())
+            self.assertTrue(
+                (target / "docs" / "standards" / "ship-ready-engineering-standard.md").exists()
+            )
+            self.assertTrue(
+                (target / "docs" / "standards" / "context-hygiene-standard.md").exists()
+            )
             self.assertTrue((target / "scripts" / "governance-preflight.sh").exists())
 
             control = (target / "project-control.yaml").read_text(encoding="utf-8")
@@ -62,7 +66,9 @@ class ScaffoldProjectTests(unittest.TestCase):
                 self.assertIn("workspace graph for cross-repo routing", instructions)
                 self.assertIn("known files", instructions)
                 self.assertIn("graphify-setup-project /path/to/repo", instructions)
-                self.assertNotIn("/home/adamgoodwin/.local/bin/graphify-setup-project", instructions)
+                self.assertNotIn(
+                    "/home/adamgoodwin/.local/bin/graphify-setup-project", instructions
+                )
                 self.assertIn("/graphify /path/to/repo", instructions)
                 self.assertIn("full semantic repo graphs", instructions)
                 self.assertIn("Do not trigger a full `/graphify` rebuild", instructions)
@@ -78,18 +84,24 @@ class ScaffoldProjectTests(unittest.TestCase):
             self.assertIn("# Context Map", context_map)
             self.assertIn("Load By Task", context_map)
             self.assertIn("budget class", context_map)
-            standards_index = (target / "docs" / "standards" / "README.md").read_text(encoding="utf-8")
+            standards_index = (target / "docs" / "standards" / "README.md").read_text(
+                encoding="utf-8"
+            )
             self.assertIn("# Engineering Standards Index", standards_index)
             self.assertIn("Ship-Ready Engineering Standard", standards_index)
             self.assertIn("Context Hygiene Standard", standards_index)
             self.assertIn("Context Routing", standards_index)
-            ship_ready = (target / "docs" / "standards" / "ship-ready-engineering-standard.md").read_text(encoding="utf-8")
+            ship_ready = (
+                target / "docs" / "standards" / "ship-ready-engineering-standard.md"
+            ).read_text(encoding="utf-8")
             self.assertIn("# Ship-Ready Engineering Standard", ship_ready)
             self.assertIn("Completion States", ship_ready)
             self.assertIn("Draft complete", ship_ready)
             self.assertIn("Project completion is a human decision", ship_ready)
             self.assertIn("Definition Of Shipped", ship_ready)
-            context_hygiene = (target / "docs" / "standards" / "context-hygiene-standard.md").read_text(encoding="utf-8")
+            context_hygiene = (
+                target / "docs" / "standards" / "context-hygiene-standard.md"
+            ).read_text(encoding="utf-8")
             self.assertIn("# Context Hygiene Standard", context_hygiene)
             self.assertIn("Context Tiers And Budgets", context_hygiene)
             self.assertIn("Cache-Friendly Prompting", context_hygiene)

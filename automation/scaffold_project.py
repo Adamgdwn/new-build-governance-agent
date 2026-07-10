@@ -3,44 +3,27 @@
 
 from __future__ import annotations
 
-import os
 import argparse
+import os
 import shutil
 import stat
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
 
+from project_naming import (  # noqa: F401
+    GOV_TYPES,
+    GOVERNANCE_LEVELS,
+    GOVERNANCE_TO_RISK,
+    RISK_TIERS,
+    RISK_TO_GOVERNANCE,
+    resolve_governance,
+)
 from version import get_version_string
 
 GOVERNANCE_HOME = Path(__file__).resolve().parent.parent
 TEMPLATE_ROOT = GOVERNANCE_HOME / "templates" / "project"
 
-GOV_TYPES = {
-    "application",
-    "website",
-    "service",
-    "internal-tool",
-    "automation",
-    "infrastructure",
-    "documentation",
-    "agent",
-}
-GOVERNANCE_LEVELS = {"0", "1", "2", "3", "4"}
-RISK_TIERS = {"low", "medium", "high", "critical"}
-GOVERNANCE_TO_RISK = {
-    "0": "low",
-    "1": "low",
-    "2": "medium",
-    "3": "high",
-    "4": "critical",
-}
-RISK_TO_GOVERNANCE = {
-    "low": "1",
-    "medium": "2",
-    "high": "3",
-    "critical": "4",
-}
 USE_CASE_BY_TYPE = {
     "application": "Web application / SaaS",
     "website": "Static / marketing website",
@@ -69,18 +52,6 @@ class ScaffoldResult:
     created: list[Path] = field(default_factory=list)
     kept: list[Path] = field(default_factory=list)
     messages: list[str] = field(default_factory=list)
-
-
-def resolve_governance(value: str | int | None = None) -> tuple[str, str]:
-    raw = str(value if value is not None else "2").strip()
-    if raw in GOVERNANCE_LEVELS:
-        return raw, GOVERNANCE_TO_RISK[raw]
-    if raw in RISK_TIERS:
-        return RISK_TO_GOVERNANCE[raw], raw
-    raise ValueError(
-        "Unsupported governance level. Use 0, 1, 2, 3, 4, "
-        "or legacy risk tiers low/medium/high/critical."
-    )
 
 
 def _copy_if_missing(src: Path, dest: Path, result: ScaffoldResult) -> None:
@@ -112,12 +83,16 @@ def _patch_project_control(
     text = project_control.read_text(encoding="utf-8")
     text = text.replace("example-project", project_name)
     text = text.replace("project_type: application", f"project_type: {project_type}")
-    text = text.replace("primary: Web application / SaaS", f"primary: {USE_CASE_BY_TYPE[project_type]}")
+    text = text.replace(
+        "primary: Web application / SaaS", f"primary: {USE_CASE_BY_TYPE[project_type]}"
+    )
     text = text.replace("risk_tier: medium", f"risk_tier: {risk_tier}")
     text = text.replace("governance_level: 2", f"governance_level: {governance_level}")
     if project_type == "agent":
         text = text.replace("applicable: false", "applicable: true")
-        text = text.replace("autonomy_level: A0", f"autonomy_level: {AUTONOMY_BY_GOVERNANCE[governance_level]}")
+        text = text.replace(
+            "autonomy_level: A0", f"autonomy_level: {AUTONOMY_BY_GOVERNANCE[governance_level]}"
+        )
     project_control.write_text(text, encoding="utf-8")
 
 
@@ -131,7 +106,9 @@ def _patch_generated_dates(target_dir: Path) -> None:
             path.write_text(body, encoding="utf-8")
 
 
-def scaffold_project(target_dir: Path | str, project_type: str, governance_input: str | int | None = "2") -> ScaffoldResult:
+def scaffold_project(
+    target_dir: Path | str, project_type: str, governance_input: str | int | None = "2"
+) -> ScaffoldResult:
     target = Path(target_dir).expanduser()
     project_type = project_type.strip()
     if project_type not in GOV_TYPES:
@@ -189,18 +166,22 @@ def scaffold_project(target_dir: Path | str, project_type: str, governance_input
     ]
 
     if project_type != "documentation":
-        copies.extend([
-            ("docs/deployment-guide.template.md", "docs/deployment-guide.md"),
-            ("docs/runbook.template.md", "docs/runbook.md"),
-        ])
+        copies.extend(
+            [
+                ("docs/deployment-guide.template.md", "docs/deployment-guide.md"),
+                ("docs/runbook.template.md", "docs/runbook.md"),
+            ]
+        )
 
     if project_type == "agent":
-        copies.extend([
-            ("docs/agent-inventory.template.md", "docs/agent-inventory.md"),
-            ("docs/model-registry.template.md", "docs/model-registry.md"),
-            ("docs/prompt-register.template.md", "docs/prompt-register.md"),
-            ("docs/tool-permission-matrix.template.md", "docs/tool-permission-matrix.md"),
-        ])
+        copies.extend(
+            [
+                ("docs/agent-inventory.template.md", "docs/agent-inventory.md"),
+                ("docs/model-registry.template.md", "docs/model-registry.md"),
+                ("docs/prompt-register.template.md", "docs/prompt-register.md"),
+                ("docs/tool-permission-matrix.template.md", "docs/tool-permission-matrix.md"),
+            ]
+        )
 
     for src_relative, dest_relative in copies:
         _copy_if_missing(TEMPLATE_ROOT / src_relative, target / dest_relative, result)
@@ -221,14 +202,16 @@ def scaffold_project(target_dir: Path | str, project_type: str, governance_input
     _make_executable(target / "scripts" / "governance-check.sh")
     _make_executable(target / "scripts" / "governance-preflight.sh")
 
-    result.messages.extend([
-        "",
-        f"Bootstrap complete for {target}",
-        "Next steps:",
-        "  1. Review project-control.yaml",
-        '  2. Run: bash "scripts/governance-preflight.sh" from the project root',
-        f"  3. Optionally set GOVERNANCE_HOME={GOVERNANCE_HOME} to use the central governance repository.",
-    ])
+    result.messages.extend(
+        [
+            "",
+            f"Bootstrap complete for {target}",
+            "Next steps:",
+            "  1. Review project-control.yaml",
+            '  2. Run: bash "scripts/governance-preflight.sh" from the project root',
+            f"  3. Optionally set GOVERNANCE_HOME={GOVERNANCE_HOME} to use the central governance repository.",
+        ]
+    )
     return result
 
 

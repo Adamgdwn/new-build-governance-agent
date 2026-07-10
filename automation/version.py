@@ -25,7 +25,9 @@ def get_version_string() -> str:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Print the installed New Build Governance Agent version.")
+    parser = argparse.ArgumentParser(
+        description="Print the installed New Build Governance Agent version."
+    )
     parser.add_argument("--plain", action="store_true", help="Print only the version number.")
     parser.add_argument("--json", action="store_true", help="Print product metadata as JSON.")
     return parser
@@ -35,13 +37,18 @@ def main() -> int:
     args = build_parser().parse_args()
     version = get_version()
     if args.json:
-        print(json.dumps({
-            "name": PRODUCT_NAME,
-            "slug": REPO_SLUG,
-            "repository": REPO_FULL_NAME,
-            "repository_url": GITHUB_REPO_URL,
-            "version": version,
-        }, sort_keys=True))
+        print(
+            json.dumps(
+                {
+                    "name": PRODUCT_NAME,
+                    "slug": REPO_SLUG,
+                    "repository": REPO_FULL_NAME,
+                    "repository_url": GITHUB_REPO_URL,
+                    "version": version,
+                },
+                sort_keys=True,
+            )
+        )
     elif args.plain:
         print(version)
     else:

@@ -8,13 +8,13 @@ from __future__ import annotations
 
 import json
 import os
-import re
 import subprocess
 import sys
 import threading
 import traceback
-from datetime import datetime
+from functools import partial
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 # paths
 GOVERNANCE_HOME = Path(__file__).resolve().parent.parent
@@ -28,10 +28,24 @@ GOVERNANCE_AUDIT = GOVERNANCE_HOME / "automation" / "governance_audit.py"
 LOG_PATH = GOVERNANCE_HOME / "data" / "new-build-governance-agent" / "logs" / "gui-startup.log"
 
 sys.path.insert(0, str(GOVERNANCE_HOME / "automation"))
+from project_naming import (  # noqa: E402
+    GOVERNANCE_TO_RISK,
+    render_initial_scope,
+    slug_error,
+    slugify,
+)
 from scaffold_project import scaffold_project  # noqa: E402
+from self_update import (
+    STATUS_UP_TO_DATE,
+    STATUS_WOULD_UPDATE,
+    self_update,
+)  # noqa: E402
+from self_update import (
+    format_result as format_self_update_result,
+)
+from update_check import check_for_updates  # noqa: E402
+from update_check import format_result as format_update_check_result
 from version import get_version  # noqa: E402
-from update_check import check_for_updates, format_result as format_update_check_result  # noqa: E402
-from self_update import STATUS_UP_TO_DATE, STATUS_WOULD_UPDATE, self_update, format_result as format_self_update_result  # noqa: E402
 from workspace_paths import default_code_root, ensure_category_roots  # noqa: E402
 
 CODE_ROOT = default_code_root(GOVERNANCE_HOME)
@@ -41,12 +55,15 @@ try:
     import tkinter as tk
     from tkinter import filedialog, messagebox, ttk
 except Exception:  # pragma: no cover - startup fallback
-    tk = None
-    filedialog = None
-    messagebox = None
-    ttk = None
+    tk = None  # type: ignore[assignment]
+    filedialog = None  # type: ignore[assignment]
+    messagebox = None  # type: ignore[assignment]
+    ttk = None  # type: ignore[assignment]
 
-TkBase = tk.Tk if tk is not None else object
+if TYPE_CHECKING:
+    TkBase = tk.Tk
+else:
+    TkBase = tk.Tk if tk is not None else object
 
 # theme
 BG = "#f4f1e8"
@@ -141,13 +158,6 @@ GOVERNANCE_OPTIONS = [
     "3 - Strict review",
     "4 - Critical controls",
 ]
-GOVERNANCE_TO_RISK = {
-    "0": "low",
-    "1": "low",
-    "2": "medium",
-    "3": "high",
-    "4": "critical",
-}
 
 
 def governance_level_from_label(value: str) -> str:
@@ -163,82 +173,45 @@ def log_startup_error(message: str) -> None:
 
 def build_subprocess_env() -> dict[str, str]:
     env = os.environ.copy()
-    preferred = [
-        "/usr/local/sbin",
-        "/usr/local/bin",
-        "/usr/sbin",
-        "/usr/bin",
-        "/sbin",
-        "/bin",
-    ]
-    existing = [item for item in env.get("PATH", "").split(":") if item]
+    preferred: list[str] = []
+    if os.name != "nt":
+        preferred = [
+            "/usr/local/sbin",
+            "/usr/local/bin",
+            "/usr/sbin",
+            "/usr/bin",
+            "/sbin",
+            "/bin",
+        ]
+    existing = [item for item in env.get("PATH", "").split(os.pathsep) if item]
     merged: list[str] = []
     for item in preferred + existing:
         if item not in merged:
             merged.append(item)
-    env["PATH"] = ":".join(merged)
+    env["PATH"] = os.pathsep.join(merged)
     env.setdefault("GOVERNANCE_HOME", str(GOVERNANCE_HOME))
     return env
 
 
-def slugify(s: str) -> str:
-    s = s.lower()
-    s = re.sub(r"[ _/]+", "-", s)
-    s = re.sub(r"[^a-z0-9-]", "", s)
-    s = re.sub(r"-+", "-", s)
-    return s.strip("-")
+def project_name_error(name: str) -> str | None:
+    """Return the canonical rejection reason for a project name, or None."""
+    return slug_error(name, slugify(name))
 
 
 def write_initial_scope(target: Path, d: dict) -> None:
-    rows = [
-        f"| Project name   | {d['name']} |",
-        f"| Slug / dir     | {d['slug']} |",
-        f"| Type           | {d['gov_type']} |",
-        f"| Governance     | {d['governance_level']} |",
-        f"| Risk tier      | {d['risk_tier']} |",
-        f"| Stack          | {d['stack']} |",
-        f"| Primary model  | {d['builder']} |",
-        f"| Location       | {d['target_dir']} |",
-    ]
-    scope_block = (
-        f"**Problem:** {d['problem']}\n\n"
-        f"**User / consumer:** {d['user_desc']}\n\n"
-        f"**MVP:** {d['mvp']}"
-    ) if d.get("problem") else (
-        "Not captured at intake. Fill in before the first coding session.\n\n"
-        "- **Problem:**\n- **User / consumer:**\n- **MVP:**"
+    text = render_initial_scope(
+        project_name=d["name"],
+        slug=d["slug"],
+        governance_type=d["gov_type"],
+        governance_level=d["governance_level"],
+        risk_tier=d["risk_tier"],
+        stack=d["stack"],
+        primary_builder=d["builder"],
+        target_dir=d["target_dir"],
+        scope_problem=d.get("problem", ""),
+        scope_user=d.get("user_desc", ""),
+        scope_mvp=d.get("mvp", ""),
     )
-    text = f"""# Initial Scope — {d['name']}
-
-Generated: {datetime.now().astimezone().isoformat(timespec="seconds")}
-
-## Classification
-
-| Field          | Value |
-|----------------|-------|
-{chr(10).join(rows)}
-
-## Build approach
-
-Primary builder: **{d['builder']}**
-
-## Scope brief
-
-{scope_block}
-
-## First session checklist
-
-- [ ] Read `START_HERE.md`
-- [ ] Review `docs/current-build-pathway.md`
-- [ ] Review `docs/standards/README.md`
-- [ ] Review `docs/standards/engineering-governance-by-use-case.md`
-- [ ] Review `docs/policy/durable-development-engineering-policy.md`
-- [ ] Review `docs/standards/ship-ready-engineering-standard.md`
-- [ ] Fill in commands in `AI_BOOTSTRAP.md`
-- [ ] Confirm governance level and risk tier in `project-control.yaml`
-- [ ] Add first ADR if architecture decisions were made at intake
-- [ ] Run governance preflight: `bash scripts/governance-preflight.sh`
-"""
     (target / "INITIAL_SCOPE.md").write_text(text, encoding="utf-8")
 
 
@@ -317,11 +290,17 @@ class App(TkBase):
         self.v_doc_known_project = tk.StringVar()
         self.v_doc_project = tk.StringVar()
         self.v_doc_manifest = tk.StringVar()
-        self.v_doc_summary = tk.StringVar(value="Choose an existing repo, then preview the document-control update.")
+        self.v_doc_summary = tk.StringVar(
+            value="Choose an existing repo, then preview the document-control update."
+        )
         self.v_known_count = tk.StringVar(value="Known governed projects: scanning...")
         self.v_change_summary = tk.StringVar()
-        self.v_workflow_hint = tk.StringVar(value="Choose a project to begin the governance pathway.")
-        self.v_update_summary = tk.StringVar(value="Check for agent updates before starting a release workflow.")
+        self.v_workflow_hint = tk.StringVar(
+            value="Choose a project to begin the governance pathway."
+        )
+        self.v_update_summary = tk.StringVar(
+            value="Check for agent updates before starting a release workflow."
+        )
         self.v_activity_summary = tk.StringVar(value="Ready.")
         self.known_projects: dict[str, dict] = {}
         self._pending_known_project_path: str | None = None
@@ -421,8 +400,12 @@ class App(TkBase):
     def _build_ui(self):
         header = tk.Frame(self, bg=BG, padx=PAD, pady=18)
         header.pack(fill="x")
-        tk.Label(header, text="New Build Governance Agent", bg=BG, fg=FG, font=TITLE).pack(anchor="w")
-        tk.Label(header, text=f"Version {get_version()}", bg=BG, fg=INFO, font=LABEL_BOLD).pack(anchor="w", pady=(2, 0))
+        tk.Label(header, text="New Build Governance Agent", bg=BG, fg=FG, font=TITLE).pack(
+            anchor="w"
+        )
+        tk.Label(header, text=f"Version {get_version()}", bg=BG, fg=INFO, font=LABEL_BOLD).pack(
+            anchor="w", pady=(2, 0)
+        )
         tk.Label(
             header,
             text="A guided workspace for starting projects, preparing releases, and keeping engineering standards and agent guidance aligned.",
@@ -632,7 +615,13 @@ class App(TkBase):
             )
             row = index // 2
             column = index % 2
-            button.grid(row=row, column=column, sticky="nsew", padx=(0 if column == 0 else 8, 0), pady=(0, 8))
+            button.grid(
+                row=row,
+                column=column,
+                sticky="nsew",
+                padx=(0 if column == 0 else 8, 0),
+                pady=(0, 8),
+            )
         grid.columnconfigure(0, weight=1)
         grid.columnconfigure(1, weight=1)
 
@@ -670,8 +659,18 @@ class App(TkBase):
         self._row(card, "Main user", lambda p: self._entry(p, self.v_user))
         target_row = tk.Frame(card, bg=SURFACE)
         target_row.pack(fill="x", pady=(8, 0))
-        tk.Label(target_row, text="Where it will go", bg=SURFACE, fg=FG_DIM, font=SMALL, width=14, anchor="w").pack(side="left")
-        self._lbl_preview = tk.Label(target_row, text="", bg=SURFACE, fg=INFO, font=MONO, anchor="w", justify="left")
+        tk.Label(
+            target_row,
+            text="Where it will go",
+            bg=SURFACE,
+            fg=FG_DIM,
+            font=SMALL,
+            width=14,
+            anchor="w",
+        ).pack(side="left")
+        self._lbl_preview = tk.Label(
+            target_row, text="", bg=SURFACE, fg=INFO, font=MONO, anchor="w", justify="left"
+        )
         self._lbl_preview.pack(side="left", fill="x", expand=True)
 
     def _build_intake_risk_step(self):
@@ -683,8 +682,14 @@ class App(TkBase):
             ("Private or customer data", self.v_has_private_data),
             ("Accounts, login, or permissions", self.v_has_accounts),
             ("Payments, billing, or money handling", self.v_handles_money),
-            ("External actions like sending, posting, deleting, deploying, or changing records", self.v_external_actions),
-            ("Production infrastructure, secrets, databases, or release automation", self.v_production_ops),
+            (
+                "External actions like sending, posting, deleting, deploying, or changing records",
+                self.v_external_actions,
+            ),
+            (
+                "Production infrastructure, secrets, databases, or release automation",
+                self.v_production_ops,
+            ),
         ]:
             tk.Checkbutton(
                 card,
@@ -732,10 +737,24 @@ class App(TkBase):
         ).pack(anchor="w")
 
         self._advanced_frame = tk.Frame(card, bg=SURFACE)
-        self._row(self._advanced_frame, "Build type", lambda p: self._combo(p, self.v_type, ["website", "app", "agent", "tool", "automation", "other"]))
+        self._row(
+            self._advanced_frame,
+            "Build type",
+            lambda p: self._combo(
+                p, self.v_type, ["website", "app", "agent", "tool", "automation", "other"]
+            ),
+        )
         self._row(self._advanced_frame, "Likely stack", lambda p: self._entry(p, self.v_stack))
-        self._row(self._advanced_frame, "Builder", lambda p: self._combo(p, self.v_builder, ["claude", "codex", "local", "hybrid"]))
-        self._row(self._advanced_frame, "Review level", lambda p: self._combo(p, self.v_risk, GOVERNANCE_OPTIONS))
+        self._row(
+            self._advanced_frame,
+            "Builder",
+            lambda p: self._combo(p, self.v_builder, ["claude", "codex", "local", "hybrid"]),
+        )
+        self._row(
+            self._advanced_frame,
+            "Review level",
+            lambda p: self._combo(p, self.v_risk, GOVERNANCE_OPTIONS),
+        )
 
     def _build_change_tab(self):
         wrap = self._scrollable_frame(self.change_tab)
@@ -747,14 +766,16 @@ class App(TkBase):
         )
         flow_row = tk.Frame(flow_card, bg=SURFACE)
         flow_row.pack(fill="x")
-        for index, label in enumerate([
-            "Select Project",
-            "Preview Compliance",
-            "Bring To Compliance",
-            "Generate Plan",
-            "Run Checks",
-            "Execute GitHub",
-        ]):
+        for index, label in enumerate(
+            [
+                "Select Project",
+                "Preview Compliance",
+                "Bring To Compliance",
+                "Generate Plan",
+                "Run Checks",
+                "Execute GitHub",
+            ]
+        ):
             chip = tk.Label(
                 flow_row,
                 text=f"{index + 1}. {label}",
@@ -902,7 +923,15 @@ class App(TkBase):
 
         selector_row = tk.Frame(project_card, bg=SURFACE)
         selector_row.pack(fill="x", pady=(0, 8))
-        tk.Label(selector_row, text="Known project", bg=SURFACE, fg=FG_DIM, font=SMALL, width=14, anchor="w").pack(side="left")
+        tk.Label(
+            selector_row,
+            text="Known project",
+            bg=SURFACE,
+            fg=FG_DIM,
+            font=SMALL,
+            width=14,
+            anchor="w",
+        ).pack(side="left")
         self._known_project_combo = ttk.Combobox(
             selector_row,
             textvariable=self.v_known_project,
@@ -912,7 +941,9 @@ class App(TkBase):
         )
         self._configure_combobox_anchor(self._known_project_combo)
         self._known_project_combo.pack(side="left", fill="x", expand=True)
-        self._known_project_combo.bind("<<ComboboxSelected>>", lambda *_: self._on_known_project_selected())
+        self._known_project_combo.bind(
+            "<<ComboboxSelected>>", lambda *_: self._on_known_project_selected()
+        )
         tk.Button(
             selector_row,
             text="Refresh",
@@ -983,7 +1014,15 @@ class App(TkBase):
 
         manifest_row = tk.Frame(preview_card, bg=SURFACE)
         manifest_row.pack(fill="x", pady=4)
-        tk.Label(manifest_row, text="Manifest file", bg=SURFACE, fg=FG_DIM, font=SMALL, width=14, anchor="w").pack(side="left")
+        tk.Label(
+            manifest_row,
+            text="Manifest file",
+            bg=SURFACE,
+            fg=FG_DIM,
+            font=SMALL,
+            width=14,
+            anchor="w",
+        ).pack(side="left")
         self._manifest_entry = tk.Entry(
             manifest_row,
             textvariable=self.v_manifest,
@@ -1102,7 +1141,9 @@ class App(TkBase):
 
         plan_row = tk.Frame(promotion_card, bg=SURFACE)
         plan_row.pack(fill="x", pady=4)
-        tk.Label(plan_row, text="Plan file", bg=SURFACE, fg=FG_DIM, font=SMALL, width=14, anchor="w").pack(side="left")
+        tk.Label(
+            plan_row, text="Plan file", bg=SURFACE, fg=FG_DIM, font=SMALL, width=14, anchor="w"
+        ).pack(side="left")
         self._promotion_entry = tk.Entry(
             plan_row,
             textvariable=self.v_promotion_plan,
@@ -1275,7 +1316,15 @@ class App(TkBase):
 
         report_row = tk.Frame(execute_card, bg=SURFACE)
         report_row.pack(fill="x", pady=4)
-        tk.Label(report_row, text="Execute report", bg=SURFACE, fg=FG_DIM, font=SMALL, width=14, anchor="w").pack(side="left")
+        tk.Label(
+            report_row,
+            text="Execute report",
+            bg=SURFACE,
+            fg=FG_DIM,
+            font=SMALL,
+            width=14,
+            anchor="w",
+        ).pack(side="left")
         self._execute_entry = tk.Entry(
             report_row,
             textvariable=self.v_execution_report,
@@ -1359,7 +1408,15 @@ class App(TkBase):
         )
         selector_row = tk.Frame(project_card, bg=SURFACE)
         selector_row.pack(fill="x", pady=(0, 8))
-        tk.Label(selector_row, text="Known project", bg=SURFACE, fg=FG_DIM, font=SMALL, width=14, anchor="w").pack(side="left")
+        tk.Label(
+            selector_row,
+            text="Known project",
+            bg=SURFACE,
+            fg=FG_DIM,
+            font=SMALL,
+            width=14,
+            anchor="w",
+        ).pack(side="left")
         self._doc_known_project_combo = ttk.Combobox(
             selector_row,
             textvariable=self.v_doc_known_project,
@@ -1369,7 +1426,9 @@ class App(TkBase):
         )
         self._configure_combobox_anchor(self._doc_known_project_combo)
         self._doc_known_project_combo.pack(side="left", fill="x", expand=True)
-        self._doc_known_project_combo.bind("<<ComboboxSelected>>", lambda *_: self._on_doc_known_project_selected())
+        self._doc_known_project_combo.bind(
+            "<<ComboboxSelected>>", lambda *_: self._on_doc_known_project_selected()
+        )
         tk.Button(
             selector_row,
             text="Refresh",
@@ -1428,7 +1487,15 @@ class App(TkBase):
 
         manifest_row = tk.Frame(preview_card, bg=SURFACE)
         manifest_row.pack(fill="x", pady=4)
-        tk.Label(manifest_row, text="Manifest file", bg=SURFACE, fg=FG_DIM, font=SMALL, width=14, anchor="w").pack(side="left")
+        tk.Label(
+            manifest_row,
+            text="Manifest file",
+            bg=SURFACE,
+            fg=FG_DIM,
+            font=SMALL,
+            width=14,
+            anchor="w",
+        ).pack(side="left")
         self._doc_manifest_entry = tk.Entry(
             manifest_row,
             textvariable=self.v_doc_manifest,
@@ -1619,7 +1686,9 @@ class App(TkBase):
         elif not Path(plan).exists():
             text = "Generate the external sync plan next."
         elif not execution_report:
-            text = "Run the pre-checks next, then execute GitHub publish when you approve the rollout."
+            text = (
+                "Run the pre-checks next, then execute GitHub publish when you approve the rollout."
+            )
         else:
             text = "GitHub publish has an execution report. Use post-checks and rollback notes if production validation fails."
         self.v_workflow_hint.set(text)
@@ -1627,12 +1696,16 @@ class App(TkBase):
     def _row(self, parent, label: str, make_widget):
         row = tk.Frame(parent, bg=parent["bg"])
         row.pack(fill="x", pady=4)
-        tk.Label(row, text=label, bg=parent["bg"], fg=FG_DIM, font=SMALL, width=14, anchor="w").pack(side="left")
+        tk.Label(
+            row, text=label, bg=parent["bg"], fg=FG_DIM, font=SMALL, width=14, anchor="w"
+        ).pack(side="left")
         make_widget(row).pack(side="left", fill="x", expand=True)
 
     def _scope_row(self, parent, label: str, var: tk.StringVar):
         row = tk.Frame(parent, bg=SURFACE)
-        tk.Label(row, text=label, bg=SURFACE, fg=FG_DIM, font=SMALL, width=14, anchor="w").pack(side="left")
+        tk.Label(row, text=label, bg=SURFACE, fg=FG_DIM, font=SMALL, width=14, anchor="w").pack(
+            side="left"
+        )
         self._entry(row, var).pack(side="left", fill="x", expand=True)
         return row
 
@@ -1652,14 +1725,24 @@ class App(TkBase):
         )
 
     def _combo(self, parent, var, values):
-        combo = ttk.Combobox(parent, textvariable=var, values=values, state="readonly", font=FONT, width=24)
+        combo = ttk.Combobox(
+            parent, textvariable=var, values=values, state="readonly", font=FONT, width=24
+        )
         self._configure_combobox_anchor(combo)
         return combo
 
     def _configure_combobox_anchor(self, combo: ttk.Combobox):
         try:
-            combo.configure(postcommand=lambda w=combo: self._anchor_combobox_popdown(w))
-            combo.bind("<ButtonPress-1>", lambda *_args, w=combo: self.after_idle(lambda: self._anchor_combobox_popdown(w)), add="+")
+
+            def _anchor(w: ttk.Combobox = combo) -> None:
+                self._anchor_combobox_popdown(w)
+
+            combo.configure(postcommand=_anchor)
+            combo.bind(
+                "<ButtonPress-1>",
+                lambda *_args, w=combo: self.after_idle(lambda: self._anchor_combobox_popdown(w)),
+                add="+",
+            )
         except tk.TclError:
             pass
 
@@ -1820,7 +1903,10 @@ class App(TkBase):
             self._intake_refreshing = True
             self.v_type.set(profile["project_type"])
             level = profile["governance_level"]
-            matching = next((option for option in GOVERNANCE_OPTIONS if option.startswith(f"{level} ")), GOVERNANCE_OPTIONS[2])
+            matching = next(
+                (option for option in GOVERNANCE_OPTIONS if option.startswith(f"{level} ")),
+                GOVERNANCE_OPTIONS[2],
+            )
             self.v_risk.set(matching)
         finally:
             self._intake_refreshing = False
@@ -1831,8 +1917,14 @@ class App(TkBase):
         profile = self._infer_intake_profile()
         if not self.v_advanced_settings.get():
             self._apply_inferred_profile()
-        purpose_label = next((title for value, title, _ in PURPOSE_OPTIONS if value == self.v_plain_purpose.get()), "Not sure")
-        audience_label = next((title for value, title, _ in AUDIENCE_OPTIONS if value == self.v_audience.get()), "Not sure")
+        purpose_label = next(
+            (title for value, title, _ in PURPOSE_OPTIONS if value == self.v_plain_purpose.get()),
+            "Not sure",
+        )
+        audience_label = next(
+            (title for value, title, _ in AUDIENCE_OPTIONS if value == self.v_audience.get()),
+            "Not sure",
+        )
         name = self.v_name.get().strip() or "Untitled project"
         first_result = self.v_mvp.get().strip() or "First useful result not captured yet"
         risk_flags = []
@@ -1879,10 +1971,14 @@ class App(TkBase):
     def _validate_current_intake_step(self) -> bool:
         step = self.v_intake_step.get()
         if step == 2 and not self.v_name.get().strip():
-            messagebox.showerror("Project name needed", "Give the build a project name before continuing.")
+            messagebox.showerror(
+                "Project name needed", "Give the build a project name before continuing."
+            )
             return False
         if step == 2 and not self.v_mvp.get().strip():
-            messagebox.showerror("First result needed", "Describe the first useful thing this build should create.")
+            messagebox.showerror(
+                "First result needed", "Describe the first useful thing this build should create."
+            )
             return False
         return True
 
@@ -1989,7 +2085,11 @@ class App(TkBase):
                 item["display_status"] = "candidate"
             return item
 
-        for root_name, root in (("code", CODE_ROOT), ("agents", AGENTS_ROOT), ("applications", APPS_ROOT)):
+        for root_name, root in (
+            ("code", CODE_ROOT),
+            ("agents", AGENTS_ROOT),
+            ("applications", APPS_ROOT),
+        ):
             if not root.exists():
                 continue
             for child in sorted(root.iterdir()):
@@ -2036,25 +2136,38 @@ class App(TkBase):
         self._refresh_window_anchor()
         if self._pending_known_project_path:
             match = next(
-                (label for label, item in self.known_projects.items() if item.get("path") == self._pending_known_project_path),
+                (
+                    label
+                    for label, item in self.known_projects.items()
+                    if item.get("path") == self._pending_known_project_path
+                ),
                 None,
             )
             self._pending_known_project_path = None
             if match:
                 self.v_known_project.set(match)
                 self._on_known_project_selected()
-            elif values and (not self.v_known_project.get() or self.v_known_project.get() not in self.known_projects):
+            elif values and (
+                not self.v_known_project.get()
+                or self.v_known_project.get() not in self.known_projects
+            ):
                 self.v_known_project.set(values[0])
                 self._on_known_project_selected()
             else:
                 self._update_change_summary()
         else:
-            if values and (not self.v_known_project.get() or self.v_known_project.get() not in self.known_projects):
+            if values and (
+                not self.v_known_project.get()
+                or self.v_known_project.get() not in self.known_projects
+            ):
                 self.v_known_project.set(values[0])
                 self._on_known_project_selected()
             else:
                 self._update_change_summary()
-        if values and (not self.v_doc_known_project.get() or self.v_doc_known_project.get() not in self.known_projects):
+        if values and (
+            not self.v_doc_known_project.get()
+            or self.v_doc_known_project.get() not in self.known_projects
+        ):
             self.v_doc_known_project.set(values[0])
             self._on_doc_known_project_selected()
         else:
@@ -2071,7 +2184,7 @@ class App(TkBase):
         if not item:
             self._update_change_summary()
             return
-        self.v_change_project.set(item['path'])
+        self.v_change_project.set(item["path"])
         self.v_execution_report.set("")
         self._update_change_summary(item)
 
@@ -2149,15 +2262,24 @@ class App(TkBase):
 
     def _update_change_summary(self, item: dict | None = None, manifest: dict | None = None):
         if item is None:
-            item = next((v for k, v in self.known_projects.items() if v.get('path') == self.v_change_project.get()), None)
+            item = next(
+                (
+                    v
+                    for k, v in self.known_projects.items()
+                    if v.get("path") == self.v_change_project.get()
+                ),
+                None,
+            )
 
         lines = []
         if item:
-            lines.append(f"Selected project: {item.get('project_name', item.get('slug', 'unknown'))}")
+            lines.append(
+                f"Selected project: {item.get('project_name', item.get('slug', 'unknown'))}"
+            )
             lines.append(f"Class: {item.get('discovery_class', 'unknown')}")
-            if item.get('discovery_class') == 'candidate':
-                lines.append('Verification: candidate project detected from local project signals')
-                lines.append('Governance status: not compliant yet')
+            if item.get("discovery_class") == "candidate":
+                lines.append("Verification: candidate project detected from local project signals")
+                lines.append("Governance status: not compliant yet")
             else:
                 lines.append(f"Audit status: {item.get('latest_audit_status') or 'unverified'}")
             lines.append(f"Path: {item.get('path', '')}")
@@ -2165,27 +2287,52 @@ class App(TkBase):
             lines.append(f"Selected path: {self.v_change_project.get()}")
 
         if manifest is not None:
-            actions = manifest.get('actions', [])
+            actions = manifest.get("actions", [])
             if actions:
-                creates = [action.get('relative_path', '?') for action in actions if action.get('action') == 'create_file']
-                appends = [action.get('relative_path', '?') for action in actions if action.get('action') == 'append_managed_block']
+                creates = [
+                    action.get("relative_path", "?")
+                    for action in actions
+                    if action.get("action") == "create_file"
+                ]
+                appends = [
+                    action.get("relative_path", "?")
+                    for action in actions
+                    if action.get("action") == "append_managed_block"
+                ]
                 if creates:
                     lines.append(f"Planned file creates: {', '.join(creates)}")
                 if appends:
                     lines.append(f"Planned instruction appends: {', '.join(appends)}")
             else:
-                lines.append('Planned changes: none; the selected project already has the guided baseline docs and instructions.')
+                lines.append(
+                    "Planned changes: none; the selected project already has the guided baseline docs and instructions."
+                )
 
-        lines.append('Safety: this workflow creates missing governance docs and appends marked instruction blocks only.')
-        lines.append('It does not rename, move, delete, rewrite existing files, or remap dependencies.')
-        lines.append('Candidate projects can be guided into governance, but they are not treated as fully governed yet.')
-        lines.append('A candidate label means the app recognized a project; it is not a failure state.')
-        self.v_change_summary.set('\n'.join(lines))
+        lines.append(
+            "Safety: this workflow creates missing governance docs and appends marked instruction blocks only."
+        )
+        lines.append(
+            "It does not rename, move, delete, rewrite existing files, or remap dependencies."
+        )
+        lines.append(
+            "Candidate projects can be guided into governance, but they are not treated as fully governed yet."
+        )
+        lines.append(
+            "A candidate label means the app recognized a project; it is not a failure state."
+        )
+        self.v_change_summary.set("\n".join(lines))
         self._update_workflow_hint()
 
     def _update_doc_summary(self, item: dict | None = None, manifest: dict | None = None):
         if item is None:
-            item = next((v for v in self.known_projects.values() if v.get("path") == self.v_doc_project.get()), None)
+            item = next(
+                (
+                    v
+                    for v in self.known_projects.values()
+                    if v.get("path") == self.v_doc_project.get()
+                ),
+                None,
+            )
 
         lines = []
         if item:
@@ -2208,7 +2355,9 @@ class App(TkBase):
     def _browse_project(self):
         selected = filedialog.askdirectory(
             title="Select governed project",
-            initialdir=str(Path(self.v_change_project.get()).expanduser().resolve().parent) if self.v_change_project.get() else str(Path.home() / "code"),
+            initialdir=str(Path(self.v_change_project.get()).expanduser().resolve().parent)
+            if self.v_change_project.get()
+            else str(Path.home() / "code"),
         )
         if selected:
             self.v_change_project.set(selected)
@@ -2218,7 +2367,9 @@ class App(TkBase):
     def _browse_doc_project(self):
         selected = filedialog.askdirectory(
             title="Select repo for document control",
-            initialdir=str(Path(self.v_doc_project.get()).expanduser().resolve().parent) if self.v_doc_project.get() else str(Path.home() / "code"),
+            initialdir=str(Path(self.v_doc_project.get()).expanduser().resolve().parent)
+            if self.v_doc_project.get()
+            else str(Path.home() / "code"),
         )
         if selected:
             self.v_doc_project.set(selected)
@@ -2228,7 +2379,9 @@ class App(TkBase):
     def _browse_manifest(self):
         selected = filedialog.askopenfilename(
             title="Select manifest",
-            initialdir=str((GOVERNANCE_HOME / "data" / "new-build-governance-agent" / "exports").resolve()),
+            initialdir=str(
+                (GOVERNANCE_HOME / "data" / "new-build-governance-agent" / "exports").resolve()
+            ),
             filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
         )
         if selected:
@@ -2239,7 +2392,9 @@ class App(TkBase):
     def _browse_doc_manifest(self):
         selected = filedialog.askopenfilename(
             title="Select document-control manifest",
-            initialdir=str((GOVERNANCE_HOME / "data" / "new-build-governance-agent" / "exports").resolve()),
+            initialdir=str(
+                (GOVERNANCE_HOME / "data" / "new-build-governance-agent" / "exports").resolve()
+            ),
             filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
         )
         if selected:
@@ -2249,7 +2404,9 @@ class App(TkBase):
     def _browse_promotion_plan(self):
         selected = filedialog.askopenfilename(
             title="Select release plan",
-            initialdir=str((GOVERNANCE_HOME / "data" / "new-build-governance-agent" / "exports").resolve()),
+            initialdir=str(
+                (GOVERNANCE_HOME / "data" / "new-build-governance-agent" / "exports").resolve()
+            ),
             filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
         )
         if selected:
@@ -2319,21 +2476,29 @@ class App(TkBase):
         try:
             update_result = check_for_updates(timeout=5.0)
             dry_run_result = self_update(dry_run=True)
-            summary, allow_update = build_update_affordance_summary(update_result.status, dry_run_result.status)
+            summary, allow_update = build_update_affordance_summary(
+                update_result.status, dry_run_result.status
+            )
 
             self.after(0, lambda text=summary: self.v_update_summary.set(text))
             self.after(0, lambda allowed=allow_update: self._set_self_update_button_state(allowed))
             self._out(format_update_check_result(update_result), "info")
             self._out(format_self_update_result(dry_run_result), "ok" if allow_update else "dim")
         except Exception as exc:
-            self.after(0, lambda: self.v_update_summary.set("Update check failed. Review the activity log."))
+            self.after(
+                0,
+                lambda: self.v_update_summary.set("Update check failed. Review the activity log."),
+            )
             self._out(f"Update check failed: {exc}", "err")
         finally:
             self.after(0, lambda: self._set_busy(False))
 
     def _on_self_update_agent(self):
         if not self._self_update_allowed:
-            messagebox.showinfo("Update unavailable", "Run Check first. The Update action is available only when a safe fast-forward is possible.")
+            messagebox.showinfo(
+                "Update unavailable",
+                "Run Check first. The Update action is available only when a safe fast-forward is possible.",
+            )
             return
         if not messagebox.askyesno(
             "Update agent",
@@ -2348,16 +2513,42 @@ class App(TkBase):
     def _run_self_update_agent(self):
         try:
             result = self_update()
-            self._out(format_self_update_result(result), "ok" if result.status in {"updated", "up_to_date"} else "err")
-            self.after(0, lambda: self.v_update_summary.set(f"Self-update status: {result.status}\nRestart the GUI after an update."))
+            self._out(
+                format_self_update_result(result),
+                "ok" if result.status in {"updated", "up_to_date"} else "err",
+            )
+            self.after(
+                0,
+                lambda: self.v_update_summary.set(
+                    f"Self-update status: {result.status}\nRestart the GUI after an update."
+                ),
+            )
             if result.status == "updated":
-                self.after(0, lambda: messagebox.showinfo("Agent updated", "The checkout was fast-forwarded. Restart the GUI to load updated code."))
+                self.after(
+                    0,
+                    lambda: messagebox.showinfo(
+                        "Agent updated",
+                        "The checkout was fast-forwarded. Restart the GUI to load updated code.",
+                    ),
+                )
             elif result.status == "up_to_date":
-                self.after(0, lambda: messagebox.showinfo("Already current", "The checkout is already up to date."))
+                self.after(
+                    0,
+                    lambda: messagebox.showinfo(
+                        "Already current", "The checkout is already up to date."
+                    ),
+                )
             else:
-                self.after(0, lambda: messagebox.showwarning("Update blocked", "Self-update did not run. Review the activity log."))
+                self.after(
+                    0,
+                    lambda: messagebox.showwarning(
+                        "Update blocked", "Self-update did not run. Review the activity log."
+                    ),
+                )
         except Exception as exc:
-            self.after(0, lambda: self.v_update_summary.set("Self-update failed. Review the activity log."))
+            self.after(
+                0, lambda: self.v_update_summary.set("Self-update failed. Review the activity log.")
+            )
             self._out(f"Self-update failed: {exc}", "err")
         finally:
             self.after(0, lambda: self._set_busy(False))
@@ -2367,8 +2558,16 @@ class App(TkBase):
         if not name:
             messagebox.showerror("Required", "Project name cannot be empty.")
             return
+        name_problem = project_name_error(name)
+        if name_problem:
+            messagebox.showerror(
+                "Invalid project name", f"Cannot create this project: {name_problem}."
+            )
+            return
         if not self.v_mvp.get().strip():
-            messagebox.showerror("Required", "Describe the first useful result before creating the build.")
+            messagebox.showerror(
+                "Required", "Describe the first useful result before creating the build."
+            )
             return
 
         self._apply_inferred_profile()
@@ -2380,7 +2579,9 @@ class App(TkBase):
         risk_tier = profile["risk_tier"]
         builder = profile["builder"]
         stack = profile["stack"]
-        audience_label = next((title for value, title, _ in AUDIENCE_OPTIONS if value == self.v_audience.get()), "")
+        audience_label = next(
+            (title for value, title, _ in AUDIENCE_OPTIONS if value == self.v_audience.get()), ""
+        )
 
         data = dict(
             name=name,
@@ -2505,7 +2706,7 @@ class App(TkBase):
             self._out(f"Generated compliance preview: {manifest}", "ok")
             if Path(manifest).exists():
                 manifest_data = json.loads(Path(manifest).read_text(encoding="utf-8"))
-                self.after(0, lambda data=manifest_data: self._update_change_summary(manifest=data))
+                self.after(0, partial(self._update_change_summary, manifest=manifest_data))
                 self._out(Path(manifest).read_text(encoding="utf-8").strip(), "dim")
         finally:
             self.after(0, lambda: self._set_busy(False))
@@ -2517,9 +2718,7 @@ class App(TkBase):
             return
         self._set_busy(True)
         self._clear_output()
-        threading.Thread(
-            target=self._run_governance_audit, args=(project,), daemon=True
-        ).start()
+        threading.Thread(target=self._run_governance_audit, args=(project,), daemon=True).start()
 
     def _run_governance_audit(self, project: str):
         try:
@@ -2646,8 +2845,8 @@ class App(TkBase):
                 manifest_data = json.loads(manifest_path.read_text(encoding="utf-8"))
                 project_path = manifest_data.get("project_path", self.v_change_project.get())
                 self._sync_project_registry(project_path)
-                self.after(0, lambda p=project_path: self._refresh_known_project_for_path(p))
-                self.after(0, lambda data=manifest_data: self._update_change_summary(manifest=data))
+                self.after(0, partial(self._refresh_known_project_for_path, project_path))
+                self.after(0, partial(self._update_change_summary, manifest=manifest_data))
                 self._out(manifest_path.read_text(encoding="utf-8").strip(), "dim")
         finally:
             self.after(0, lambda: self._set_busy(False))
@@ -2659,12 +2858,20 @@ class App(TkBase):
             return
         self._set_busy(True)
         self._clear_output()
-        threading.Thread(target=self._run_generate_doc_control_manifest, args=(project,), daemon=True).start()
+        threading.Thread(
+            target=self._run_generate_doc_control_manifest, args=(project,), daemon=True
+        ).start()
 
     def _run_generate_doc_control_manifest(self, project: str):
         try:
             proc = subprocess.run(
-                [sys.executable, str(CHANGE_CONTROL), "propose-document-control", "--project", project],
+                [
+                    sys.executable,
+                    str(CHANGE_CONTROL),
+                    "propose-document-control",
+                    "--project",
+                    project,
+                ],
                 capture_output=True,
                 text=True,
                 check=False,
@@ -2672,14 +2879,16 @@ class App(TkBase):
             )
             if proc.returncode != 0:
                 self._out(proc.stdout.strip(), "dim")
-                self._out(proc.stderr.strip() or "Document-control preview generation failed.", "err")
+                self._out(
+                    proc.stderr.strip() or "Document-control preview generation failed.", "err"
+                )
                 return
             manifest = proc.stdout.strip()
             self.after(0, lambda: self.v_doc_manifest.set(manifest))
             self._out(f"Generated document-control preview: {manifest}", "ok")
             if Path(manifest).exists():
                 manifest_data = json.loads(Path(manifest).read_text(encoding="utf-8"))
-                self.after(0, lambda data=manifest_data: self._update_doc_summary(manifest=data))
+                self.after(0, partial(self._update_doc_summary, manifest=manifest_data))
                 self._out(Path(manifest).read_text(encoding="utf-8").strip(), "dim")
         finally:
             self.after(0, lambda: self._set_busy(False))
@@ -2690,7 +2899,9 @@ class App(TkBase):
             messagebox.showerror("Required", "Preview or choose a document-control manifest first.")
             return
         if not Path(manifest).exists():
-            messagebox.showerror("Missing file", f"Document-control manifest not found:\n{manifest}")
+            messagebox.showerror(
+                "Missing file", f"Document-control manifest not found:\n{manifest}"
+            )
             return
         if not messagebox.askyesno(
             "Apply document control",
@@ -2699,7 +2910,9 @@ class App(TkBase):
             return
         self._set_busy(True)
         self._clear_output()
-        threading.Thread(target=self._run_apply_doc_control_manifest, args=(manifest,), daemon=True).start()
+        threading.Thread(
+            target=self._run_apply_doc_control_manifest, args=(manifest,), daemon=True
+        ).start()
 
     def _run_apply_doc_control_manifest(self, manifest: str):
         try:
@@ -2720,11 +2933,17 @@ class App(TkBase):
             if manifest_path.exists():
                 manifest_data = json.loads(manifest_path.read_text(encoding="utf-8"))
                 project_path = manifest_data.get("project_path", self.v_doc_project.get())
-                self.after(0, lambda p=project_path: self.v_doc_project.set(p))
-                self.after(0, lambda data=manifest_data: self._update_doc_summary(manifest=data))
+                self.after(0, partial(self.v_doc_project.set, project_path))
+                self.after(0, partial(self._update_doc_summary, manifest=manifest_data))
                 self._out(manifest_path.read_text(encoding="utf-8").strip(), "dim")
                 sup = subprocess.run(
-                    [sys.executable, str(CHANGE_CONTROL), "supersession-status", "--project", project_path],
+                    [
+                        sys.executable,
+                        str(CHANGE_CONTROL),
+                        "supersession-status",
+                        "--project",
+                        project_path,
+                    ],
                     capture_output=True,
                     text=True,
                     check=False,
@@ -2732,7 +2951,13 @@ class App(TkBase):
                 )
                 if sup.returncode == 0 and sup.stdout.strip():
                     self._out(f"Supersession: {sup.stdout.strip()}", "ok")
-                self.after(0, lambda: messagebox.showinfo("Document control updated", "The document-control standard update is complete."))
+                self.after(
+                    0,
+                    lambda: messagebox.showinfo(
+                        "Document control updated",
+                        "The document-control standard update is complete.",
+                    ),
+                )
         finally:
             self.after(0, lambda: self._set_busy(False))
 
@@ -2743,7 +2968,9 @@ class App(TkBase):
             return
         self._set_busy(True)
         self._clear_output()
-        threading.Thread(target=self._run_generate_promotion_plan, args=(project,), daemon=True).start()
+        threading.Thread(
+            target=self._run_generate_promotion_plan, args=(project,), daemon=True
+        ).start()
 
     def _on_run_prechecks(self):
         plan_path = self.v_promotion_plan.get().strip()
@@ -2797,7 +3024,9 @@ class App(TkBase):
             return
         self._set_busy(True)
         self._clear_output()
-        threading.Thread(target=self._run_fix_missing_test_tools, args=(plan_path,), daemon=True).start()
+        threading.Thread(
+            target=self._run_fix_missing_test_tools, args=(plan_path,), daemon=True
+        ).start()
 
     def _on_execute_github(self):
         plan_path = self.v_promotion_plan.get().strip()
@@ -2846,7 +3075,10 @@ class App(TkBase):
             plan_path = proc.stdout.strip()
             self.after(0, lambda: self.v_promotion_plan.set(plan_path))
             self.after(0, lambda: self.v_execution_report.set(""))
-            self._out("Generated staged release plan with pre-checks, approval-and-execute guidance, post-checks, and rollback readiness.", "ok")
+            self._out(
+                "Generated staged release plan with pre-checks, approval-and-execute guidance, post-checks, and rollback readiness.",
+                "ok",
+            )
             self._out(f"Plan file: {plan_path}", "info")
             if Path(plan_path).exists():
                 plan_data = json.loads(Path(plan_path).read_text(encoding="utf-8"))
@@ -2854,26 +3086,42 @@ class App(TkBase):
                 if stages:
                     for stage in stages:
                         self._out(f"{stage.get('name')}: {stage.get('status')}", "dim")
-                sync_stage = next((stage for stage in stages if stage.get("name") == "prepare_external_sync"), None)
+                sync_stage = next(
+                    (stage for stage in stages if stage.get("name") == "prepare_external_sync"),
+                    None,
+                )
                 if sync_stage:
                     targets = sync_stage.get("targets", {})
                     relevant = [name for name, data in targets.items() if data.get("relevant")]
                     if relevant:
                         self._out("Detected targets: " + ", ".join(relevant), "info")
                     else:
-                        self._out("Detected targets: none yet; this project still has a planning shell for future external sync.", "info")
+                        self._out(
+                            "Detected targets: none yet; this project still has a planning shell for future external sync.",
+                            "info",
+                        )
                 self._out(Path(plan_path).read_text(encoding="utf-8").strip(), "dim")
-                self.after(0, lambda: messagebox.showinfo(
-                    "External plan ready",
-                    "A staged external plan was created.\n\nIt includes pre-checks, approval-and-execute guidance, post-checks, and rollback readiness notes for GitHub, Vercel, Supabase, Stripe, and Resend.",
-                ))
+                self.after(
+                    0,
+                    lambda: messagebox.showinfo(
+                        "External plan ready",
+                        "A staged external plan was created.\n\nIt includes pre-checks, approval-and-execute guidance, post-checks, and rollback readiness notes for GitHub, Vercel, Supabase, Stripe, and Resend.",
+                    ),
+                )
         finally:
             self.after(0, lambda: self._set_busy(False))
 
     def _run_prechecks(self, plan_path: str):
         try:
             proc = subprocess.run(
-                [sys.executable, str(PROMOTION_CHECKS), "--plan", plan_path, "--stage", "pre_promotion_checks"],
+                [
+                    sys.executable,
+                    str(PROMOTION_CHECKS),
+                    "--plan",
+                    plan_path,
+                    "--stage",
+                    "pre_promotion_checks",
+                ],
                 capture_output=True,
                 text=True,
                 check=False,
@@ -2885,21 +3133,48 @@ class App(TkBase):
             if report_path and Path(report_path).exists():
                 report_data = json.loads(Path(report_path).read_text(encoding="utf-8"))
                 self._sync_project_registry(report_data["project_path"])
-                self.after(0, lambda p=report_data["project_path"]: self._refresh_known_project_for_path(p))
-                self._out(f"Pre-check status: {report_data.get('overall_status', 'unknown')}", "ok" if report_data.get('overall_status') == 'passed' else "info")
+                self.after(
+                    0, partial(self._refresh_known_project_for_path, report_data["project_path"])
+                )
+                self._out(
+                    f"Pre-check status: {report_data.get('overall_status', 'unknown')}",
+                    "ok" if report_data.get("overall_status") == "passed" else "info",
+                )
                 for result in report_data.get("results", []):
-                    tag = "ok" if result.get("status") == "passed" else ("err" if result.get("status") == "failed" else "info")
+                    tag = (
+                        "ok"
+                        if result.get("status") == "passed"
+                        else ("err" if result.get("status") == "failed" else "info")
+                    )
                     self._out(f"{result.get('name')}: {result.get('status')}", tag)
                     if result.get("stdout"):
                         self._out(result.get("stdout").strip(), "dim")
                     if result.get("stderr"):
                         self._out(result.get("stderr").strip(), "err")
                 if report_data.get("overall_status") == "passed":
-                    self.after(0, lambda: messagebox.showinfo("Pre-checks passed", "Local pre-release checks passed. External targets still require explicit approval."))
+                    self.after(
+                        0,
+                        lambda: messagebox.showinfo(
+                            "Pre-checks passed",
+                            "Local pre-release checks passed. External targets still require explicit approval.",
+                        ),
+                    )
                 elif report_data.get("overall_status") == "manual_required":
-                    self.after(0, lambda: messagebox.showinfo("Manual review required", "Some pre-checks require manual review before release."))
+                    self.after(
+                        0,
+                        lambda: messagebox.showinfo(
+                            "Manual review required",
+                            "Some pre-checks require manual review before release.",
+                        ),
+                    )
                 else:
-                    self.after(0, lambda: messagebox.showwarning("Pre-checks failed", "One or more pre-release checks failed. Review the report before proceeding."))
+                    self.after(
+                        0,
+                        lambda: messagebox.showwarning(
+                            "Pre-checks failed",
+                            "One or more pre-release checks failed. Review the report before proceeding.",
+                        ),
+                    )
             elif proc.stderr.strip():
                 self._out(proc.stderr.strip(), "err")
         finally:
@@ -2908,7 +3183,14 @@ class App(TkBase):
     def _run_postchecks(self, plan_path: str):
         try:
             proc = subprocess.run(
-                [sys.executable, str(PROMOTION_CHECKS), "--plan", plan_path, "--stage", "post_promotion_checks"],
+                [
+                    sys.executable,
+                    str(PROMOTION_CHECKS),
+                    "--plan",
+                    plan_path,
+                    "--stage",
+                    "post_promotion_checks",
+                ],
                 capture_output=True,
                 text=True,
                 check=False,
@@ -2920,24 +3202,47 @@ class App(TkBase):
             if report_path and Path(report_path).exists():
                 report_data = json.loads(Path(report_path).read_text(encoding="utf-8"))
                 self._sync_project_registry(report_data["project_path"])
-                self.after(0, lambda p=report_data["project_path"]: self._refresh_known_project_for_path(p))
+                self.after(
+                    0, partial(self._refresh_known_project_for_path, report_data["project_path"])
+                )
                 self._out(
                     f"Re-check status: {report_data.get('overall_status', 'unknown')}",
                     "ok" if report_data.get("overall_status") == "passed" else "info",
                 )
                 for result in report_data.get("results", []):
-                    tag = "ok" if result.get("status") == "passed" else ("err" if result.get("status") == "failed" else "info")
+                    tag = (
+                        "ok"
+                        if result.get("status") == "passed"
+                        else ("err" if result.get("status") == "failed" else "info")
+                    )
                     self._out(f"{result.get('name')}: {result.get('status')}", tag)
                     if result.get("stdout"):
                         self._out(result.get("stdout").strip(), "dim")
                     if result.get("stderr"):
                         self._out(result.get("stderr").strip(), "err")
                 if report_data.get("overall_status") == "passed":
-                    self.after(0, lambda: messagebox.showinfo("Re-checks passed", "Post-release re-checks passed."))
+                    self.after(
+                        0,
+                        lambda: messagebox.showinfo(
+                            "Re-checks passed", "Post-release re-checks passed."
+                        ),
+                    )
                 elif report_data.get("overall_status") == "manual_required":
-                    self.after(0, lambda: messagebox.showinfo("Manual review required", "Some post-release re-checks require manual review."))
+                    self.after(
+                        0,
+                        lambda: messagebox.showinfo(
+                            "Manual review required",
+                            "Some post-release re-checks require manual review.",
+                        ),
+                    )
                 else:
-                    self.after(0, lambda: messagebox.showwarning("Re-checks failed", "One or more post-release re-checks failed. Review the report before proceeding."))
+                    self.after(
+                        0,
+                        lambda: messagebox.showwarning(
+                            "Re-checks failed",
+                            "One or more post-release re-checks failed. Review the report before proceeding.",
+                        ),
+                    )
             elif proc.stderr.strip():
                 self._out(proc.stderr.strip(), "err")
         finally:
@@ -2967,10 +3272,18 @@ class App(TkBase):
                 status = report_data.get("status", "unknown")
                 if status == "failed":
                     self._out(report_data.get("error", "Test tool remediation failed."), "err")
-                    self.after(0, lambda: messagebox.showwarning("Remediation failed", "The missing test tool could not be installed automatically."))
+                    self.after(
+                        0,
+                        lambda: messagebox.showwarning(
+                            "Remediation failed",
+                            "The missing test tool could not be installed automatically.",
+                        ),
+                    )
                     return
                 if status == "already_present":
-                    self._out("pytest is already available in the detected project environment.", "ok")
+                    self._out(
+                        "pytest is already available in the detected project environment.", "ok"
+                    )
                 else:
                     self._out("Installed pytest in the detected project environment.", "ok")
                 python_command = " ".join(report_data.get("python_command", []))
@@ -3008,7 +3321,7 @@ class App(TkBase):
             )
             report_path = proc.stdout.strip()
             if report_path:
-                self.after(0, lambda p=report_path: self.v_execution_report.set(p))
+                self.after(0, partial(self.v_execution_report.set, report_path))
                 self.after(0, self._update_workflow_hint)
                 self._out(f"Execute report: {report_path}", "info")
             if report_path and Path(report_path).exists():
@@ -3021,7 +3334,9 @@ class App(TkBase):
                 if status == "executed":
                     self._out(f"Repo: {report_data.get('repo_name', 'unknown')}", "info")
                     self._out(f"Branch: {report_data.get('branch', 'unknown')}", "info")
-                    self._out(f"Previous head: {report_data.get('previous_head', 'unknown')}", "dim")
+                    self._out(
+                        f"Previous head: {report_data.get('previous_head', 'unknown')}", "dim"
+                    )
                     self._out(f"New head: {report_data.get('new_head', 'unknown')}", "ok")
                     self._out(f"Stage mode: {report_data.get('stage_mode', 'unknown')}", "info")
                     for staged_file in report_data.get("staged_files", []):
@@ -3031,10 +3346,22 @@ class App(TkBase):
                     self._out(report_data.get("rollback_note", ""), "info")
                     for command_text in report_data.get("rollback_commands", []):
                         self._out(command_text, "dim")
-                    self.after(0, lambda: messagebox.showinfo("GitHub publish complete", "GitHub publish completed and rollback instructions were recorded."))
+                    self.after(
+                        0,
+                        lambda: messagebox.showinfo(
+                            "GitHub publish complete",
+                            "GitHub publish completed and rollback instructions were recorded.",
+                        ),
+                    )
                 else:
                     self._out(report_data.get("error", "GitHub publish failed."), "err")
-                    self.after(0, lambda: messagebox.showwarning("GitHub publish failed", "The GitHub publish step failed. Review the execution report and output log."))
+                    self.after(
+                        0,
+                        lambda: messagebox.showwarning(
+                            "GitHub publish failed",
+                            "The GitHub publish step failed. Review the execution report and output log.",
+                        ),
+                    )
             elif proc.stderr.strip():
                 self._out(proc.stderr.strip(), "err")
         finally:

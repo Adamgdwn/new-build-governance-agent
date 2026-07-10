@@ -100,11 +100,17 @@ def remediate_pytest(plan: dict) -> dict:
 
     install = run([*python_cmd, "-m", "pip", "install", "pytest"], project_path, env)
     if install.returncode != 0:
-        raise RuntimeError(install.stderr.strip() or install.stdout.strip() or "Unable to install pytest")
+        raise RuntimeError(
+            install.stderr.strip() or install.stdout.strip() or "Unable to install pytest"
+        )
 
     verify = run([*python_cmd, "-m", "pytest", "--version"], project_path, env)
     if verify.returncode != 0:
-        raise RuntimeError(verify.stderr.strip() or verify.stdout.strip() or "pytest still unavailable after install")
+        raise RuntimeError(
+            verify.stderr.strip()
+            or verify.stdout.strip()
+            or "pytest still unavailable after install"
+        )
 
     return {
         "status": "installed",
@@ -121,7 +127,9 @@ def remediate_pytest(plan: dict) -> dict:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Repair missing local test tooling for promotion checks.")
+    parser = argparse.ArgumentParser(
+        description="Repair missing local test tooling for promotion checks."
+    )
     parser.add_argument("--plan", required=True, help="Path to the promotion plan JSON")
     parser.add_argument("--tool", default="pytest", choices=["pytest"], help="Tool to remediate")
     parser.add_argument("--output", help="Optional output path for the remediation report JSON")

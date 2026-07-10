@@ -7,75 +7,59 @@ object to stdout as the last line. Progress lines go to stderr.
 
 Called by the Freedom dispatcher via params_transport: stdin_json.
 """
+
 from __future__ import annotations
 
 import json
-import os
 import re
 import subprocess
 import sys
-from datetime import datetime
 from pathlib import Path
 
 GOVERNANCE_HOME = Path(__file__).resolve().parent.parent
 REGISTRY = GOVERNANCE_HOME / "automation" / "project_registry.py"
 
 sys.path.insert(0, str(GOVERNANCE_HOME / "automation"))
+from project_naming import (  # noqa: E402,F401
+    BUILD_TYPE_GOV_MAP,
+    GOV_TYPES,
+    GOVERNANCE_LEVELS,
+    GOVERNANCE_TO_RISK,
+    RESERVED_OS_NAMES,
+    RISK_TIERS,
+    RISK_TO_GOVERNANCE,
+    render_initial_scope,
+    slug_error,
+    slugify,
+)
 from scaffold_project import scaffold_project  # noqa: E402
-from version import get_version_string  # noqa: E402
+from self_update import format_result as format_self_update_result
+from self_update import self_update  # noqa: E402
 from update_check import check_for_updates, format_result  # noqa: E402
-from self_update import self_update, format_result as format_self_update_result  # noqa: E402
+from version import get_version_string  # noqa: E402
 from workspace_paths import category_roots  # noqa: E402
 
 AGENTS_ROOT, APPS_ROOT = category_roots(GOVERNANCE_HOME)
-
-GOV_TYPES = {
-    "application", "website", "service", "internal-tool",
-    "automation", "infrastructure", "documentation", "agent",
-}
-GOVERNANCE_LEVELS = {"0", "1", "2", "3", "4"}
-RISK_TIERS = {"low", "medium", "high", "critical"}
-GOVERNANCE_TO_RISK = {
-    "0": "low",
-    "1": "low",
-    "2": "medium",
-    "3": "high",
-    "4": "critical",
-}
-RISK_TO_GOVERNANCE = {
-    "low": "1",
-    "medium": "2",
-    "high": "3",
-    "critical": "4",
-}
-BUILD_TYPE_GOV_MAP = {"app": "application", "agent": "agent", "tool": "internal-tool", "other": "internal-tool"}
 
 
 def progress(msg: str) -> None:
     print(f"[new-build-governance-agent] {msg}", file=sys.stderr, flush=True)
 
 
-RESERVED_OS_NAMES = {
-    "con", "prn", "aux", "nul",
-    "com1", "com2", "com3", "com4", "com5", "com6", "com7", "com8", "com9",
-    "lpt1", "lpt2", "lpt3", "lpt4", "lpt5", "lpt6", "lpt7", "lpt8", "lpt9",
-}
-
-
 def fail(msg: str, slug: str = "", project_path: str = "") -> None:
     print(
-        json.dumps({"status": "failed", "project_path": project_path, "slug": slug, "files_created": [], "error": msg}),
+        json.dumps(
+            {
+                "status": "failed",
+                "project_path": project_path,
+                "slug": slug,
+                "files_created": [],
+                "error": msg,
+            }
+        ),
         flush=True,
     )
     sys.exit(1)
-
-
-def slugify(name: str) -> str:
-    s = name.lower()
-    s = re.sub(r"[ _/]", "-", s)
-    s = re.sub(r"[^a-z0-9-]", "", s)
-    s = re.sub(r"-+", "-", s)
-    return s.strip("-")
 
 
 def resolve_target_root(build_type: str, governance_type: str) -> Path:
@@ -112,9 +96,9 @@ def main() -> None:
         print(format_result(check_for_updates()))
         return
     if len(sys.argv) > 1 and sys.argv[1] == "--self-update":
-        result = self_update()
-        print(format_self_update_result(result))
-        if result.status not in {"updated", "up_to_date", "would_update"}:
+        update_result = self_update()
+        print(format_self_update_result(update_result))
+        if update_result.status not in {"updated", "up_to_date", "would_update"}:
             sys.exit(2)
         return
 
@@ -135,7 +119,9 @@ def main() -> None:
         fail(f"build_type must be one of app/agent/tool/other, got: {build_type!r}")
         return
 
-    governance_type = params.get("governance_type", "").strip() or BUILD_TYPE_GOV_MAP.get(build_type, "internal-tool")
+    governance_type = params.get("governance_type", "").strip() or BUILD_TYPE_GOV_MAP.get(
+        build_type, "internal-tool"
+    )
     if governance_type not in GOV_TYPES:
         fail(f"governance_type {governance_type!r} not valid; must be one of: {sorted(GOV_TYPES)}")
         return
@@ -150,20 +136,9 @@ def main() -> None:
     audit_correlation_id = params.get("audit_correlation_id", "")
 
     slug = slugify(project_name)
-    if not slug:
-        fail(
-            f"project_name {project_name!r} produced an empty slug after normalization; "
-            "use ASCII letters, digits, spaces, or hyphens"
-        )
-    if len(slug) < 2:
-        fail(
-            f"project_name {project_name!r} produced a single-character slug {slug!r}; "
-            "provide a more descriptive name"
-        )
-    if "/" in slug or "\\" in slug:
-        fail(f"slug {slug!r} contains a path separator; this should not be possible after slugify")
-    if slug.lower() in RESERVED_OS_NAMES:
-        fail(f"slug {slug!r} is a reserved OS name; choose a different project name")
+    slug_problem = slug_error(project_name, slug)
+    if slug_problem:
+        fail(slug_problem)
 
     root = resolve_target_root(build_type, governance_type)
     target_dir = root / slug
@@ -176,14 +151,19 @@ def main() -> None:
     if target_dir.exists():
         progress("Directory already exists — returning already-existed.")
         existing = sorted(str(f) for f in target_dir.rglob("*") if f.is_file())[:50]
-        print(json.dumps({
-            "status": "already-existed",
-            "project_path": str(target_dir),
-            "slug": slug,
-            "files_created": [],
-            "warnings": [f"{target_dir} already existed; no files were overwritten."],
-            "existing_file_count": len(existing),
-        }), flush=True)
+        print(
+            json.dumps(
+                {
+                    "status": "already-existed",
+                    "project_path": str(target_dir),
+                    "slug": slug,
+                    "files_created": [],
+                    "warnings": [f"{target_dir} already existed; no files were overwritten."],
+                    "existing_file_count": len(existing),
+                }
+            ),
+            flush=True,
+        )
         return
 
     # ── bootstrap ─────────────────────────────────────────────────────────────
@@ -211,70 +191,22 @@ def main() -> None:
 
     # ── INITIAL_SCOPE.md ──────────────────────────────────────────────────────
 
-    generated_at = datetime.now().astimezone().isoformat(timespec="seconds")
-    scope_lines = [
-        f"# Initial Scope — {project_name}",
-        "",
-        f"Generated: {generated_at}",
-        "",
-        "## Classification",
-        "",
-        "| Field          | Value |",
-        "|----------------|-------|",
-        f"| Project name   | {project_name} |",
-        f"| Slug / dir     | {slug} |",
-        f"| Type           | {governance_type} |",
-        f"| Governance     | {governance_level} |",
-        f"| Risk tier      | {risk_tier} |",
-        f"| Stack          | {stack} |",
-        f"| Primary model  | {primary_builder} |",
-        f"| Location       | {target_dir} |",
-        "",
-        "## Build approach",
-        "",
-        f"Primary builder: **{primary_builder}**",
-        "",
-    ]
-
-    if scope_problem:
-        scope_lines += [
-            "## Scope brief",
-            "",
-            f"**Problem:** {scope_problem}",
-            "",
-            f"**User / consumer:** {scope_user}",
-            "",
-            f"**MVP:** {scope_mvp}",
-            "",
-        ]
-    else:
-        scope_lines += [
-            "## Scope brief",
-            "",
-            "Not captured at intake. Fill in before the first coding session.",
-            "",
-            "- **Problem:**",
-            "- **Primary user / consumer:**",
-            "- **MVP:**",
-            "",
-        ]
-
-    scope_lines += [
-        "## First session checklist",
-        "",
-        "- [ ] Read `START_HERE.md`",
-        "- [ ] Review `docs/current-build-pathway.md`",
-        "- [ ] Review `docs/standards/README.md`",
-        "- [ ] Review `docs/standards/engineering-governance-by-use-case.md`",
-        "- [ ] Review `docs/policy/durable-development-engineering-policy.md`",
-        "- [ ] Review `docs/standards/ship-ready-engineering-standard.md`",
-        "- [ ] Fill in commands in `AI_BOOTSTRAP.md`",
-        "- [ ] Confirm governance level and risk tier in `project-control.yaml`",
-        "- [ ] Add first ADR if architecture decisions were made at intake",
-        "- [ ] Run governance preflight: `bash scripts/governance-preflight.sh`",
-    ]
-
-    (target_dir / "INITIAL_SCOPE.md").write_text("\n".join(scope_lines) + "\n")
+    (target_dir / "INITIAL_SCOPE.md").write_text(
+        render_initial_scope(
+            project_name=project_name,
+            slug=slug,
+            governance_type=governance_type,
+            governance_level=governance_level,
+            risk_tier=risk_tier,
+            stack=stack,
+            primary_builder=primary_builder,
+            target_dir=str(target_dir),
+            scope_problem=scope_problem,
+            scope_user=scope_user,
+            scope_mvp=scope_mvp,
+        ),
+        encoding="utf-8",
+    )
     progress("Created: INITIAL_SCOPE.md")
 
     # ── project registry ──────────────────────────────────────────────────────
@@ -284,18 +216,31 @@ def main() -> None:
         try:
             reg = subprocess.run(
                 [
-                    sys.executable, str(REGISTRY), "register",
-                    "--project-name", project_name,
-                    "--slug", slug,
-                    "--path", str(target_dir),
-                    "--project-type", governance_type,
-                    "--risk-tier", risk_tier,
-                    "--governance-level", governance_level,
-                    "--builder", primary_builder,
-                    "--stack", stack,
-                    "--problem", scope_problem,
-                    "--user-desc", scope_user,
-                    "--mvp", scope_mvp,
+                    sys.executable,
+                    str(REGISTRY),
+                    "register",
+                    "--project-name",
+                    project_name,
+                    "--slug",
+                    slug,
+                    "--path",
+                    str(target_dir),
+                    "--project-type",
+                    governance_type,
+                    "--risk-tier",
+                    risk_tier,
+                    "--governance-level",
+                    governance_level,
+                    "--builder",
+                    primary_builder,
+                    "--stack",
+                    stack,
+                    "--problem",
+                    scope_problem,
+                    "--user-desc",
+                    scope_user,
+                    "--mvp",
+                    scope_mvp,
                 ],
                 capture_output=True,
                 text=True,

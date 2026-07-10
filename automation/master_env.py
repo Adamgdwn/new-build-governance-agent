@@ -5,17 +5,20 @@ from __future__ import annotations
 
 import argparse
 import getpass
-import os
-import re
-import shlex
 import sys
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT / "automation"))
+from env_file import parse_env_file, update_env_values  # noqa: E402
 from workspace_paths import default_code_root  # noqa: E402
 
 DEFAULT_MASTER = default_code_root(REPO_ROOT) / ".env.master"
+MASTER_FILE_HEADER = [
+    "# Master environment inventory",
+    "# Keep this file private. Do not commit it.",
+    "",
+]
 CONTROL_PLANE_KEYS = [
     "SUPABASE_ACCESS_TOKEN",
     "SUPABASE_ORG_ID",
@@ -68,88 +71,14 @@ PRIORITY_KEYS = [
 ]
 
 
-def parse_env_value(raw: str) -> str:
-    value = raw.strip()
-    if not value:
-        return ""
-    if value[:1] in {"'", '"'}:
-        try:
-            return shlex.split(value, comments=False)[0]
-        except ValueError:
-            return value.strip("'\"")
-    return re.split(r"\s+#", value, maxsplit=1)[0].strip()
-
-
-def format_env_value(value: str) -> str:
-    if not value:
-        return ""
-    if re.search(r"\s|#", value):
-        return '"' + value.replace('"', '\\"') + '"'
-    return value
-
-
-def parse_env_file(path: Path) -> dict[str, str]:
-    values: dict[str, str] = {}
-    if not path.exists():
-        return values
-    for line in path.read_text(encoding="utf-8", errors="ignore").splitlines():
-        stripped = line.strip()
-        if not stripped or stripped.startswith("#") or "=" not in stripped:
-            continue
-        key, raw_value = stripped.split("=", 1)
-        key = key.removeprefix("export ").strip()
-        if re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", key):
-            values[key] = parse_env_value(raw_value)
-    return values
-
-
-def read_lines(path: Path) -> list[str]:
-    if not path.exists():
-        return [
-            "# Master environment inventory",
-            "# Keep this file private. Do not commit it.",
-            "",
-        ]
-    return path.read_text(encoding="utf-8", errors="ignore").splitlines()
-
-
-def write_lines(path: Path, lines: list[str]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
-    os.chmod(path, 0o600)
-
-
 def update_values(path: Path, updates: dict[str, str], overwrite: bool) -> dict[str, str]:
-    lines = read_lines(path)
-    existing = parse_env_file(path)
-    applied: dict[str, str] = {}
-    seen: set[str] = set()
-    rendered: list[str] = []
-
-    for line in lines:
-        match = re.match(r"^([A-Za-z_][A-Za-z0-9_]*)=(.*)$", line)
-        if not match:
-            rendered.append(line)
-            continue
-        key = match.group(1)
-        seen.add(key)
-        if key in updates and (overwrite or not existing.get(key)):
-            rendered.append(f"{key}={format_env_value(updates[key])}")
-            applied[key] = "updated" if existing.get(key) else "filled"
-        else:
-            rendered.append(line)
-
-    missing = [key for key in updates if key not in seen]
-    if missing:
-        if rendered and rendered[-1].strip():
-            rendered.append("")
-        rendered.append("# ===== Added by master_env.py =====")
-        for key in missing:
-            rendered.append(f"{key}={format_env_value(updates[key])}")
-            applied[key] = "added"
-
-    write_lines(path, rendered)
-    return applied
+    return update_env_values(
+        path,
+        updates,
+        overwrite,
+        section_comment="# ===== Added by master_env.py =====",
+        missing_file_header=MASTER_FILE_HEADER,
+    )
 
 
 def cmd_status(args: argparse.Namespace) -> int:
@@ -214,23 +143,37 @@ def cmd_merge(args: argparse.Namespace) -> int:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Populate and inspect .env.master without printing secret values.")
+    parser = argparse.ArgumentParser(
+        description="Populate and inspect .env.master without printing secret values."
+    )
     parser.add_argument("--master", default=str(DEFAULT_MASTER), help="Path to the master env file")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     status = subparsers.add_parser("status", help="Show redacted set/missing status")
     status.add_argument("--key", action="append", help="Specific key to check")
-    status.add_argument("--control-plane", action="store_true", help="Show account/provider-level automation keys")
+    status.add_argument(
+        "--control-plane", action="store_true", help="Show account/provider-level automation keys"
+    )
     status.set_defaults(func=cmd_status)
 
     missing = subparsers.add_parser("missing", help="List blank keys")
-    missing.add_argument("--priority", action="store_true", help="Only list priority automation keys")
-    missing.add_argument("--control-plane", action="store_true", help="Only list account/provider-level automation keys")
+    missing.add_argument(
+        "--priority", action="store_true", help="Only list priority automation keys"
+    )
+    missing.add_argument(
+        "--control-plane",
+        action="store_true",
+        help="Only list account/provider-level automation keys",
+    )
     missing.set_defaults(func=cmd_missing)
 
-    set_cmd = subparsers.add_parser("set", help="Set one or more keys, prompting without echo by default")
+    set_cmd = subparsers.add_parser(
+        "set", help="Set one or more keys, prompting without echo by default"
+    )
     set_cmd.add_argument("key", nargs="+", help="Env key(s) to set")
-    set_cmd.add_argument("--value", help="Value to use for a single key; less safe because shells may record it")
+    set_cmd.add_argument(
+        "--value", help="Value to use for a single key; less safe because shells may record it"
+    )
     set_cmd.add_argument("--visible", action="store_true", help="Show typed input while prompting")
     set_cmd.add_argument("--overwrite", action="store_true", help="Overwrite existing values")
     set_cmd.set_defaults(func=cmd_set)

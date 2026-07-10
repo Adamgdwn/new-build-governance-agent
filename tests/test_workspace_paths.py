@@ -29,7 +29,9 @@ class WorkspacePathTests(unittest.TestCase):
     def test_uses_windows_workspace_parent_when_installed_there(self):
         root = Path("C:/Users/example/01. Code Projects/New Build Agent")
 
-        self.assertEqual(Path("C:/Users/example/01. Code Projects"), workspace_paths.default_code_root(root))
+        self.assertEqual(
+            Path("C:/Users/example/01. Code Projects"), workspace_paths.default_code_root(root)
+        )
 
     def test_category_roots_are_stable(self):
         root = Path("C:/Users/example/01. Code Projects/New Build Agent")

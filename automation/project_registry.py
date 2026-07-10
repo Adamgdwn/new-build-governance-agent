@@ -10,7 +10,6 @@ import json
 import sqlite3
 from pathlib import Path
 
-
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = REPO_ROOT / "data" / "new-build-governance-agent"
 DB_PATH = DATA_DIR / "registry.sqlite3"
@@ -144,7 +143,9 @@ def list_projects(_: argparse.Namespace) -> None:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Manage the New Build Governance Agent project registry.")
+    parser = argparse.ArgumentParser(
+        description="Manage the New Build Governance Agent project registry."
+    )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     register = subparsers.add_parser("register", help="Register or update a project.")

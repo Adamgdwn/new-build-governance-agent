@@ -181,8 +181,12 @@ def format_result(result: SelfUpdateResult) -> str:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Safely fast-forward this checkout from its upstream branch.")
-    parser.add_argument("--dry-run", action="store_true", help="Report whether a fast-forward update is possible.")
+    parser = argparse.ArgumentParser(
+        description="Safely fast-forward this checkout from its upstream branch."
+    )
+    parser.add_argument(
+        "--dry-run", action="store_true", help="Report whether a fast-forward update is possible."
+    )
     parser.add_argument("--json", action="store_true", help="Print the self-update result as JSON.")
     parser.add_argument("--repo", default=str(REPO_ROOT), help="Repository path to update.")
     return parser

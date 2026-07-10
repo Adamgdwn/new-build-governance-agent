@@ -38,7 +38,9 @@ class SchemaValidationTests(unittest.TestCase):
 
     def test_promotion_plan_schema_requires_argv_for_automated_checks(self):
         plan = promotion_plan.build_plan(REPO_ROOT)
-        pre_checks = next(stage for stage in plan["stages"] if stage["name"] == "pre_promotion_checks")["checks"]
+        pre_checks = next(
+            stage for stage in plan["stages"] if stage["name"] == "pre_promotion_checks"
+        )["checks"]
         pre_checks[0].pop("argv", None)
 
         errors = schema_validation.validate_promotion_plan(plan)

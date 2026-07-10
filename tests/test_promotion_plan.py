@@ -17,7 +17,9 @@ class PromotionPlanTests(unittest.TestCase):
             (project / "scripts").mkdir()
             (project / "tests").mkdir()
             (project / "automation" / "tool.py").write_text("print('ok')\n", encoding="utf-8")
-            (project / "scripts" / "governance-preflight.sh").write_text("#!/usr/bin/env bash\ntrue\n", encoding="utf-8")
+            (project / "scripts" / "governance-preflight.sh").write_text(
+                "#!/usr/bin/env bash\ntrue\n", encoding="utf-8"
+            )
             (project / "tests" / "test_sample.py").write_text("import unittest\n", encoding="utf-8")
 
             checks = promotion_plan.build_local_checks(project)
@@ -53,7 +55,9 @@ class PromotionPlanShellInjectionTests(unittest.TestCase):
                 self.assertNotIn("-c", argv, "shell=True style '-c' must not be used")
                 shell_file = argv[2]
                 self.assertIsInstance(shell_file, str)
-                self.assertNotIn(";", shell_file, "shell metacharacters must not appear in argv elements")
+                self.assertNotIn(
+                    ";", shell_file, "shell metacharacters must not appear in argv elements"
+                )
 
     def test_shell_syntax_check_filename_with_spaces(self):
         with tempfile.TemporaryDirectory() as tmp:

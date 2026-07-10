@@ -1,16 +1,188 @@
 #!/usr/bin/env bash
-# new_build.sh — New Build Governance Agent
+# new_build.sh — New Build Governance Agent (POSIX launcher)
 #
-# Interactive intake, classification, and scaffolding launcher.
-# Wraps bootstrap_project.sh; does not replace it.
-#
-# Usage:
-#   bash ~/code/Rules\ of\ Development\ and\ Deployment/automation/new_build.sh
+# Thin wrapper: collects and validates intake answers, then delegates the
+# actual project creation to automation/new_build_headless.py, exactly like
+# automation/new_build.ps1 does on Windows. All slug, reserved-name, and
+# governance rules live in automation/project_naming.py and the headless
+# entry point — this script owns none of them.
 
 set -euo pipefail
 
 GOVERNANCE_HOME="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-BOOTSTRAP="${GOVERNANCE_HOME}/automation/bootstrap_project.sh"
+AUTOMATION="${GOVERNANCE_HOME}/automation"
+HEADLESS="${AUTOMATION}/new_build_headless.py"
+
+usage() {
+  cat <<'EOF'
+Usage: bash automation/new_build.sh [options]
+
+Interactive intake for a governed project. Prompts for anything not supplied
+as an option, then delegates creation to automation/new_build_headless.py.
+
+Options:
+  --project-name NAME       Project name (prompted if omitted)
+  --build-type TYPE         app | agent | tool | other
+  --governance-type TYPE    website | service | internal-tool | automation |
+                            infrastructure | documentation | application | agent
+                            (only asked when build type is "other")
+  --stack STACK             Expected stack (default: "not specified")
+  --primary-builder NAME    claude | codex | local | hybrid
+  --governance-level N      0 | 1 | 2 | 3 | 4
+  --scope-problem TEXT      Scope brief: problem statement
+  --scope-user TEXT         Scope brief: primary user or consumer
+  --scope-mvp TEXT          Scope brief: MVP description
+  --version, -V             Print the agent version and exit
+  --check-updates           Check for agent updates and exit
+  --self-update             Fast-forward this checkout and exit
+  --help, -h                Show this help and exit
+EOF
+}
+
+# ── python discovery ──────────────────────────────────────────────────────────
+
+PYTHON=()
+find_python() {
+  local candidate
+  for candidate in python3 python; do
+    if command -v "$candidate" >/dev/null 2>&1 \
+      && "$candidate" -c 'import sys; raise SystemExit(0 if sys.version_info >= (3, 8) else 1)' >/dev/null 2>&1; then
+      PYTHON=("$candidate")
+      return 0
+    fi
+  done
+  if command -v py >/dev/null 2>&1 \
+    && py -3 -c 'import sys; raise SystemExit(0 if sys.version_info >= (3, 8) else 1)' >/dev/null 2>&1; then
+    PYTHON=(py -3)
+    return 0
+  fi
+  echo "Error: unable to find Python 3.8 or newer on PATH." >&2
+  return 1
+}
+
+# ── argument parsing ──────────────────────────────────────────────────────────
+
+PROJECT_NAME=""
+BUILD_TYPE=""
+GOVERNANCE_TYPE=""
+STACK=""
+PRIMARY_BUILDER=""
+GOVERNANCE_LEVEL=""
+SCOPE_PROBLEM=""
+SCOPE_USER=""
+SCOPE_MVP=""
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --version|-V)
+      find_python
+      exec "${PYTHON[@]}" "${AUTOMATION}/version.py"
+      ;;
+    --check-updates|--update-check)
+      find_python
+      exec "${PYTHON[@]}" "${AUTOMATION}/update_check.py"
+      ;;
+    --self-update)
+      find_python
+      exec "${PYTHON[@]}" "${AUTOMATION}/self_update.py"
+      ;;
+    --help|-h)
+      usage
+      exit 0
+      ;;
+    --project-name)     PROJECT_NAME="${2:?--project-name requires a value}"; shift 2 ;;
+    --build-type)       BUILD_TYPE="${2:?--build-type requires a value}"; shift 2 ;;
+    --governance-type)  GOVERNANCE_TYPE="${2:?--governance-type requires a value}"; shift 2 ;;
+    --stack)            STACK="${2:?--stack requires a value}"; shift 2 ;;
+    --primary-builder)  PRIMARY_BUILDER="${2:?--primary-builder requires a value}"; shift 2 ;;
+    --governance-level) GOVERNANCE_LEVEL="${2:?--governance-level requires a value}"; shift 2 ;;
+    --scope-problem)    SCOPE_PROBLEM="${2:?--scope-problem requires a value}"; shift 2 ;;
+    --scope-user)       SCOPE_USER="${2:?--scope-user requires a value}"; shift 2 ;;
+    --scope-mvp)        SCOPE_MVP="${2:?--scope-mvp requires a value}"; shift 2 ;;
+    *)
+      echo "Error: unknown option: $1" >&2
+      usage >&2
+      exit 2
+      ;;
+  esac
+done
+
+find_python
+
+# ── prompt helpers ────────────────────────────────────────────────────────────
+
+read_required() {
+  local prompt="$1" value="${2:-}"
+  while [[ -z "${value// }" ]]; do
+    read -rp "  ${prompt}: " value || { echo; exit 1; }
+  done
+  printf '%s' "$value"
+}
+
+read_choice() {
+  local prompt="$1" value="$2"; shift 2
+  local choices=("$@") shown choice valid
+  shown="$(IFS=/; echo "${choices[*]}")"
+  while true; do
+    valid=""
+    for choice in "${choices[@]}"; do
+      [[ "$value" == "$choice" ]] && valid=1 && break
+    done
+    [[ -n "$valid" ]] && break
+    read -rp "  ${prompt} (${shown}): " value || { echo; exit 1; }
+  done
+  printf '%s' "$value"
+}
+
+# ── intake (mirrors new_build.ps1) ────────────────────────────────────────────
+
+echo
+echo "New Build Governance Agent"
+echo "Scope -> Classify -> Scaffold"
+echo
+
+PROJECT_NAME="$(read_required "Project name" "$PROJECT_NAME")"
+BUILD_TYPE="$(read_choice "Build type" "$BUILD_TYPE" app agent tool other)"
+
+if [[ "$BUILD_TYPE" == "other" && -z "$GOVERNANCE_TYPE" ]]; then
+  echo
+  echo "Supported governance types: website, service, internal-tool, automation, infrastructure, documentation"
+  GOVERNANCE_TYPE="$(read_required "Governance project type" "$GOVERNANCE_TYPE")"
+fi
+
+if [[ -z "$STACK" ]]; then
+  read -rp "  Expected stack [not specified]: " STACK || { echo; exit 1; }
+  STACK="${STACK:-not specified}"
+fi
+
+PRIMARY_BUILDER="$(read_choice "Primary builder" "$PRIMARY_BUILDER" claude codex local hybrid)"
+
+if [[ -z "$GOVERNANCE_LEVEL" ]]; then
+  echo
+  echo "Governance level scale:"
+  echo "  0 = full autonomy"
+  echo "  1 = light guardrails"
+  echo "  2 = standard supervised"
+  echo "  3 = strict review"
+  echo "  4 = critical controls"
+fi
+GOVERNANCE_LEVEL="$(read_choice "Governance level" "$GOVERNANCE_LEVEL" 0 1 2 3 4)"
+
+if [[ -z "$SCOPE_PROBLEM" && -z "$SCOPE_USER" && -z "$SCOPE_MVP" ]]; then
+  CAPTURE_SCOPE="$(read_choice "Capture scope brief now?" "" yes no)"
+  if [[ "$CAPTURE_SCOPE" == "yes" ]]; then
+    SCOPE_PROBLEM="$(read_required "What problem does this solve" "$SCOPE_PROBLEM")"
+    SCOPE_USER="$(read_required "Who is the primary user or consumer" "$SCOPE_USER")"
+    SCOPE_MVP="$(read_required "What does the MVP look like" "$SCOPE_MVP")"
+  fi
+fi
+
+# ── slug validation via the canonical naming module ───────────────────────────
+
+SLUG="$("${PYTHON[@]}" "${AUTOMATION}/project_naming.py" slug "$PROJECT_NAME")" || exit 1
+
+# ── plan preview (mirrors new_build.ps1; headless owns the real routing) ──────
+
 if [[ -n "${NEW_BUILD_CODE_ROOT:-}" ]]; then
   CODE_ROOT="${NEW_BUILD_CODE_ROOT}"
 else
@@ -22,308 +194,61 @@ else
     CODE_ROOT="${HOME}/code"
   fi
 fi
-AGENTS_ROOT="${CODE_ROOT}/agents"
-APPS_ROOT="${CODE_ROOT}/Applications"
-NOW="$(date -Iseconds 2>/dev/null || date +%Y-%m-%dT%H:%M:%S%z)"
-REGISTRY="${GOVERNANCE_HOME}/automation/project_registry.py"
+if [[ "$BUILD_TYPE" == "agent" || "$GOVERNANCE_TYPE" == "agent" ]]; then
+  TARGET_DIR="${CODE_ROOT}/agents/${SLUG}"
+else
+  TARGET_DIR="${CODE_ROOT}/Applications/${SLUG}"
+fi
 
-if [[ "${1:-}" == "--version" || "${1:-}" == "-V" ]]; then
-  python3 "${GOVERNANCE_HOME}/automation/version.py"
+echo
+echo "Plan"
+echo "  Name:       ${PROJECT_NAME}"
+echo "  Slug:       ${SLUG}"
+echo "  Type:       ${BUILD_TYPE}"
+echo "  Governance: ${GOVERNANCE_LEVEL}"
+echo "  Builder:    ${PRIMARY_BUILDER}"
+echo "  Stack:      ${STACK}"
+echo "  Location:   ${TARGET_DIR}"
+if [[ -d "$TARGET_DIR" ]]; then
+  echo "  Warning: location already exists. Existing files will not be overwritten."
+fi
+CONFIRM="$(read_choice "Create this project?" "" yes no)"
+if [[ "$CONFIRM" != "yes" ]]; then
+  echo "Aborted."
   exit 0
 fi
 
-if [[ "${1:-}" == "--check-updates" || "${1:-}" == "--update-check" ]]; then
-  python3 "${GOVERNANCE_HOME}/automation/update_check.py"
-  exit $?
-fi
+# ── delegate to the headless entry point ──────────────────────────────────────
 
-if [[ "${1:-}" == "--self-update" ]]; then
-  python3 "${GOVERNANCE_HOME}/automation/self_update.py"
-  exit $?
-fi
+PARAMS_JSON="$(
+  NB_PROJECT_NAME="$PROJECT_NAME" \
+  NB_BUILD_TYPE="$BUILD_TYPE" \
+  NB_GOVERNANCE_TYPE="$GOVERNANCE_TYPE" \
+  NB_GOVERNANCE_LEVEL="$GOVERNANCE_LEVEL" \
+  NB_PRIMARY_BUILDER="$PRIMARY_BUILDER" \
+  NB_STACK="$STACK" \
+  NB_SCOPE_PROBLEM="$SCOPE_PROBLEM" \
+  NB_SCOPE_USER="$SCOPE_USER" \
+  NB_SCOPE_MVP="$SCOPE_MVP" \
+  "${PYTHON[@]}" - <<'PYEOF'
+import json
+import os
 
-# ── helpers ───────────────────────────────────────────────────────────────────
-
-hr()  { printf '%.0s─' {1..60}; echo; }
-msg() { echo "  $*"; }
-
-ask() {
-  local prompt="$1" default="${2:-}" answer
-  if [[ -n "$default" ]]; then
-    read -rp "  ${prompt} [${default}]: " answer || { echo; exit 1; }
-    printf '%s' "${answer:-$default}"
-  else
-    read -rp "  ${prompt}: " answer || { echo; exit 1; }
-    printf '%s' "$answer"
-  fi
+params = {
+    "project_name": os.environ.get("NB_PROJECT_NAME", ""),
+    "build_type": os.environ.get("NB_BUILD_TYPE", ""),
+    "governance_level": os.environ.get("NB_GOVERNANCE_LEVEL", ""),
+    "primary_builder": os.environ.get("NB_PRIMARY_BUILDER", ""),
+    "stack": os.environ.get("NB_STACK", ""),
+    "scope_problem": os.environ.get("NB_SCOPE_PROBLEM", ""),
+    "scope_user": os.environ.get("NB_SCOPE_USER", ""),
+    "scope_mvp": os.environ.get("NB_SCOPE_MVP", ""),
 }
+governance_type = os.environ.get("NB_GOVERNANCE_TYPE", "")
+if governance_type:
+    params["governance_type"] = governance_type
+print(json.dumps(params))
+PYEOF
+)"
 
-ask_choice() {
-  local prompt="$1"; shift
-  local choices=("$@")
-  local answer valid
-  while true; do
-    read -rp "  ${prompt} ($(IFS=/; echo "${choices[*]}")): " answer || { echo; exit 1; }
-    valid=""
-    for c in "${choices[@]}"; do
-      [[ "$answer" == "$c" ]] && valid=1 && break
-    done
-    [[ -n "$valid" ]] && break
-    msg "Please enter one of: ${choices[*]}"
-  done
-  printf '%s' "$answer"
-}
-
-slugify() {
-  printf '%s' "$1" \
-    | tr '[:upper:]' '[:lower:]' \
-    | tr ' _/' '-' \
-    | tr -cd '[:alnum:]-' \
-    | sed 's/--*/-/g; s/^-//; s/-$//'
-}
-
-# ── header ────────────────────────────────────────────────────────────────────
-
-echo
-hr
-msg "New Build Governance Agent"
-msg "Scope → Classify → Scaffold"
-hr
-echo
-
-# ── intake ────────────────────────────────────────────────────────────────────
-
-RAW_NAME=""
-while [[ -z "$RAW_NAME" ]]; do
-  RAW_NAME=$(ask "Project name")
-  [[ -z "$RAW_NAME" ]] && msg "Name cannot be empty."
-done
-
-BUILD_TYPE=$(ask_choice "Build type" app agent tool other)
-
-case "$BUILD_TYPE" in
-  app)
-    GOV_TYPE="application"
-    TARGET_ROOT="$APPS_ROOT"
-    ;;
-  agent)
-    GOV_TYPE="agent"
-    TARGET_ROOT="$AGENTS_ROOT"
-    ;;
-  tool)
-    GOV_TYPE="internal-tool"
-    TARGET_ROOT="$APPS_ROOT"
-    ;;
-  other)
-    echo
-    msg "Supported types: website / service / internal-tool / automation / infrastructure / documentation"
-    GOV_TYPE=$(ask "Governance project type")
-    ROOT_CHOICE=$(ask_choice "Target root" agents applications)
-    [[ "$ROOT_CHOICE" == "agents" ]] && TARGET_ROOT="$AGENTS_ROOT" || TARGET_ROOT="$APPS_ROOT"
-    ;;
-esac
-
-STACK=$(ask "Expected stack" "not specified")
-
-PRIMARY_MODEL=$(ask_choice "Primary builder" claude codex local hybrid)
-
-msg "Governance level scale:"
-msg "  0 = full autonomy"
-msg "  1 = light guardrails"
-msg "  2 = standard supervised"
-msg "  3 = strict review"
-msg "  4 = critical controls"
-GOVERNANCE_LEVEL=$(ask_choice "Governance level" 0 1 2 3 4)
-case "$GOVERNANCE_LEVEL" in
-  0|1) RISK_TIER="low" ;;
-  2) RISK_TIER="medium" ;;
-  3) RISK_TIER="high" ;;
-  4) RISK_TIER="critical" ;;
-esac
-
-SCOPE_NOW=$(ask_choice "Capture scope brief now?" yes no)
-
-PROBLEM="" USER_DESC="" MVP=""
-if [[ "$SCOPE_NOW" == "yes" ]]; then
-  echo
-  msg "Scope brief — brief answers are fine:"
-  PROBLEM=$(ask  "What problem does this solve")
-  USER_DESC=$(ask "Who is the primary user or consumer")
-  MVP=$(ask      "What does the MVP look like")
-fi
-
-# ── derive ────────────────────────────────────────────────────────────────────
-
-SLUG=$(slugify "$RAW_NAME")
-if [[ -z "$SLUG" || ${#SLUG} -lt 2 ]]; then
-  msg "Error: project name '${RAW_NAME}' produced an invalid slug '${SLUG}'."
-  msg "Use ASCII letters, digits, spaces, or hyphens (minimum 2 characters)."
-  exit 1
-fi
-RESERVED_SLUGS=("con" "prn" "aux" "nul" "com1" "com2" "com3" "com4" "com5" "com6" "com7" "com8" "com9" "lpt1" "lpt2" "lpt3" "lpt4" "lpt5" "lpt6" "lpt7" "lpt8" "lpt9")
-for r in "${RESERVED_SLUGS[@]}"; do
-  if [[ "${SLUG,,}" == "$r" ]]; then
-    msg "Error: slug '${SLUG}' is a reserved OS name. Choose a different project name."
-    exit 1
-  fi
-done
-TARGET_DIR="${TARGET_ROOT}/${SLUG}"
-
-# ── confirm ───────────────────────────────────────────────────────────────────
-
-echo
-hr
-msg "Plan"
-hr
-msg "Name:        ${RAW_NAME}"
-msg "Slug:        ${SLUG}"
-msg "Type:        ${GOV_TYPE}"
-msg "Governance:  ${GOVERNANCE_LEVEL}"
-msg "Risk tier:   ${RISK_TIER}"
-msg "Model:       ${PRIMARY_MODEL}"
-msg "Stack:       ${STACK}"
-msg "Location:    ${TARGET_DIR}"
-echo
-
-if [[ -d "$TARGET_DIR" ]]; then
-  msg "WARNING: ${TARGET_DIR} already exists. Existing files will not be overwritten."
-  echo
-fi
-
-CONFIRM=$(ask_choice "Create this project?" yes no)
-[[ "$CONFIRM" != "yes" ]] && { msg "Aborted."; exit 0; }
-
-# ── scaffold ──────────────────────────────────────────────────────────────────
-
-echo
-msg "Scaffolding..."
-echo
-
-bash "$BOOTSTRAP" "$TARGET_DIR" "$GOV_TYPE" "$GOVERNANCE_LEVEL"
-
-# Extra directories not created by bootstrap_project.sh
-mkdir -p \
-  "${TARGET_DIR}/docs/adr" \
-  "${TARGET_DIR}/docs/specs" \
-  "${TARGET_DIR}/docs/runbooks" \
-  "${TARGET_DIR}/archive"
-
-echo "Created: docs/adr  docs/specs  docs/runbooks  archive"
-
-# ── fill project-control.yaml ─────────────────────────────────────────────────
-
-PC="${TARGET_DIR}/project-control.yaml"
-if [[ -f "$PC" ]]; then
-  sed -i "s/name: Project Owner/name: Adam Goodwin/" "$PC"
-  sed -i "s/name: Technical Lead/name: ${PRIMARY_MODEL} session/" "$PC"
-fi
-
-# ── INITIAL_SCOPE.md ──────────────────────────────────────────────────────────
-
-SCOPE_FILE="${TARGET_DIR}/INITIAL_SCOPE.md"
-
-cat > "$SCOPE_FILE" <<EOF
-# Initial Scope — ${RAW_NAME}
-
-Generated: ${NOW}
-
-## Classification
-
-| Field          | Value             |
-|----------------|-------------------|
-| Project name   | ${RAW_NAME}       |
-| Slug / dir     | ${SLUG}           |
-| Type           | ${GOV_TYPE}       |
-| Governance     | ${GOVERNANCE_LEVEL}               |
-| Risk tier      | ${RISK_TIER}      |
-| Stack          | ${STACK}          |
-| Primary model  | ${PRIMARY_MODEL}  |
-| Location       | ${TARGET_DIR}     |
-
-## Build approach
-
-Primary builder: **${PRIMARY_MODEL}**
-
-EOF
-
-if [[ -n "$PROBLEM" ]]; then
-  cat >> "$SCOPE_FILE" <<EOF
-## Scope brief
-
-**Problem:** ${PROBLEM}
-
-**Primary user / consumer:** ${USER_DESC}
-
-**MVP:** ${MVP}
-
-EOF
-else
-  cat >> "$SCOPE_FILE" <<'EOF'
-## Scope brief
-
-Not captured at intake. Fill in before the first coding session.
-
-- **Problem:**
-- **Primary user / consumer:**
-- **MVP:**
-
-EOF
-fi
-
-cat >> "$SCOPE_FILE" <<'EOF'
-## First session checklist
-
-- [ ] Read `START_HERE.md`
-- [ ] Review `docs/current-build-pathway.md`
-- [ ] Review `docs/standards/README.md`
-- [ ] Review `docs/standards/engineering-governance-by-use-case.md`
-- [ ] Review `docs/policy/durable-development-engineering-policy.md`
-- [ ] Review `docs/standards/ship-ready-engineering-standard.md`
-- [ ] Fill in commands in `AI_BOOTSTRAP.md`
-- [ ] Confirm governance level and risk tier in `project-control.yaml`
-- [ ] Add first ADR if architecture decisions were made at intake
-- [ ] Run governance preflight: `bash scripts/governance-preflight.sh`
-EOF
-
-echo "Created: INITIAL_SCOPE.md"
-
-if [[ -f "$REGISTRY" ]]; then
-  python3 "$REGISTRY" register \
-    --project-name "$RAW_NAME" \
-    --slug "$SLUG" \
-    --path "$TARGET_DIR" \
-    --project-type "$GOV_TYPE" \
-    --risk-tier "$RISK_TIER" \
-    --governance-level "$GOVERNANCE_LEVEL" \
-    --builder "$PRIMARY_MODEL" \
-    --stack "$STACK" \
-    --problem "$PROBLEM" \
-    --user-desc "$USER_DESC" \
-    --mvp "$MVP"
-  echo "Registered: ${SLUG}"
-fi
-
-# ── summary ───────────────────────────────────────────────────────────────────
-
-echo
-hr
-msg "Done — ${RAW_NAME}"
-hr
-msg "Path: ${TARGET_DIR}"
-echo
-msg "Files created:"
-for f in README.md START_HERE.md CLAUDE.md AGENTS.md AI_BOOTSTRAP.md INITIAL_SCOPE.md project-control.yaml; do
-  [[ -f "${TARGET_DIR}/${f}" ]] && msg "  ${f}"
-done
-echo
-msg "Next:"
-msg "  1. Read START_HERE.md"
-msg "  2. Review docs/current-build-pathway.md"
-msg "  3. Review docs/standards/README.md"
-msg "  4. Review docs/standards/engineering-governance-by-use-case.md"
-msg "  5. Review docs/policy/durable-development-engineering-policy.md"
-msg "  6. Review docs/standards/ship-ready-engineering-standard.md"
-msg "  7. Fill in commands in AI_BOOTSTRAP.md"
-msg "  8. Review project-control.yaml"
-msg "  9. Open: ${TARGET_DIR}"
-echo
+printf '%s\n' "$PARAMS_JSON" | "${PYTHON[@]}" "$HEADLESS"
