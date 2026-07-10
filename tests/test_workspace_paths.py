@@ -26,19 +26,23 @@ class WorkspacePathTests(unittest.TestCase):
 
             self.assertEqual(Path(tmp), workspace_paths.default_code_root(Path("/ignored/repo")))
 
-    def test_uses_windows_workspace_parent_when_installed_there(self):
-        root = Path("C:/Users/example/01. Code Projects/New Build Agent")
+    def _workspace_parent(self) -> Path:
+        # Absolute on every platform so resolve() cannot prepend the cwd.
+        return Path(tempfile.gettempdir()).resolve() / "01. Code Projects"
 
-        self.assertEqual(
-            Path("C:/Users/example/01. Code Projects"), workspace_paths.default_code_root(root)
-        )
+    def test_uses_windows_workspace_parent_when_installed_there(self):
+        parent = self._workspace_parent()
+        root = parent / "New Build Agent"
+
+        self.assertEqual(parent, workspace_paths.default_code_root(root))
 
     def test_category_roots_are_stable(self):
-        root = Path("C:/Users/example/01. Code Projects/New Build Agent")
+        parent = self._workspace_parent()
+        root = parent / "New Build Agent"
         agents, applications = workspace_paths.category_roots(root)
 
-        self.assertEqual(Path("C:/Users/example/01. Code Projects/agents"), agents)
-        self.assertEqual(Path("C:/Users/example/01. Code Projects/Applications"), applications)
+        self.assertEqual(parent / "agents", agents)
+        self.assertEqual(parent / "Applications", applications)
 
 
 if __name__ == "__main__":
