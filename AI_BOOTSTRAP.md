@@ -38,7 +38,7 @@ Risk-triggering work includes: production, deployment, authentication, authoriza
 
 At the end of every chunk of work:
 
-1. Check `CARRY_FORWARD.md` — if it has open items, surface them to the user before proceeding. If open flags must survive the context reset, read them aloud and wait for confirmation.
+1. Check `CARRY_FORWARD.md` — surface any open items to the user before proceeding. Only pause for confirmation on a flag that was raised or changed this chunk, or one that requires a decision before the next chunk can safely start; a standing flag already recorded in an earlier chunk (for example, a durable backlog pointer) is mentioned, not blocked on. Never let this step stall the automatic commit in step 2.
 2. Stage the relevant files, commit with a clear message, and push. Do this automatically — do not ask unless a carry-forward flag or blocker requires a decision first.
 3. Confirm the push succeeded, then suggest `/compact`. Do not suggest `/clear` — compact preserves the summary of what was done, which is cheaper to resume from than a cold start.
 4. `/clear` is an explicit user override only: use it when prior context had persistent wrong assumptions, or the next chunk is in a completely unrelated domain.

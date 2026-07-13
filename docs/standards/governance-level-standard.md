@@ -79,7 +79,7 @@ Intent: money movement, sensitive personal data at scale, broad privileged acces
 Required controls, in addition to level 3:
 
 - separation of duties where feasible
-- mandatory release approvals by both project owner and technical lead
+- mandatory release approval by the project owner and, where those are distinct people, a separate technical lead; a solo owner records single-owner approval with the rationale rather than staging a two-hats ceremony (see the exception process in `document-control-standard.md`)
 - auditable change and deployment history
 - stronger access controls and mandatory security review
 - disaster recovery expectations and recovery objectives
@@ -93,13 +93,13 @@ This is the single crosswalk between the numeric governance levels, the Low/Medi
 | 0 | Full autonomy | low | A2 | Tier 3 (external reversible actions) |
 | 1 | Light guardrails | low | A2 | Tier 3 (external reversible actions) |
 | 2 | Standard supervised | medium | A1 | Tier 2 (draft actions) |
-| 3 | Strict review | high | A1 | Tier 1 (read private data) |
+| 3 | Strict review | high | A1 | Tier 2 (draft actions) |
 | 4 | Critical controls | critical | A0 | Tier 0 (read-only, low sensitivity) |
 
 Notes:
 
 - The default risk tier column is the recommended pairing, not a derivation. When only a `risk_tier` is supplied, tooling fills in the matching level (`low` → 1, `medium` → 2, `high` → 3, `critical` → 4).
-- Autonomy levels (`A0` advisory, `A1` proposes for approval, `A2` bounded actions with logging) are the scaffold defaults; agent projects may tighten them in `project-control.yaml`.
+- Autonomy levels (`A0` advisory, `A1` proposes for approval, `A2` bounded actions with logging) are the scaffold defaults; agent projects may tighten them in `project-control.yaml`. The ceiling column follows the autonomy level: `A2` allows Tier 3 (external reversible actions), `A1` allows Tier 2 (preparing drafts and proposals, which is what "proposes for approval" means), and `A0` allows Tier 0 (read-only). Levels 2 and 3 share the Tier 2 ceiling by design — an A1 agent must be able to draft at both — and differ instead in their required controls (level 3 adds coverage, runbooks, rollback, and security review).
 - At every governance level, Tier 4 actions (destructive or production) require explicit approval, and Tier 5 actions (irreversible or high-stakes) require a human decision. The ceiling column can lower these thresholds; it never raises them.
 - Deviations from the default pairing must be justified in `project-control.yaml` notes or an exception record.
 

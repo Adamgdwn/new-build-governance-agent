@@ -88,7 +88,10 @@ generated the 119-item metadata burden.
 - Collapse the two-approver ceremony (owner + technical lead — the same
   human) to single-owner reality in `document-control-standard.md` and the
   exception process: one named approver, with the dual-approval requirement
-  reserved for projects that actually have two people.
+  reserved for projects that actually have two people. STD-ENG-009
+  (Governance Level Standard, level 4) now carries the same "where those are
+  distinct people" carve-out added 2026-07-13 — keep the two documents in
+  sync when this is finalized.
 
 ### B-9. Adopt ADRs for real (audit rec 9) — open
 
@@ -194,6 +197,11 @@ commits, and there is no downgrade path.
   promotion_execute/promotion_checks, now set at their measured 25%/15%).
   Raise `fail_under` in pyproject.toml and the per-file targets in
   `scripts/validate.sh` as each module above gains tests.
+- Add a coverage step to `scripts/validate.ps1`: coverage is currently
+  enforced only in the bash gate, so a Windows-only developer first learns of
+  a coverage regression from Ubuntu CI rather than the local gate. Mirror the
+  `coverage run`/`coverage report` block (reading the same pyproject floor) so
+  both gates are symmetric.
 - Fix test anti-patterns while there: `tests/test_new_build_headless.py`
   (~79–90) reimplements the validation guard inside the test (tests a copy,
   not the code — import the real function); `tests/test_scaffold_project.py`
