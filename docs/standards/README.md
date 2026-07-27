@@ -36,6 +36,7 @@ Use these when the work touches the matching area:
 |---|---|
 | [Context Hygiene Standard](context-hygiene-standard.md) | Managing long agent sessions, context windows, token budgets, compaction, scoped repo reads, or handoffs. |
 | [Document Control Standard](document-control-standard.md) | Creating or maintaining durable docs, handoffs, records, standards, pathway logs, ADRs, audits, or runbooks. Also owns the required project document set. |
+| [GitHub Resource Efficiency Standard](github-resource-efficiency-standard.md) | Changing repository storage, `.gitignore`, Git LFS, Actions workflows, artifacts, caches, Packages, releases, runners, or GitHub billing. Guardrails only; the short summary lives in the workspace-level `CLAUDE.md`. |
 | [Governance Level Standard](governance-level-standard.md) | Selecting or interpreting `governance_level` 0-4, or mapping levels to risk tiers and agent-action tiers. |
 | [Repository And Naming Standard](repository-and-naming-standard.md) | Naming repositories, files, modules, directories, common project structure, or monorepo layout. |
 | [Risk Classification Standard](risk-classification-standard.md) | Classifying risk tier, sensitive surfaces, or escalation needs. Sole definition of the Low/Medium/High/Critical tiers. |
