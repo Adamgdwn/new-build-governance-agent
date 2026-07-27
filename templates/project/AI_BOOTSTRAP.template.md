@@ -87,6 +87,17 @@ Do not trigger a full `/graphify` rebuild to answer a question, at session start
 
 Preserve existing secret-handling rules: do not index, print, summarize, or commit secrets or environment files.
 
+## GitHub Resource Efficiency
+
+Guardrails, not hard rails — apply judgment and say plainly when a task warrants departing from one. These bullets are self-contained; the full standard lives once in the New Build Governance Agent source repository at `docs/standards/github-resource-efficiency-standard.md` (STD-ENG-022). This project does not carry its own copy.
+
+- Git holds source, config, docs, and small durable assets. Generated output — build artifacts, dependency folders, caches, logs, datasets, installers, archives, graph output, database dumps — belongs in `.gitignore`, a release, or outside GitHub.
+- Classify any new non-text file over ~10 MiB before committing it: can it be regenerated, how often will it change, how long must it be kept, what is the cheapest place that fits. Do not split, zip, or rename a file to duck the question.
+- Ask the owner before anything that creates or grows a recurring GitHub cost: a paid feature, `git lfs track` or a broader LFS pattern, a larger or paid runner, a raised cache or retention limit, a changed budget. Bring the use case, a cheaper alternative, an expected monthly cost, and a way to undo it.
+- In Actions: relevant triggers, cheap checks before expensive ones, a timeout on every job, cancel superseded runs, shallow checkout, LFS checkout off unless the job reads the objects. Standard Linux runners unless another platform is genuinely under test.
+- Upload an artifact only when something downstream consumes it, with 1-7 day retention. Promote anything worth keeping to a release instead of a long-lived artifact.
+- Deleting to save cost is its own decision, not a side effect of cleanup. Releases, packages, caches, tags, LFS objects, and history rewrites get checked with the owner first. Removing a file today does not reclaim what history already stores; do not imply that it does.
+
 ## Commands
 <!-- Replace these with the actual commands for this project -->
 - Install: `<fill in>`

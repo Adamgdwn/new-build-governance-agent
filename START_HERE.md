@@ -23,6 +23,7 @@ Current priorities:
 - preserve copy-if-missing behavior for existing projects
 - integrated a downloaded codex startup-preflight lean-out plan into durable standards and agent instructions on 2026-06-13; do not add that downloaded plan as a new mandatory startup read
 - integrated a downloaded cost-effective agentic coding context standard into durable standards, context routing, templates, and managed upgrades on 2026-06-13; do not add that downloaded standard as a new mandatory startup read
+- integrated a downloaded GitHub resource-efficiency standard on 2026-07-26 as a single canonical copy (`docs/standards/github-resource-efficiency-standard.md`, STD-ENG-022) with a short guardrail summary in the workspace-level `CLAUDE.md`; these are guardrails rather than enforced checks, and no per-repo copy of the standard is generated
 
 ## Current Build Pathway
 

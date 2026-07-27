@@ -36,6 +36,7 @@ Keep these files compact. They should route to durable docs, not duplicate them.
 | Completion labels, Definition of Shipped, release evidence, or finish reports | `docs/standards/ship-ready-engineering-standard.md` |
 | Architecture decisions or system shape | `docs/architecture.md` and relevant ADRs |
 | Domain terms or naming | `docs/domain-language.md` |
+| Repository storage, `.gitignore`, Git LFS, Actions workflows, artifacts, caches, Packages, releases, runners, or GitHub billing | `docs/standards/github-resource-efficiency-standard.md` |
 | Deployment, release, rollback, or environment changes | `docs/deployment-guide.md`, `docs/runbook.md`, and release standards |
 | Agent autonomy, tools, prompts, models, or permissions | `docs/agent-inventory.md`, `docs/model-registry.md`, `docs/prompt-register.md`, and `docs/tool-permission-matrix.md` |
 
@@ -83,3 +84,5 @@ load the wrong material. Keep it short enough to read at startup when context
 routing is unclear.
 
 Integration note: a downloaded cost-effective agentic coding context standard was integrated into this map on 2026-06-13. Do not add that downloaded standard as a new mandatory startup read.
+
+Integration note: a downloaded GitHub resource-efficiency standard was integrated on 2026-07-26 as `docs/standards/github-resource-efficiency-standard.md` (STD-ENG-022), with a short guardrail summary in the workspace-level `CLAUDE.md`. Do not add that standard as a new mandatory startup read, and do not generate a per-repo copy of it.

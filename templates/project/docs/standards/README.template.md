@@ -37,6 +37,7 @@ Use these when the work touches the matching area. Some governed projects may st
 | Deployment And Release Standard | Changing deployment, release, rollback, environments, external providers, or production promotion. |
 | Document Control Standard | Creating or maintaining durable docs, handoffs, records, standards, pathway logs, ADRs, audits, or runbooks. |
 | Documentation Standard | Writing user, operator, architecture, setup, process, or support documentation. |
+| GitHub Resource Efficiency Standard | Changing repository storage, `.gitignore`, Git LFS, Actions workflows, artifacts, caches, Packages, releases, runners, or GitHub billing. Guardrails, not enforced checks. Canonical copy stays in the governance source; this project does not carry a local copy. |
 | Monorepo Standard | Structuring or changing a monorepo, package boundaries, shared libraries, or workspace layout. |
 | Repository And Naming Standard | Naming repositories, files, modules, directories, and common project structure. |
 | Risk Classification Standard | Classifying risk tier, governance level, sensitive surfaces, or escalation needs. |

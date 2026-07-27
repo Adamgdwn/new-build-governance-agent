@@ -68,6 +68,7 @@ Use second-level Markdown headings for active and planned chunks:
 | Chunk Thirty - Compaction Restart Efficiency | complete | 2026-06-16T19:05:02-06:00 | Active-plan routing indirect through START_HERE.md; post-compaction restart guidance added. |
 | Chunk Thirty-One - Housekeeping | complete | 2026-06-16 | Hard-coded personal names removed from automation; AGENTS.md trimmed to router; pathway split. |
 | Chunk Thirty-Two - Document Supersession Enforcement | complete | 2026-06-16 | Supersession scanner in change_control.py; Document Supersession section in audit report; GUI summary; template banner. |
+| Chunk Thirty-Four - GitHub Resource Efficiency Ingestion | complete | 2026-07-26T20:22:46-06:00 | STD-ENG-022 added as a single canonical copy; guardrail summary distributed through the workspace-level CLAUDE.md and the project bootstrap template; no per-repo standard copy, no enforced checks. |
 
 Full history: `docs/archive/pathway-history.md`
 
@@ -148,3 +149,39 @@ Validation:
 - `bash scripts/validate.sh` passed end-to-end on Windows Git Bash (compliance, schema, ruff, mypy, shellcheck, secret scan, 120 unit tests).
 - `python automation/governance_audit.py .` exit 0, zero findings.
 - `./scripts/validate.ps1` (including the Windows launcher build) run at close-out.
+
+## Chunk Thirty-Four - GitHub Resource Efficiency Ingestion
+
+Status: complete
+
+Completion target: Integration complete
+
+Budget class: Small
+
+Objective: ingest the downloaded GitHub resource-efficiency standard as a single canonical copy and distribute a short guardrail summary to every project without generating a per-repo copy of the standard.
+
+Owner decision: use the workspace-level `CLAUDE.md` at the code-workspace root as the distribution point instead of the per-repo generation model proposed by the source document. Guardrails, not enforced checks.
+
+Acceptance criteria:
+
+- [x] `docs/standards/github-resource-efficiency-standard.md` (STD-ENG-022) holds the full standard, with the source document's transmittal brief replaced by a distribution section, MUST language relaxed to guardrails, volatile GitHub product facts isolated and marked unverified, and skipped work recorded.
+- [x] Guardrail summary added to the workspace-level `CLAUDE.md`, inherited by every project under the code-workspace root in a Claude Code session.
+- [x] Summary mirrored in the standard itself so it is reproducible if the unversioned workspace file is lost.
+- [x] Routed in `docs/standards/README.md`, `docs/context-map.md`, `START_HERE.md`, and `AI_BOOTSTRAP.md`.
+- [x] Templates carry the guardrails and a pointer rather than a copy: `templates/project/AI_BOOTSTRAP.template.md`, `docs/standards/README.template.md`, `docs/context-map.template.md`.
+
+Inputs:
+
+- `~/Downloads/2026-07-26-github-resource-efficiency-standard.md`
+
+Not done, deliberately:
+
+- No machine-enforced checks. Any future check starts as a reporting control, not a blocking gate.
+- No `GOVERNANCE-MANAGED` block in `automation/change_control.py`, so existing repos generated before this chunk do not receive the guardrails in their own instruction files. They are still covered in Claude Code through the workspace `CLAUDE.md`.
+- The volatile GitHub product facts were not re-verified against GitHub documentation.
+
+Validation:
+
+- `bash scripts/validate.sh` exit 0 (compliance, schema, ruff, mypy, shellcheck, secret scan, 120 unit tests).
+- `python -m unittest tests.test_scaffold_project tests.test_change_control` passed; template edits did not break scaffold or managed-upgrade expectations.
+- `python automation/governance_audit.py .` — 0 blockers, 0 required gaps, 1 warning (the pre-existing Tier 2/3 carry-forward flag age, unrelated to this chunk). Report: `docs/audits/governance-audit-2026-07-26.md` (AUD-ENG-009).

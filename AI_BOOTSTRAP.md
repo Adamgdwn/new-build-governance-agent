@@ -67,6 +67,17 @@ Essentials (full standard: `docs/standards/context-hygiene-standard.md`):
 - After code changes, run the cheap incremental `graphify update . --no-cluster`. Never trigger a full `/graphify` rebuild to answer a question or at session start — a full semantic pass is a deliberate, once-per-major-change act.
 - Full governance policy: `docs/agent-governance.md` in the Graphify tool repo.
 
+## GitHub Resource Efficiency
+
+Guardrails, not hard rails — apply judgment and say plainly when a task warrants departing from one. Full standard: `docs/standards/github-resource-efficiency-standard.md`; read it when the work touches repository storage, LFS, Actions, artifacts, caches, Packages, releases, runners, or GitHub billing.
+
+- Git holds source, config, docs, and small durable assets. Generated output — build artifacts, dependency folders, caches, logs, datasets, installers, archives, graph output, database dumps — belongs in `.gitignore`, a release, or outside GitHub. Classify any new non-text file over ~10 MiB before committing it.
+- Ask the owner before anything that creates or grows a recurring GitHub cost: a paid feature, `git lfs track` or a broader LFS pattern, a larger or paid runner, a raised cache or retention limit, a changed budget.
+- In Actions: relevant triggers, cheap checks first, a timeout on every job, cancel superseded runs, shallow checkout, LFS checkout off unless the job reads the objects. Artifacts only when something downstream consumes them, 1-7 day retention.
+- Deleting to save cost is its own decision with its own approval. Removing a file today does not reclaim what history already stores; do not imply that it does.
+
+The short summary is mirrored in the workspace-level `CLAUDE.md` at the code-workspace root, which every project under it inherits. This is not a mandatory startup read and is not wired into `scripts/validate.*`.
+
 ## Secrets
 
 Do not index, print, summarize, or commit secrets or environment files.
