@@ -46,11 +46,19 @@ controls:
     - secret-scan
 exceptions: []
 agent_controls:
+  # Governs this project's runtime AI system. Set applicable: true when the
+  # product itself uses AI (inference calls, agent loops, model-backed features).
+  # Separate from agentic_coding below, which governs development-time coding agents only.
   applicable: false
   autonomy_level: A0
+  harness_profile: none
+  harness_manifest: ""
+  activation_mode: build_only
   model_registry: []
   prompt_registry: []
 agentic_coding:
+  # Governs coding agent behavior in this repository (development-time only).
+  # This section does not authorize runtime AI calls in the built product.
   principle: "The repository remembers. Agents rent context."
   default_budget: medium
   always_loaded_files:

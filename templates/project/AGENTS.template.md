@@ -91,15 +91,9 @@ After a compaction, context clear, or fresh restart, treat the latest handoff or
 
 ## Graphify Policy
 
-Use the canonical Graphify governance file:
+Use the canonical Graphify governance file at the Graphify tools location in your workspace (typically `Tools/graphify/docs/agent-governance.md`).
 
-`/home/adamgoodwin/code/Tools/graphify/docs/agent-governance.md`
-
-Before broad source exploration, architecture analysis, dependency tracing, unfamiliar large-surface work, or cross-repo planning, use Graphify first and reference the workspace graph at:
-
-`/home/adamgoodwin/code/Tools/graphify/workspace/out/graph.json`
-
-Use the workspace graph for cross-repo routing. When a new repo becomes active, set up repo-local Graphify with:
+Before broad source exploration, architecture analysis, dependency tracing, unfamiliar large-surface work, or cross-repo planning, use Graphify first and reference the workspace graph when one exists. Use the workspace graph for cross-repo routing. When a new repo becomes active, set up repo-local Graphify with:
 
 ```bash
 graphify-setup-project /path/to/repo
@@ -116,9 +110,9 @@ At the end of every chunk of work:
 1. Check `CARRY_FORWARD.md` — if it has any open items, surface them to the
    user before proceeding. If there are open flags that must survive the context
    reset, read them aloud and wait for confirmation.
-2. Stage the relevant files, commit with a clear message, and push. Do this
-   automatically — do not ask unless a carry-forward flag or blocker requires
-   a decision first.
+2. Stage the relevant files and commit with a clear message. Push when the
+   chunk's changes are ready to share and no carry-forward flag or blocker
+   requires a decision first.
 3. Confirm the push succeeded, then suggest `/compact` to compress the context
    window. Do not suggest `/clear` — compact preserves the summary of what was
    done, which is cheaper to resume from than a cold start.
