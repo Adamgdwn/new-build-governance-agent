@@ -45,7 +45,7 @@ For material or risk-triggering changes:
 5. Review `docs/standards/ship-ready-engineering-standard.md`.
 6. Review `project-control.yaml`.
 7. Check `exceptions` in `project-control.yaml` and any exception records.
-8. For broad source exploration, architecture analysis, dependency tracing, or cross-repo planning, use the Graphify policy at `/home/adamgoodwin/code/Tools/graphify/docs/agent-governance.md` before reading raw source broadly. Reference `/home/adamgoodwin/code/Tools/graphify/workspace/out/graph.json` for cross-repo routing, set up repo-local Graphify when a new repo becomes active, run `/graphify /path/to/repo` from Claude Code for full semantic repo graphs on heavy active repos, and update the relevant graph after code changes.
+8. For broad source exploration, architecture analysis, dependency tracing, or cross-repo planning, use the Graphify governance file (typically at `Tools/graphify/docs/agent-governance.md` in your workspace) before reading raw source broadly. Reference the workspace graph (typically at `Tools/graphify/workspace/out/graph.json`) for cross-repo routing, set up repo-local Graphify when a new repo becomes active, run `/graphify /path/to/repo` from Claude Code for full semantic repo graphs on heavy active repos, and update the relevant graph after code changes.
 9. Capture the work timestamp with `date -Iseconds`.
 10. Work in the smallest complete chunk that can be reviewed safely.
 

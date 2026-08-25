@@ -130,7 +130,7 @@ Use specialized plugins, MCP servers, hooks, and provider tools when they are re
 
 Temporary lean-out guides may be used during cleanup, but they should not become permanent mandatory startup reads.
 
-Integration note: `/home/adamgoodwin/Downloads/cost_effective_agentic_coding_context_standard.md` was integrated into this standard on 2026-06-13. Do not add that downloaded standard as a new mandatory startup read.
+Integration note: An external cost-effective agentic coding context standard was integrated into this standard on 2026-06-13. Do not add that external document as a new mandatory startup read.
 
 ### Work In Phases
 
