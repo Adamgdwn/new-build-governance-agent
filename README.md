@@ -4,26 +4,33 @@
 
 New Build Governance Agent is a starter framework for projects built with AI coding assistants such as Claude, Codex, Cursor, and local agents. It gives you a terminal launcher, a desktop GUI, reusable governance and guidance templates, validation scripts, context-budget guidance, and a staged release model so a new build starts with clear scope, clear ownership, durable engineering standards, and practical agent handoff habits.
 
+**New in v0.3.0 — Agentic Harness support.** Select "An agentic harness" at intake and the walkthrough guides you through your AI topology — Single LLM, Multi-LLM, Non-LLM (DiNO, JEPA, Phi-4, YOLO, Whisper, and similar), or a Combination — then generates topology-specific governance docs, AI registers, and a harness README that tells your coding agent exactly what governance profile applies and what open questions it must answer before writing the first AI call.
+
 ## Public Project Snapshot
 
 - **Audience:** builders who want AI-assisted projects to start with clear scope, safety rails, and durable handoff files.
-- **Best for:** new applications, internal tools, local agents, automation projects, and repos that need a lightweight governance baseline before they grow.
+- **Best for:** new applications, internal tools, local agents, AI harnesses, automation projects, and repos that need a lightweight governance baseline before they grow.
 - **Primary workflow:** run the guided intake, generate a governed project scaffold, then use the included checks and docs to keep future agent sessions focused.
 - **License:** MIT. You can use, modify, and adapt the framework in your own projects.
 - **Contributions:** issues and pull requests are welcome when they preserve the practical, low-friction governance model. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 Use it when you want to:
 
-- create a new governed project from six guided questions
+- create a new governed project from a short guided walkthrough
+- scaffold an **agentic harness** with topology-specific governance (single LLM, multi-LLM, non-LLM AI, or a combination)
 - give AI agents consistent instructions and context-hygiene guidance before they write code
 - add governance files to an existing repo without overwriting product files
 - share durable engineering, ship-readiness, context routing, and token-friendly best practices across builds
 - check whether a repo is ready for release, GitHub publishing, or external deployment
 - keep Windows, macOS, and Linux users on the same setup path
 
-![New Build Governance Agent desktop GUI showing the guided new-build intake and subtitle for engineering standards and agent guidance.](docs/assets/new-build-governance-agent-gui.png)
+![New Build Governance Agent desktop GUI — Step 1 of 5, showing all project types including the new Agentic Harness option selected.](docs/assets/new-build-governance-agent-gui.png)
 
-The desktop GUI walks users through one decision at a time, then shows the technical settings before anything is created. The generated project files give agents a standards map, durable development policy, ship-readiness gate, compact context map, and context hygiene guidance for scoped reads, budget classes, compaction, and handoffs.
+The desktop GUI walks users through one decision at a time. Selecting **An agentic harness** unlocks a dedicated topology step that sets the governance profile for your AI product:
+
+![Step 2 of 6 — harness topology selection showing Single LLM, Multi-LLM, Non-LLM AI (with model suggestions), and Combination options, plus a free-text description field.](docs/assets/new-build-harness-topology.png)
+
+The generated project files give agents a standards map, durable development policy, ship-readiness gate, compact context map, context hygiene guidance, and — for AI projects — a harness governance README, agent inventory, model registry, prompt register, and tool permission matrix.
 
 ## Start Here
 
@@ -165,7 +172,17 @@ my-app/
 └── archive/
 ```
 
-AI agent projects get additional scaffolding: agent inventory, model registry, prompt register, and tool permission matrix.
+AI agent projects and agentic harnesses get additional scaffolding:
+
+```
+docs/
+├── agent-inventory.md        ← register every AI participant before integrating
+├── model-registry.md         ← record each model, version, and provenance
+├── prompt-register.md        ← template every prompt before it goes to production
+├── tool-permission-matrix.md ← record every tool or API the AI can call
+└── harness/
+    └── README.md             ← topology, profile rules, your intent, and open governance questions
+```
 
 ---
 
@@ -234,11 +251,12 @@ Full setup instructions: [INSTALL.md](INSTALL.md)
 ---
 ## Current State
 
-The framework now does more than bootstrap new projects. It can also detect existing projects in `~/code`, classify them as `governed` or `candidate`, guide them into compliance, and prepare staged external rollout plans without auto-pushing changes.
+The framework does more than bootstrap new projects. It can also detect existing projects in `~/code`, classify them as `governed` or `candidate`, guide them into compliance, and prepare staged external rollout plans without auto-pushing changes.
 
 Current capabilities:
 
 - create new governed projects from the terminal or desktop GUI
+- scaffold **agentic harnesses** with topology-specific governance profiles and AI registers (v0.3.0)
 - scaffold compact context maps, budget classes, and token-friendly agent instructions
 - register and audit governed projects across `~/code/agents` and `~/code/Applications`
 - detect older repos as candidate projects from real project signals
@@ -248,29 +266,11 @@ Current capabilities:
 - repair missing local test tooling such as `pytest` from the GUI and rerun checks automatically
 - execute the approved GitHub publish step with rollback metadata and a saved execution report
 
-The desktop GUI now includes:
+The desktop GUI includes three tabs:
 
-- `Create` for new project setup
-- `Governance & Release` for compliance previews, local updates, release planning, checks, and GitHub publish
-
----
-
-## Verified So Far
-
-The following workflows were exercised successfully during this session:
-
-- `frogger` was created as a new governed project under `~/code/Applications`
-- `bowtie_risk_program` was detected as a candidate project
-- a conservative doc-only upgrade was applied first (`manual` and `roadmap`)
-- `bowtie_risk_program` was then promoted into the governed baseline without overwriting product files
-- governance preflight passed after promotion
-- staged pre-promotion checks passed after repairing local dependency state
-
-Important real-world findings from the test:
-
-- candidate promotion must add the full governance spine, not just `manual` and `roadmap`
-- desktop-launched checks cannot assume a full shell environment, so the runner now provides its own `PATH` and `GOVERNANCE_HOME`
-- existing projects may fail checks for real dependency reasons; in `bowtie_risk_program`, `node_modules/.bin` had lost executable bits and `npm install` was needed to restore the native `lightningcss` package
+- **New Build** — guided intake for all project types including agentic harnesses
+- **Governance & Release** — compliance previews, local updates, release planning, checks, and GitHub publish
+- **Document Control** — document lifecycle and supersession management
 
 ---
 
@@ -297,33 +297,19 @@ External execution is still intentionally blocked by default. The framework prep
 
 ---
 
-## Resume Point
+## The intake questions
 
-Good next steps for the next session:
+The guided walkthrough adapts to your project type. An agentic harness gets an extra topology step; other project types skip it.
 
-- add `Run Post-Checks` to the GUI using the same promotion-check runner
-- tailor promoted governance docs to the real repo where possible instead of leaving only generic template content
-- continue sharpening the compliance UI as the manifest workflow expands
-- begin cleanup of redundant prototype repos and stale files only after the current path stays stable
-
-If you are resuming work later, start here:
-
-- automation reference: [automation/README.md](automation/README.md)
-- staged rollout model: [docs/processes/staged-promotion-workflow.md](docs/processes/staged-promotion-workflow.md)
-- consolidation plan: [docs/processes/new-build-governance-agent-consolidation-plan.md](docs/processes/new-build-governance-agent-consolidation-plan.md)
-
----
-
-## The six questions
-
-| Question | Options |
-|----------|---------|
-| Project name | free text — auto-slugified for the directory name |
-| Build type | `app` / `agent` / `tool` / `other` |
-| Expected stack | free text |
-| Primary builder model | `claude` / `codex` / `local` / `hybrid` |
-| Governance level | `0` full autonomy through `4` critical controls |
-| Capture scope brief now? | `yes` — records problem, user, MVP in `INITIAL_SCOPE.md` |
+| Step | Question | Options |
+|------|----------|---------|
+| 1 | What are you trying to make? | website / app or portal / automation / AI helper / **agentic harness** / internal tool |
+| 2 (harness only) | What kind of AI will this use? | Single LLM / Multi-LLM / Non-LLM AI / Combination |
+| 2 (harness only) | Describe what your harness will do | free text — written to `docs/harness/README.md` for your coding agent |
+| 3 | Who is the primary audience? | yourself / a team / external users / a mix |
+| 4 | What is the first result you want? | free text scope brief |
+| 5 | Risk level | `0` full autonomy through `4` critical controls |
+| 6 | Review and confirm | shows inferred project type, governance level, and path before anything is created |
 
 ---
 
