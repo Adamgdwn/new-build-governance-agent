@@ -56,6 +56,7 @@ GOV_TYPES = frozenset(
         "infrastructure",
         "documentation",
         "agent",
+        "agentic-harness",
     }
 )
 GOVERNANCE_LEVELS = frozenset({"0", "1", "2", "3", "4"})

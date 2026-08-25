@@ -106,6 +106,7 @@ TYPE_MAP = {
     "app": ("application", APPS_ROOT),
     "website": ("website", APPS_ROOT),
     "agent": ("agent", AGENTS_ROOT),
+    "harness": ("agentic-harness", AGENTS_ROOT),
     "tool": ("internal-tool", APPS_ROOT),
     "automation": ("automation", APPS_ROOT),
     "other": ("automation", APPS_ROOT),
@@ -133,6 +134,11 @@ PURPOSE_OPTIONS = [
         "An assistant that can answer, draft, inspect files, or use tools.",
     ),
     (
+        "harness",
+        "An agentic harness",
+        "A product that uses AI — single agent, multi-agent, non-LLM, or a combination. Adds governance guidance for your AI topology.",
+    ),
+    (
         "tool",
         "A small internal tool",
         "A focused utility for you or your team.",
@@ -141,6 +147,29 @@ PURPOSE_OPTIONS = [
         "other",
         "I am not sure yet",
         "Start with safe defaults and decide the technical shape later.",
+    ),
+]
+
+HARNESS_TOPOLOGY_OPTIONS = [
+    (
+        "single-llm",
+        "Single LLM",
+        "One language model handles the complete task.",
+    ),
+    (
+        "multi-llm",
+        "Multi-LLM",
+        "Multiple language models with defined roles work in sequence or parallel.",
+    ),
+    (
+        "non-llm",
+        "Non-LLM AI",
+        "Machine learning without a language model.\ne.g. DiNO, JEPA, Phi-4 (inference-only), YOLO, Whisper, custom classifiers.",
+    ),
+    (
+        "combination",
+        "Combination",
+        "Both language models and other ML models (vision, audio, forecasting) participate together.",
     ),
 ]
 
@@ -271,6 +300,7 @@ class App(TkBase):
         self.v_mvp = tk.StringVar()
         self.v_intake_step = tk.IntVar(value=0)
         self.v_plain_purpose = tk.StringVar(value="app")
+        self.v_harness_topology = tk.StringVar(value="single-llm")
         self.v_audience = tk.StringVar(value="team")
         self.v_has_private_data = tk.BooleanVar(value=False)
         self.v_has_accounts = tk.BooleanVar(value=False)
@@ -315,6 +345,7 @@ class App(TkBase):
         self.v_type.trace_add("write", lambda *_: self._refresh_preview())
         for var in [
             self.v_plain_purpose,
+            self.v_harness_topology,
             self.v_audience,
             self.v_has_private_data,
             self.v_has_accounts,
@@ -522,10 +553,12 @@ class App(TkBase):
         self._intake_steps: list[tk.Frame] = []
 
         self._build_intake_purpose_step()
+        self._build_intake_harness_step()
         self._build_intake_audience_step()
         self._build_intake_first_result_step()
         self._build_intake_risk_step()
         self._build_intake_review_step()
+        self._HARNESS_STEP_INDEX = 1
 
         action_row = tk.Frame(wrap, bg=BG)
         action_row.pack(fill="x", pady=(4, 4))
@@ -624,6 +657,68 @@ class App(TkBase):
             )
         grid.columnconfigure(0, weight=1)
         grid.columnconfigure(1, weight=1)
+
+    def _build_intake_harness_step(self):
+        card = self._new_intake_step(
+            "What kind of AI will this use?",
+            "Choose the closest topology. This sets the governance profile for your harness.",
+        )
+        for value, title, description in HARNESS_TOPOLOGY_OPTIONS:
+            tk.Radiobutton(
+                card,
+                text=f"{title}\n{description}",
+                variable=self.v_harness_topology,
+                value=value,
+                bg=ENTRY_BG,
+                fg=FG,
+                selectcolor=SURFACE_ALT,
+                activebackground=SURFACE_ALT,
+                activeforeground=FG,
+                font=FONT,
+                justify="left",
+                anchor="w",
+                indicatoron=True,
+                padx=12,
+                pady=10,
+                command=self._refresh_intake_summary,
+                wraplength=700,
+            ).pack(fill="x", pady=4)
+
+        tk.Frame(card, bg=SURFACE, height=10).pack()
+        tk.Label(
+            card,
+            text="Describe what your harness will do and the intended outcome:",
+            bg=SURFACE,
+            fg=FG_DIM,
+            font=SMALL_BOLD,
+            anchor="w",
+            justify="left",
+        ).pack(fill="x", pady=(0, 4))
+        self._harness_desc_text = tk.Text(
+            card,
+            bg=ENTRY_BG,
+            fg=FG,
+            insertbackground=FG,
+            relief="flat",
+            font=FONT,
+            bd=6,
+            highlightthickness=1,
+            highlightbackground=BORDER,
+            highlightcolor=ACCENT,
+            height=5,
+            wrap="word",
+        )
+        self._harness_desc_text.pack(fill="x")
+        tk.Label(
+            card,
+            text="Your description is written into docs/harness/README.md so the development agent can read it and suggest governance rules.",
+            bg=SURFACE,
+            fg=FG_DIM,
+            font=SMALL,
+            justify="left",
+            anchor="w",
+            wraplength=700,
+        ).pack(fill="x", pady=(6, 0))
 
     def _build_intake_audience_step(self):
         card = self._new_intake_step(
@@ -1831,6 +1926,7 @@ class App(TkBase):
             "app": "app",
             "automation": "automation",
             "agent": "agent",
+            "harness": "harness",
             "tool": "tool",
             "other": "other",
         }.get(purpose, "app")
@@ -1842,7 +1938,7 @@ class App(TkBase):
             risk_score += 2
         if purpose in {"app", "automation"}:
             risk_score += 1
-        if purpose == "agent":
+        if purpose in {"agent", "harness"}:
             risk_score += 2
         if self.v_has_private_data.get():
             risk_score += 2
@@ -1858,7 +1954,7 @@ class App(TkBase):
         critical_signal = (
             self.v_handles_money.get()
             or self.v_production_ops.get()
-            or (purpose == "agent" and self.v_external_actions.get())
+            or (purpose in {"agent", "harness"} and self.v_external_actions.get())
         )
         if risk_score >= 7 and critical_signal:
             governance_level = "4"
@@ -1877,6 +1973,7 @@ class App(TkBase):
                 "app": "web app",
                 "automation": "python / workflow automation",
                 "agent": "AI agent",
+                "harness": "AI / ML harness",
                 "tool": "local utility",
                 "other": "not specified yet",
             }.get(purpose, "not specified yet")
@@ -1941,23 +2038,29 @@ class App(TkBase):
         risk_text = ", ".join(risk_flags) if risk_flags else "none selected"
         _, root = TYPE_MAP.get(profile["project_type"], ("application", APPS_ROOT))
         target = root / slugify(name) if name != "Untitled project" else root
-        self.v_intake_summary.set(
-            "\n".join(
-                [
-                    f"Project: {name}",
-                    f"Intent: {purpose_label}",
-                    f"Audience: {audience_label}",
-                    f"First useful result: {first_result}",
-                    f"Sensitive areas: {risk_text}",
-                    "",
-                    "Inferred setup:",
-                    f"- Build type: {profile['project_type']}",
-                    f"- Review level: {profile['governance_level']} ({profile['risk_tier']} risk)",
-                    f"- Likely stack: {profile['stack']}",
-                    f"- Destination: {target}",
-                ]
+        summary_lines = [
+            f"Project: {name}",
+            f"Intent: {purpose_label}",
+        ]
+        if self.v_plain_purpose.get() == "harness":
+            topology_label = next(
+                (title for value, title, _ in HARNESS_TOPOLOGY_OPTIONS
+                 if value == self.v_harness_topology.get()),
+                self.v_harness_topology.get(),
             )
-        )
+            summary_lines.append(f"AI topology: {topology_label}")
+        summary_lines.extend([
+            f"Audience: {audience_label}",
+            f"First useful result: {first_result}",
+            f"Sensitive areas: {risk_text}",
+            "",
+            "Inferred setup:",
+            f"- Build type: {profile['project_type']}",
+            f"- Review level: {profile['governance_level']} ({profile['risk_tier']} risk)",
+            f"- Likely stack: {profile['stack']}",
+            f"- Destination: {target}",
+        ])
+        self.v_intake_summary.set("\n".join(summary_lines))
         self._refresh_preview()
 
     def _toggle_advanced_settings(self):
@@ -1982,19 +2085,34 @@ class App(TkBase):
             return False
         return True
 
+    def _visible_step_indices(self) -> list[int]:
+        is_harness = self.v_plain_purpose.get() == "harness"
+        harness_step = getattr(self, "_HARNESS_STEP_INDEX", 1)
+        return [
+            i for i in range(len(self._intake_steps))
+            if is_harness or i != harness_step
+        ]
+
     def _show_intake_step(self, step: int):
         if not hasattr(self, "_intake_steps"):
             return
-        step = max(0, min(step, len(self._intake_steps) - 1))
+        visible = self._visible_step_indices()
+        if not visible:
+            return
+        step = max(visible[0], min(step, visible[-1]))
+        if step not in visible:
+            step = min(visible, key=lambda s: abs(s - step))
         self.v_intake_step.set(step)
         for index, frame in enumerate(self._intake_steps):
             if index == step:
                 frame.pack(fill="both", expand=True)
             else:
                 frame.pack_forget()
-        self.v_step_label.set(f"Step {step + 1} of {len(self._intake_steps)}")
-        self._back_btn.config(state="disabled" if step == 0 else "normal")
-        if step == len(self._intake_steps) - 1:
+        visible_pos = visible.index(step) + 1
+        total_visible = len(visible)
+        self.v_step_label.set(f"Step {visible_pos} of {total_visible}")
+        self._back_btn.config(state="disabled" if step == visible[0] else "normal")
+        if step == visible[-1]:
             self._next_btn.pack_forget()
             if not self._create_btn.winfo_ismapped():
                 self._create_btn.pack(side="left", padx=(10, 0))
@@ -2007,10 +2125,23 @@ class App(TkBase):
     def _next_intake_step(self):
         if not self._validate_current_intake_step():
             return
-        self._show_intake_step(self.v_intake_step.get() + 1)
+        visible = self._visible_step_indices()
+        current = self.v_intake_step.get()
+        try:
+            pos = visible.index(current)
+            self._show_intake_step(visible[pos + 1])
+        except (ValueError, IndexError):
+            pass
 
     def _previous_intake_step(self):
-        self._show_intake_step(self.v_intake_step.get() - 1)
+        visible = self._visible_step_indices()
+        current = self.v_intake_step.get()
+        try:
+            pos = visible.index(current)
+            if pos > 0:
+                self._show_intake_step(visible[pos - 1])
+        except ValueError:
+            pass
 
     def _refresh_preview(self):
         name = self.v_name.get().strip()
@@ -2608,17 +2739,30 @@ class App(TkBase):
             ):
                 return
 
+        harness_topology = ""
+        harness_description = ""
+        if profile["project_type"] == "harness":
+            harness_topology = self.v_harness_topology.get()
+            if hasattr(self, "_harness_desc_text"):
+                harness_description = self._harness_desc_text.get("1.0", "end-1c").strip()
+
         self._set_busy(True)
         self._clear_output()
         threading.Thread(
             target=self._run_create,
-            args=(target_dir, gov_type, governance_level, risk_tier, builder, data),
+            args=(target_dir, gov_type, governance_level, risk_tier, builder, data,
+                  harness_topology, harness_description),
             daemon=True,
         ).start()
 
-    def _run_create(self, target_dir, gov_type, governance_level, risk_tier, builder, data):
+    def _run_create(self, target_dir, gov_type, governance_level, risk_tier, builder, data,
+                    harness_topology="", harness_description=""):
         try:
-            scaffold_result = scaffold_project(target_dir, gov_type, governance_level)
+            scaffold_result = scaffold_project(
+                target_dir, gov_type, governance_level,
+                harness_topology=harness_topology,
+                harness_description=harness_description,
+            )
             for message in scaffold_result.messages:
                 self._out(message, "dim")
 
