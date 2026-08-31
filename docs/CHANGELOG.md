@@ -6,7 +6,7 @@ Owner: Technical Lead
 
 ## Unreleased
 
-- Pinned the validation toolchain in `requirements-dev.txt`, wired CI to that single source, and added workflow concurrency cancellation and timeouts after repeated version-drift failures.
+- Pinned the validation toolchain in `requirements-dev.txt`, wired CI to that single source, upgraded official actions to their Node 24-compatible majors, and added bounded timeouts, superseded-run cancellation, and seven-day package retention after repeated CI drift failures.
 - Made carry-forward staleness use an explicit last-reviewed date while retaining compatibility with existing five-column files.
 - Made same-day governance-audit reruns retain their existing document ID instead of consuming a new sequence number.
 - Removed user-specific Graphify and repository paths from active docs, generated instructions, and managed instruction upgrades.
