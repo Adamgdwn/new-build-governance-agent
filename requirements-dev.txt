@@ -1,0 +1,4 @@
+# Validation-gate tools. Update intentionally and verify both CI operating systems.
+coverage[toml]==7.15.0
+mypy==2.2.0
+ruff==0.15.21

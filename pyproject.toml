@@ -14,9 +14,6 @@ new-build-gui = "automation.new_build_gui:main"
 new-build-headless = "automation.new_build_headless:main"
 new-build-audit = "automation.governance_audit:main"
 
-[project.optional-dependencies]
-dev = ["pytest>=7", "coverage[toml]>=7", "ruff>=0.15", "mypy>=1.14"]
-
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]

@@ -6,6 +6,7 @@ Owner: Technical Lead
 
 ## Unreleased
 
+- Pinned the validation toolchain in `requirements-dev.txt`, wired CI to that single source, and added workflow concurrency cancellation and timeouts after repeated version-drift failures.
 - Made carry-forward staleness use an explicit last-reviewed date while retaining compatibility with existing five-column files.
 - Made same-day governance-audit reruns retain their existing document ID instead of consuming a new sequence number.
 - Removed user-specific Graphify and repository paths from active docs, generated instructions, and managed instruction upgrades.

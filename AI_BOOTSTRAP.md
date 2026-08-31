@@ -89,7 +89,7 @@ Do not index, print, summarize, or commit secrets or environment files.
 
 ## Commands
 
-- Install: runtime uses stdlib only; GUI requires tkinter (bundled with the python.org installer). The validation gate needs dev tools: `python3 -m pip install ruff mypy coverage`.
+- Install: runtime uses stdlib only; GUI requires tkinter (bundled with the python.org installer). Install the pinned validation tools from the repository root with `python3 -m pip install -r requirements-dev.txt`.
 - Dev:     `python3 automation/new_build_gui.py`
 - Lint:    `bash scripts/validate.sh` (ruff + mypy + shellcheck + secret scan + tests — the one binary gate, identical in CI)
 - Build:   _no build step — scripts run directly_

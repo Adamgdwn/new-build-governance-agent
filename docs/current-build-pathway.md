@@ -70,6 +70,7 @@ Acceptance criteria:
 - [ ] Active/generated guidance contains no user-specific operational filesystem paths; historical audit and archive records remain unchanged.
 - [ ] Architecture and generated guidance describe current module boundaries and portable discovery paths.
 - [ ] Open carry-forward flags can record a review date without being falsely treated as abandoned.
+- [ ] CI installs one pinned validation toolchain and cancels superseded runs within a bounded timeout.
 - [ ] Risk, change, backlog, carry-forward, and pathway records reflect the 2026-08-31 review.
 - [ ] Focused tests pass; any full-gate limitation is recorded without weakening enforcement.
 

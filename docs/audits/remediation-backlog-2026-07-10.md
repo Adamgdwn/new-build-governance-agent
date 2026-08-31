@@ -148,6 +148,7 @@ and enforced in `scripts/validate.*` + CI; `pyproject.toml` version aligned
 with `VERSION` (0.3.0).
 Remaining:
 - Adopt `uv` with a committed lockfile; CI installs with `--frozen`.
+- Resolve the packaging boundary deliberately: `pyproject.toml` declares a project and console scripts, but the flat governance-repo layout is not installable as a package. Until that decision, `requirements-dev.txt` is the canonical pinned validation-tool set and the repo remains a no-build script repository.
 - Tighten mypy: it currently runs in default mode; the GUI's untyped
   function bodies are not checked (`--check-untyped-defs`, then stricter
   flags module by module, starting with the secret-sensitive modules).

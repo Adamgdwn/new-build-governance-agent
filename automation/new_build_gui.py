@@ -2044,22 +2044,27 @@ class App(TkBase):
         ]
         if self.v_plain_purpose.get() == "harness":
             topology_label = next(
-                (title for value, title, _ in HARNESS_TOPOLOGY_OPTIONS
-                 if value == self.v_harness_topology.get()),
+                (
+                    title
+                    for value, title, _ in HARNESS_TOPOLOGY_OPTIONS
+                    if value == self.v_harness_topology.get()
+                ),
                 self.v_harness_topology.get(),
             )
             summary_lines.append(f"AI topology: {topology_label}")
-        summary_lines.extend([
-            f"Audience: {audience_label}",
-            f"First useful result: {first_result}",
-            f"Sensitive areas: {risk_text}",
-            "",
-            "Inferred setup:",
-            f"- Build type: {profile['project_type']}",
-            f"- Review level: {profile['governance_level']} ({profile['risk_tier']} risk)",
-            f"- Likely stack: {profile['stack']}",
-            f"- Destination: {target}",
-        ])
+        summary_lines.extend(
+            [
+                f"Audience: {audience_label}",
+                f"First useful result: {first_result}",
+                f"Sensitive areas: {risk_text}",
+                "",
+                "Inferred setup:",
+                f"- Build type: {profile['project_type']}",
+                f"- Review level: {profile['governance_level']} ({profile['risk_tier']} risk)",
+                f"- Likely stack: {profile['stack']}",
+                f"- Destination: {target}",
+            ]
+        )
         self.v_intake_summary.set("\n".join(summary_lines))
         self._refresh_preview()
 
@@ -2088,10 +2093,7 @@ class App(TkBase):
     def _visible_step_indices(self) -> list[int]:
         is_harness = self.v_plain_purpose.get() == "harness"
         harness_step = getattr(self, "_HARNESS_STEP_INDEX", 1)
-        return [
-            i for i in range(len(self._intake_steps))
-            if is_harness or i != harness_step
-        ]
+        return [i for i in range(len(self._intake_steps)) if is_harness or i != harness_step]
 
     def _show_intake_step(self, step: int):
         if not hasattr(self, "_intake_steps"):
@@ -2750,16 +2752,35 @@ class App(TkBase):
         self._clear_output()
         threading.Thread(
             target=self._run_create,
-            args=(target_dir, gov_type, governance_level, risk_tier, builder, data,
-                  harness_topology, harness_description),
+            args=(
+                target_dir,
+                gov_type,
+                governance_level,
+                risk_tier,
+                builder,
+                data,
+                harness_topology,
+                harness_description,
+            ),
             daemon=True,
         ).start()
 
-    def _run_create(self, target_dir, gov_type, governance_level, risk_tier, builder, data,
-                    harness_topology="", harness_description=""):
+    def _run_create(
+        self,
+        target_dir,
+        gov_type,
+        governance_level,
+        risk_tier,
+        builder,
+        data,
+        harness_topology="",
+        harness_description="",
+    ):
         try:
             scaffold_result = scaffold_project(
-                target_dir, gov_type, governance_level,
+                target_dir,
+                gov_type,
+                governance_level,
                 harness_topology=harness_topology,
                 harness_description=harness_description,
             )

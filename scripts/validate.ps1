@@ -126,7 +126,7 @@ foreach ($tool in @("ruff", "mypy")) {
     try {
         Invoke-PythonCapture -PythonCommand $python -Arguments @("-m", $tool, "--version") | Out-Null
     } catch {
-        throw "$tool is required by the validation gate. Install dev tools: python -m pip install ruff mypy"
+        throw "$tool is required by the validation gate. From the repo root run: python -m pip install -r requirements-dev.txt"
     }
 }
 Push-Location $RepoRoot

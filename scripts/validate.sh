@@ -29,7 +29,7 @@ if (( ${#python_files[@]} > 0 )); then
 fi
 
 if ! "${PYTHON}" -m ruff --version >/dev/null 2>&1; then
-  echo "FAIL: ruff is required by the validation gate. Install dev tools: ${PYTHON} -m pip install ruff mypy" >&2
+  echo "FAIL: ruff is required by the validation gate. From the repo root run: ${PYTHON} -m pip install -r requirements-dev.txt" >&2
   exit 1
 fi
 (cd "${repo_root}" && "${PYTHON}" -m ruff check automation tests scripts)
@@ -37,7 +37,7 @@ fi
 echo "PASS: ruff lint + format"
 
 if ! "${PYTHON}" -m mypy --version >/dev/null 2>&1; then
-  echo "FAIL: mypy is required by the validation gate. Install dev tools: ${PYTHON} -m pip install ruff mypy" >&2
+  echo "FAIL: mypy is required by the validation gate. From the repo root run: ${PYTHON} -m pip install -r requirements-dev.txt" >&2
   exit 1
 fi
 (cd "${repo_root}" && "${PYTHON}" -m mypy automation)

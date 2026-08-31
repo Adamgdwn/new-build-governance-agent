@@ -158,9 +158,7 @@ def _apply_harness_to_project_control(
 ) -> None:
     text = project_control.read_text(encoding="utf-8")
     text = text.replace("harness_profile: none", f"harness_profile: {harness_profile}")
-    text = text.replace(
-        "activation_mode: build_only", "activation_mode: build_only"
-    )
+    text = text.replace("activation_mode: build_only", "activation_mode: build_only")
     project_control.write_text(text, encoding="utf-8")
 
 
@@ -181,7 +179,9 @@ def _write_harness_readme(
         return
     text = template.read_text(encoding="utf-8")
     topology_label = HARNESS_TOPOLOGY_LABELS.get(harness_topology, harness_topology)
-    profile_rules = HARNESS_PROFILE_RULES.get(harness_profile, "See project-control.yaml for profile details.")
+    profile_rules = HARNESS_PROFILE_RULES.get(
+        harness_profile, "See project-control.yaml for profile details."
+    )
     description = harness_description.strip() or "No description provided."
     text = text.replace("{{HARNESS_PROFILE}}", harness_profile)
     text = text.replace("{{HARNESS_TOPOLOGY}}", harness_topology)
