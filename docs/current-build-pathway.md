@@ -54,6 +54,32 @@ Use second-level Markdown headings for active and planned chunks:
 ## Chunk Two - Short Objective
 ```
 
+## Chunk Thirty-Seven - Public Documentation And GitHub Metadata
+
+Status: complete
+
+Completion target: Release ready
+
+Budget class: Tiny
+
+Objective: make the new complexity and periodic governance-alignment controls visible in the public documentation and GitHub repository information.
+
+Acceptance criteria:
+
+- [x] The public README explains both controls in plain language and links directly to their canonical standards.
+- [x] The user guide, project manual, generated README/manual, and automation reference describe the new scaffolded controls consistently.
+- [x] The GitHub repository description and topics surface code quality, cyclomatic complexity, and the 90-day alignment behavior.
+- [x] The additions remain under `Unreleased`; no version tag or GitHub Release is created without a separate version decision.
+
+Validation:
+
+- Focused scaffold, change-control, and schema tests passed (11 tests).
+- `bash automation/governance_check.sh .` passed with zero required gaps.
+- `scripts/validate.ps1` passed completely: ruff, mypy, PowerShell analysis, shellcheck, secret scan, 127 tests, launcher smoke tests, and Windows package build.
+- GitHub repository metadata was read back after update and showed the new description plus `code-quality` and `cyclomatic-complexity` topics.
+
+Completed: 2026-08-31T13:49:39-06:00
+
 ## Chunk Thirty-Six - Complexity Controls And Governance Alignment
 
 Status: complete
@@ -123,6 +149,7 @@ Stop condition: stop before any risk-tier/governance-level decision, dependency 
 | Chunk Thirty-Four - GitHub Resource Efficiency Ingestion | complete | 2026-07-26T20:22:46-06:00 | STD-ENG-022 added as a single canonical copy; guardrail summary distributed through the workspace-level CLAUDE.md and the project bootstrap template; no per-repo standard copy, no enforced checks. |
 | Chunk Thirty-Five - Repository Audit And Portability Remediation | complete | 2026-08-31 | Audit/control records refreshed, portable Graphify discovery added, the validation toolchain pinned, and current GitHub Actions bounded and upgraded; CI and Windows packaging passed. |
 | Chunk Thirty-Six - Complexity Controls And Governance Alignment | complete | 2026-08-31T13:24:17-06:00 | STD-ENG-023 and STD-ENG-024 added; advisory complexity controls and 90-day check-back prompts distributed through source instructions, scaffolds, managed upgrades, and the workspace umbrella. |
+| Chunk Thirty-Seven - Public Documentation And GitHub Metadata | complete | 2026-08-31T13:49:39-06:00 | Public and generated documentation now explain the controls; GitHub description and topics surface the addition without creating an unapproved version release. |
 
 Full history: `docs/archive/pathway-history.md`
 

@@ -1,6 +1,6 @@
 # User Guide
 
-Last Updated: 2026-07-10
+Last Updated: 2026-08-31
 Status: active
 Owner: Technical Lead
 
@@ -300,6 +300,8 @@ Every project receives:
 | `docs/standards/engineering-governance-by-use-case.md` | Use-case controls guide; informs work without overriding selected risk tier or governance level |
 | `docs/standards/ship-ready-engineering-standard.md` | Ship-readiness gate that separates Definition of Ready, Definition of Done, and Definition of Shipped with evidence expectations |
 | `docs/standards/context-hygiene-standard.md` | Lean startup, context tiers, budget classes, scoped reads, compaction, and handoff guidance |
+| `docs/standards/code-complexity-control-standard.md` | Plain-language cyclomatic-complexity review bands, test companion, anti-gaming guidance, rollout stages, and exception evidence |
+| `docs/standards/governance-source-alignment-standard.md` | Bounded periodic comparison with this governance source, using review-before-apply safeguards that preserve local decisions |
 | `docs/risks/risk-register.md` | Risk log |
 | `docs/CHANGELOG.md` | Change history |
 | `docs/adr-template.md` | Template for Architecture Decision Records |
@@ -345,6 +347,18 @@ The `AI_BOOTSTRAP.md` Commands section is the most important thing to fill in be
 
 Keep active work in `docs/current-build-pathway.md` as small, timestamped chunks with a budget class and validation evidence. That gives the next agent a narrow resume point instead of forcing a full repo reread.
 
+## Complexity and governance-alignment controls
+
+Generated projects start with cyclomatic complexity in advisory mode for changed code. The number is a smoke alarm, not a verdict:
+
+- **1–10:** ordinary review.
+- **11–20:** discuss whether the function has too many responsibilities, deep nesting, difficult state transitions, or untested branches.
+- **21+:** make a coherent refactor or record why the branch-heavy design is clearer, who accepted it, and which focused tests control the risk.
+
+Do not split a function into shallow pass-through wrappers merely to lower its score. Generated parsers, protocol handlers, state machines, and other inherently branch-heavy code can be reasonable exceptions when their structure and tests make the behavior clear. See `docs/standards/code-complexity-control-standard.md` in the generated project for the full control.
+
+Generated projects also record a governance-source alignment cadence in `project-control.yaml`. At material planning or release-readiness work, an agent checks the last review date and prompts for a bounded comparison when the date is absent or more than 90 days old. The comparison is not part of ordinary startup, applies only relevant changes after review, and must not overwrite the project's selected risk tier, governance level, exceptions, or owner decisions. Record the source revision, review date, outcome, and next review point after each comparison.
+
 ---
 
 ## Adding governance to an existing project
@@ -377,9 +391,9 @@ Apply the manifest only after reviewing it:
 python3 automation/change_control.py apply --manifest /path/to/manifest.json
 ```
 
-This is the safest way to fold new governance baseline files, such as `START_HERE.md`, `docs/current-build-pathway.md`, `docs/policy/durable-development-engineering-policy.md`, `docs/standards/README.md`, and `docs/standards/ship-ready-engineering-standard.md`, into existing builds.
+This is the safest way to fold new governance baseline files, such as `START_HERE.md`, `docs/current-build-pathway.md`, `docs/policy/durable-development-engineering-policy.md`, `docs/standards/README.md`, `docs/standards/ship-ready-engineering-standard.md`, `docs/standards/code-complexity-control-standard.md`, and `docs/standards/governance-source-alignment-standard.md`, into existing builds.
 
-The manifest flow also brings existing agent instruction files forward without rewriting them. If `AGENTS.md`, `AI_BOOTSTRAP.md`, or `CLAUDE.md` already exists but does not point agents at the current pathway, durable engineering policy, use-case governance, or fundamentals-first AI coding guidance, the manifest proposes an append-only managed block. The block is wrapped in `GOVERNANCE-MANAGED-START` / `GOVERNANCE-MANAGED-END` comments so the change is obvious and reversible.
+The manifest flow also brings existing agent instruction files forward without rewriting them. If `AGENTS.md`, `AI_BOOTSTRAP.md`, or `CLAUDE.md` already exists but does not point agents at the current pathway, durable engineering policy, use-case governance, complexity controls, periodic source alignment, or fundamentals-first AI coding guidance, the manifest proposes append-only managed blocks. Each block is wrapped in `GOVERNANCE-MANAGED-START` / `GOVERNANCE-MANAGED-END` comments so the change is obvious and reversible.
 
 ### Existing-repo safety verification
 
@@ -554,6 +568,19 @@ technical_lead:
 agent_controls:
   applicable: false           # set to true for agent projects
   autonomy_level: A0          # A0 = human-in-the-loop, A1 = supervised, A2 = autonomous
+
+quality_controls:
+  cyclomatic_complexity:
+    mode: advisory
+    review_above: 10
+    refactor_or_exception_above: 20
+    scope: changed-code
+
+governance_alignment:
+  source: New Build Governance Agent
+  mode: review-before-apply
+  review_cadence_days: 90
+  last_reviewed: ""           # fill after the first comparison
 ```
 
 Change `governance_level` if the project evolves. A prototype that becomes a production system should usually move toward `3` or `4`, and `risk_tier` should usually be reclassified upward at the same time. The two fields are set independently; justify any deliberate mismatch in `project-control.yaml` notes. See `docs/standards/governance-level-standard.md` for the level definitions and the level-to-tier crosswalk.

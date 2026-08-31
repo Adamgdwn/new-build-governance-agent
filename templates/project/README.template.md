@@ -28,6 +28,8 @@ Document local setup, key commands, and how to validate the project.
 - `docs/standards/engineering-governance-by-use-case.md`
 - `docs/standards/ship-ready-engineering-standard.md`
 - `docs/standards/context-hygiene-standard.md`
+- `docs/standards/code-complexity-control-standard.md`
+- `docs/standards/governance-source-alignment-standard.md`
 - `docs/deployment-guide.md`
 - `docs/runbook.md`
 - `docs/CHANGELOG.md`

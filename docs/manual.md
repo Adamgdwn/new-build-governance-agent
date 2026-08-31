@@ -1,6 +1,6 @@
 # Manual
 
-Last Updated: 2026-07-10
+Last Updated: 2026-08-31
 Status: active
 Owner: Technical Lead
 
@@ -29,6 +29,12 @@ For material or risk-triggering work, add the full governance path:
 7. Capture a timestamp with `date -Iseconds`.
 8. Confirm the current roadmap and runbook still match reality.
 9. Update docs when behavior or operating expectations change.
+
+## Ongoing Quality And Alignment Controls
+
+- Treat cyclomatic complexity as a review signal: 1–10 receives ordinary review, 11–20 prompts design and branch-test review, and 21+ requires a coherent refactor or documented exception by default. Do not create shallow wrappers just to lower a score.
+- At material planning or release readiness, check `governance_alignment.last_reviewed` in `project-control.yaml`. If it is absent or more than 90 days old, prompt for a bounded review of relevant updates from the governance source.
+- Review governance updates before applying them. Never silently replace the project's risk tier, governance level, exceptions, or owner decisions.
 
 ## Expected Outputs
 

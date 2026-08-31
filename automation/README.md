@@ -64,6 +64,8 @@ The Windows validator covers required governance files, project-control schema, 
   │   ├── standards/engineering-governance-by-use-case.md
   │   ├── standards/ship-ready-engineering-standard.md
   │   ├── standards/context-hygiene-standard.md
+  │   ├── standards/code-complexity-control-standard.md
+  │   ├── standards/governance-source-alignment-standard.md
   │   ├── manual.md
   │   ├── roadmap.md
   │   ├── risks/risk-register.md
@@ -82,6 +84,8 @@ The Windows validator covers required governance files, project-control schema, 
 - Meaningful implementation work should also follow `docs/policy/durable-development-engineering-policy.md`.
 - Meaningful finish reports and releases should use `docs/standards/ship-ready-engineering-standard.md` to prove Definition of Shipped with evidence.
 - Long agent sessions, handoffs, scoped file reads, compaction, and token budgets should use `docs/standards/context-hygiene-standard.md`.
+- Changed code uses advisory cyclomatic-complexity bands by default: 1–10 ordinary review, 11–20 design and branch-test review, and 21+ coherent refactor or documented exception.
+- At material planning or release readiness, agents prompt for a bounded governance-source comparison when `governance_alignment.last_reviewed` is absent or more than 90 days old; reviewed updates never silently replace local risk, governance, exception, or owner decisions.
 - Domain terms should be kept consistent in `docs/domain-language.md` across code, docs, tests, UI, prompts, and runbooks.
 - Generated agent instructions include fundamentals-first AI coding guidance: shared understanding, consistent domain language, deep modules, feedback loops, deliberate interfaces, and smallest safe improvements.
 - Fill in the `## Commands` section of `AI_BOOTSTRAP.md` before the first coding session.

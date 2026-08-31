@@ -6,6 +6,8 @@ New Build Governance Agent is a starter framework for projects built with AI cod
 
 **New in v0.3.0 — Agentic Harness support.** Select "An agentic harness" at intake and the walkthrough guides you through your AI topology — Single LLM, Multi-LLM, Non-LLM (DiNO, JEPA, Phi-4, YOLO, Whisper, and similar), or a Combination — then generates topology-specific governance docs, AI registers, and a harness README that tells your coding agent exactly what governance profile applies and what open questions it must answer before writing the first AI call.
 
+**New on `main` — Plain-language complexity controls and periodic governance alignment.** New and upgraded builds now receive an advisory cyclomatic-complexity control that treats the score as a review signal, not a verdict: 1–10 gets ordinary review, 11–20 prompts a design and branch-test review, and 21+ calls for a coherent refactor or a documented exception. Builds also record when they last compared their local controls with this governance source and prompt for a bounded review every 90 days or before relevant release work. Local risk tiers, governance levels, exceptions, and owner decisions are never silently overwritten.
+
 ## Public Project Snapshot
 
 - **Audience:** builders who want AI-assisted projects to start with clear scope, safety rails, and durable handoff files.
@@ -19,6 +21,8 @@ Use it when you want to:
 - create a new governed project from a short guided walkthrough
 - scaffold an **agentic harness** with topology-specific governance (single LLM, multi-LLM, non-LLM AI, or a combination)
 - give AI agents consistent instructions and context-hygiene guidance before they write code
+- prompt agents to discuss branch-heavy code in plain language and pair complexity findings with focused tests
+- keep active builds aligned with relevant governance updates through a lightweight, review-before-apply check
 - add governance files to an existing repo without overwriting product files
 - share durable engineering, ship-readiness, context routing, and token-friendly best practices across builds
 - check whether a repo is ready for release, GitHub publishing, or external deployment
@@ -30,7 +34,7 @@ The desktop GUI walks users through one decision at a time. Selecting **An agent
 
 ![Step 2 of 6 — harness topology selection showing Single LLM, Multi-LLM, Non-LLM AI (with model suggestions), and Combination options, plus a free-text description field.](docs/assets/new-build-harness-topology.png)
 
-The generated project files give agents a standards map, durable development policy, ship-readiness gate, compact context map, context hygiene guidance, and — for AI projects — a harness governance README, agent inventory, model registry, prompt register, and tool permission matrix.
+The generated project files give agents a standards map, durable development policy, ship-readiness gate, compact context map, context hygiene guidance, code-complexity controls, periodic governance-alignment prompts, and — for AI projects — a harness governance README, agent inventory, model registry, prompt register, and tool permission matrix.
 
 ## Start Here
 
@@ -43,6 +47,8 @@ The generated project files give agents a standards map, durable development pol
 | Understand day-to-day workflows | [User guide](docs/user-guide.md) |
 | See the governance flow before using it | [Quick-start governance flow](docs/quick-start-governance-flow.md) |
 | Route agent context without bloating startup | [Context map](docs/context-map.md) |
+| Understand the plain-language complexity controls | [Code Complexity Control Standard](docs/standards/code-complexity-control-standard.md) |
+| Keep a build aligned with governance updates | [Governance Source Alignment Standard](docs/standards/governance-source-alignment-standard.md) |
 | Look up automation commands | [Automation scripts reference](automation/README.md) |
 | Review the active roadmap and handoff | [Current build pathway](docs/current-build-pathway.md) |
 | Review release and deployment expectations | [Deployment guide](docs/deployment-guide.md) |
@@ -160,6 +166,8 @@ my-app/
 │   ├── standards/engineering-governance-by-use-case.md ← controls by project use case
 │   ├── standards/ship-ready-engineering-standard.md ← Ready/Done/Shipped evidence gate
 │   ├── standards/context-hygiene-standard.md ← context, token, compaction, and handoff hygiene
+│   ├── standards/code-complexity-control-standard.md ← advisory complexity review and test guidance
+│   ├── standards/governance-source-alignment-standard.md ← 90-day review-before-apply alignment
 │   ├── adr/                  ← Architecture Decision Records
 │   ├── specs/
 │   ├── runbooks/
@@ -258,6 +266,8 @@ Current capabilities:
 - create new governed projects from the terminal or desktop GUI
 - scaffold **agentic harnesses** with topology-specific governance profiles and AI registers (v0.3.0)
 - scaffold compact context maps, budget classes, and token-friendly agent instructions
+- scaffold plain-language, advisory cyclomatic-complexity controls with anti-gaming and exception guidance
+- prompt active builds to review relevant governance-source updates every 90 days without adding a heavy startup check
 - register and audit governed projects across `~/code/agents` and `~/code/Applications`
 - detect older repos as candidate projects from real project signals
 - generate and apply conservative compliance manifests that add missing governance files and append marked instruction guidance
@@ -400,6 +410,8 @@ Starting a project with an AI assistant typically means no structure, no scope r
 - `docs/policy/durable-development-engineering-policy.md` sets the default engineering standard for code health, tool choice, testing, security, review, release, operations, and AI-assisted development.
 - `docs/standards/README.md` is the standards map future coding sessions should read first when they need the full engineering standard set.
 - `docs/standards/ship-ready-engineering-standard.md` separates good code from ship-ready product increments with Definition of Ready, Definition of Done, Definition of Shipped, last-mile UX, security, operations, and evidence checks.
+- `docs/standards/code-complexity-control-standard.md` turns cyclomatic-complexity scores into plain-language design and testing prompts rather than a simplistic pass/fail judgment.
+- `docs/standards/governance-source-alignment-standard.md` keeps active builds aware of relevant source updates through bounded, review-before-apply comparisons that preserve local decisions.
 - `governance-preflight.sh` gives you a local check you can run before any significant change.
 - New scaffolds also carry `scripts/governance-check.sh`, so the preflight does not depend on `GOVERNANCE_HOME` for a basic local run.
 
@@ -469,6 +481,8 @@ Use `automation/new_build.ps1` or `automation/launch_gui.ps1` on Windows. Use `a
 - [Quick-start governance flow](docs/quick-start-governance-flow.md) - short visual guide to the preflight and release path.
 - [Automation scripts reference](automation/README.md) - command reference for launchers, checks, audits, promotion plans, and updates.
 - [Current build pathway](docs/current-build-pathway.md) - active plan, validation log, and handoff notes.
+- [Code Complexity Control Standard](docs/standards/code-complexity-control-standard.md) - advisory thresholds, testing companion, anti-gaming rule, rollout stages, and exception evidence.
+- [Governance Source Alignment Standard](docs/standards/governance-source-alignment-standard.md) - periodic check-back cadence and review-before-apply safeguards.
 - [Deployment guide](docs/deployment-guide.md) - release expectations and external promotion model.
 - [Optional GitHub agent publishing tips](docs/user-guide.md#optional-asking-an-agent-to-commit-and-push) - owner coaching for asking Codex or Claude to commit, push, open PRs, or intentionally push `main`.
 
