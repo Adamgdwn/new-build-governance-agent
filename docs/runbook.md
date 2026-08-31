@@ -1,6 +1,6 @@
 # Runbook
 
-Last reviewed: 2026-05-31T11:06:01-06:00
+Last reviewed: 2026-08-31T12:16:25-06:00
 Status: active
 Owner: Technical Lead
 
@@ -23,7 +23,7 @@ New Build Governance Agent supports local governed project creation, existing-pr
 
 ## Operational Checks
 
-- `bash automation/governance_check.sh /home/adamgoodwin/code/agents/New\ Build\ Agent`
+- `bash automation/governance_check.sh .`
 - `bash scripts/validate.sh`
 - `python3 automation/audit_projects.py --json`
 - `python3 automation/promotion_plan.py --project /path/to/project`

@@ -1,6 +1,6 @@
 # Architecture Overview
 
-Last reviewed: 2026-05-31T11:06:01-06:00
+Last reviewed: 2026-08-31T12:16:25-06:00
 Status: active
 Owner: Technical Lead
 
@@ -16,11 +16,12 @@ The repository itself is the source of truth for governance templates, standards
 |---|---|---|
 | Governance baseline | `START_HERE.md`, `project-control.yaml`, `docs/current-build-pathway.md` | Work routing, risk classification, active pathway, validation log. |
 | Templates | `templates/project/**` | Copy-if-missing scaffold for new and upgraded projects. |
-| Scaffold engine | `automation/bootstrap_project.sh`, `automation/new_build.sh`, `automation/new_build_headless.py` | Create new governed projects from terminal, GUI, or headless tool invocation. |
+| Scaffold engine | `automation/scaffold_project.py`, `automation/bootstrap_project.sh`, `automation/new_build.sh`, `automation/new_build.ps1`, `automation/new_build_headless.py` | Resolve intake, create new governed projects, and preserve existing files through copy-if-missing behavior. |
 | Desktop workflow | `automation/new_build_gui.py`, `automation/launch_gui.sh` | GUI for create, audit, compliance, release planning, checks, and selected execution. |
 | Windows package | `windows/NewBuildGovernanceAgentLauncher.cs`, `scripts/build-windows-launcher.ps1`, `.github/workflows/build-windows-launcher.yml` | Build and publish a double-click Windows GUI launcher package for non-technical users. |
-| Compliance engine | `automation/change_control.py` | Generate/apply reviewable upgrade manifests for existing projects. |
-| Registry and audit | `automation/project_registry.py`, `automation/audit_projects.py` | Track governed projects and governance check results in local SQLite. |
+| Compliance engine | `automation/compliance_report.py`, `automation/schema_validation.py`, `automation/governance_check.sh` | Validate project controls, required files, and categorized governance findings. |
+| Change control | `automation/change_control.py` | Generate and apply reviewable, copy-safe upgrade manifests for existing projects. |
+| Registry and audit | `automation/project_registry.py`, `automation/audit_projects.py`, `automation/governance_audit.py` | Track governed projects and check results in local SQLite, and generate durable repository governance audits. |
 | Promotion tooling | `automation/promotion_plan.py`, `automation/promotion_checks.py`, `automation/promotion_execute.py` | Plan external rollout, run local checks, and execute approved GitHub publish. |
 | Secret/env tooling | `automation/master_env.py`, `automation/env_sync.py`, `automation/stripe_provision.py` | Manage redacted env inventory, sync runtime env values, and plan/apply Stripe resources. |
 
@@ -28,7 +29,7 @@ The repository itself is the source of truth for governance templates, standards
 
 1. A user launches the terminal script, GUI, or headless tool.
 2. Intake metadata is mapped to `project_type`, selected `governance_level`, selected `risk_tier`, and `use_case.primary`.
-3. `bootstrap_project.sh` copies missing template files and writes project control metadata.
+3. The launchers and `bootstrap_project.sh` delegate to `scaffold_project.py`, which copies missing template files and writes initial project-control metadata.
 4. Existing projects can receive missing governance files through `change_control.py` manifests.
 5. Audits run `governance_check.sh` and record results in `data/new-build-governance-agent/registry.sqlite3`.
 6. Promotion plans are written as JSON in `data/new-build-governance-agent/exports/`.
@@ -38,7 +39,7 @@ The repository itself is the source of truth for governance templates, standards
 
 ## Trust Boundaries
 
-- The repository may write under `~/code/agents`, `~/code/Applications`, and `data/new-build-governance-agent`.
+- The repository may write under `NEW_BUILD_CODE_ROOT/{agents,Applications}` (or the workspace-derived/default code root) and `data/new-build-governance-agent`.
 - Env tooling may read and write `~/code/.env.master` and project env files.
 - GitHub publishing uses the local `gh` authentication state.
 - Stripe provisioning can call Stripe APIs only when explicitly invoked with a reviewed plan.

@@ -1,6 +1,7 @@
 # Risk Register
 
-Last reviewed: 2026-05-31T11:35:07-06:00
+Last reviewed: 2026-08-31T12:16:25-06:00
+Next review: 2026-11-30
 Status: active
 Owner: Technical Lead
 
@@ -24,3 +25,4 @@ Owner: Technical Lead
 | R-006 | Stripe provisioning affects live money-handling configuration unintentionally. | Low | Critical | Test-mode-first, `--allow-live` gate, manifest-driven plan, no secret printing. | Adam Goodwin | Controlled |
 | R-007 | Agent/tool permissions drift from documented intent. | Medium | High | Tool permission matrix, agent inventory, prompt register, pathway updates for material changes. | Adam Goodwin | Active |
 | R-008 | Declared machine enforcement exceeds actual tests/CI. | Low | High | Local validation script, focused tests, secret-hygiene coverage, and GitHub Actions validation workflow are committed. | Adam Goodwin | Controlled |
+| R-009 | Developer workstation policy or provisioning prevents required local validation tools from loading. | Medium | Medium | The local gate fails closed; run available checks directly; GitHub Actions remains the authoritative clean environment; do not weaken or skip required checks to obtain a local pass. | Adam Goodwin | Active |

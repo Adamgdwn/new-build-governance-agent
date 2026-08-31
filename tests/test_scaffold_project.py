@@ -61,9 +61,9 @@ class ScaffoldProjectTests(unittest.TestCase):
                 self.assertIn("active plan named by `START_HERE.md`", instructions)
                 self.assertIn("After a compaction, context clear, or fresh restart", instructions)
                 self.assertIn("Graphify Policy", instructions)
-                self.assertIn("Tools/graphify/docs/agent-governance.md", instructions)
-                self.assertIn("Tools/graphify/workspace/out/graph.json", instructions)
-                self.assertIn("workspace graph for cross-repo routing", instructions)
+                self.assertIn("docs/agent-governance.md", instructions)
+                self.assertIn("graphify global path", instructions)
+                self.assertIn("configured global graph for cross-repo routing", instructions)
                 self.assertIn("known files", instructions)
                 self.assertIn("graphify-setup-project /path/to/repo", instructions)
                 self.assertNotIn(

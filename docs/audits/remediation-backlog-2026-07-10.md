@@ -6,8 +6,8 @@ Status: active
 Owner: Project Owner
 Approver: Project Owner
 Effective Date: 2026-07-10
-Last Reviewed: 2026-07-10
-Next Review: 2026-08-10
+Last Reviewed: 2026-08-31
+Next Review: 2026-09-30
 
 Source: `docs/audits/repository-audit-2026-07-10.md` (AUD-ENG-003).
 Scope: the Tier 2 and Tier 3 recommendations from that audit, expanded into
@@ -208,7 +208,7 @@ commits, and there is no downgrade path.
   asserts ~40 exact prose fragments, coupling tests to template wording —
   assert structure/keys instead.
 
-### B-14. Purge stale/broken references (audit rec 14) — partially addressed, open
+### B-14. Purge stale/broken references (audit rec 14) — in progress
 
 Done 2026-07-10: `/home/adamgoodwin/...` paths removed from the
 agent-instruction files edited in Tier 1; legacy path removed from

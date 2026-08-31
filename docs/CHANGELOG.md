@@ -1,11 +1,16 @@
 # Change Log
 
-Last Updated: 2026-07-10
+Last Updated: 2026-08-31
 Status: active
 Owner: Technical Lead
 
 ## Unreleased
 
+- Made carry-forward staleness use an explicit last-reviewed date while retaining compatibility with existing five-column files.
+- Made same-day governance-audit reruns retain their existing document ID instead of consuming a new sequence number.
+- Removed user-specific Graphify and repository paths from active docs, generated instructions, and managed instruction upgrades.
+- Refreshed the architecture component map to separate scaffolding, compliance, change control, and audit responsibilities.
+- Reviewed the risk register and recorded the local toolchain constraints that currently prevent the full gate from completing outside CI.
 - Refreshed the public README, user guide, quick-start governance flow, project manual, and generated README/manual templates so the latest governance baseline points to lean startup, `docs/context-map.md`, budget classes, and risk-triggered preflight.
 - Integrated the cost-effective agentic coding and context-window management standard into context hygiene, context routing, project controls, generated templates, managed upgrade blocks, and focused tests; the downloaded standard is explicitly not a new mandatory startup read.
 - Integrated the Codex startup preflight lean-out plan into context hygiene, live/generated agent instructions, managed upgrade blocks, and pathway guidance; the downloaded plan is explicitly not a new mandatory startup read.

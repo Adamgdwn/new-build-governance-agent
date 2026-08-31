@@ -9,6 +9,6 @@ blockers, unresolved decisions, open risks, next-chunk prerequisites.
 Clear each item when it is resolved or handed off. If this file has open items,
 the coding agent will surface them before suggesting /compact.
 
-| Flag | Added | Owner | Status | Notes |
-|---|---|---|---|---|
-| (none) | — | — | — | — |
+| Flag | Added | Last Reviewed | Owner | Status | Notes |
+|---|---|---|---|---|---|
+| (none) | — | — | — | — | — |

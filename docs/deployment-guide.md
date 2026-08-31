@@ -1,6 +1,6 @@
 # Deployment Guide
 
-Last reviewed: 2026-05-31T11:06:01-06:00
+Last reviewed: 2026-08-31T12:16:25-06:00
 Status: draft
 Owner: Technical Lead
 
@@ -17,7 +17,7 @@ This is primarily a local governance tool.
 ## Release Workflow
 
 1. Read `START_HERE.md` and `docs/current-build-pathway.md`.
-2. Run `bash automation/governance_check.sh /home/adamgoodwin/code/agents/New\ Build\ Agent`.
+2. Run `bash automation/governance_check.sh .` from the repository root.
 3. Run `bash scripts/validate.sh`.
 4. Review `git status --short` and confirm the intended file set.
 5. Generate a promotion plan if publishing externally: `python3 automation/promotion_plan.py --project .`.

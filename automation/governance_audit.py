@@ -90,6 +90,17 @@ def _next_audit_sequence(audits_dir: Path) -> int:
     return highest + 1
 
 
+def _existing_audit_id(report_path: Path) -> str | None:
+    if not report_path.is_file():
+        return None
+    match = re.search(
+        r"^Document ID:\s*(AUD-ENG-\d+)\s*$",
+        _read_header(report_path),
+        re.IGNORECASE | re.MULTILINE,
+    )
+    return match.group(1).upper() if match else None
+
+
 def _docs_md_files(project: Path) -> list[Path]:
     docs = project / "docs"
     if not docs.is_dir():
@@ -113,19 +124,26 @@ def _check_carry_forward_staleness(project: Path) -> list[str]:
         cells = [c.strip() for c in line.strip("|").split("|")]
         if len(cells) < 5:
             continue
-        flag, added, _owner, status, _notes = cells[0], cells[1], cells[2], cells[3], cells[4]
+        if len(cells) >= 6:
+            flag, added, reviewed, _owner, status, _notes = cells[:6]
+        else:
+            flag, added, _owner, status, _notes = cells[:5]
+            reviewed = ""
         if flag in ("Flag", "---", "(none)", ""):
             continue
         if status.lower() in ("resolved", "closed", "done", ""):
             continue
-        m = re.search(r"(\d{4}-\d{2}-\d{2})", added)
+        review_reference = reviewed or added
+        reference_label = "last reviewed" if reviewed else "added"
+        m = re.search(r"(\d{4}-\d{2}-\d{2})", review_reference)
         if m:
             try:
-                added_date = date.fromisoformat(m.group(1))
-                age = (today - added_date).days
+                reference_date = date.fromisoformat(m.group(1))
+                age = (today - reference_date).days
                 if age > _CARRY_FORWARD_THRESHOLD_DAYS:
                     warnings.append(
-                        f"Carry-forward flag `{flag}` open for {age} days (added {added_date}) "
+                        f"Carry-forward flag `{flag}` not reviewed for {age} days "
+                        f"({reference_label} {reference_date}) "
                         "— review, resolve, or update its status."
                     )
             except ValueError:
@@ -298,7 +316,10 @@ def run_audit(project_path: Path) -> dict:
         positives.append("No stale carry-forward flags.")
 
     audits_dir = project_path / "docs" / "audits"
-    doc_id = f"AUD-ENG-{_next_audit_sequence(audits_dir):03d}"
+    report_path = audits_dir / f"governance-audit-{today.isoformat()}.md"
+    doc_id = _existing_audit_id(report_path)
+    if doc_id is None:
+        doc_id = f"AUD-ENG-{_next_audit_sequence(audits_dir):03d}"
 
     return {
         "doc_id": doc_id,

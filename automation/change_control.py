@@ -122,9 +122,9 @@ COMMON_FUNDAMENTALS_BLOCK = f"""{FUNDAMENTALS_BLOCK_START}
 COMMON_GRAPHIFY_BLOCK = f"""{GRAPHIFY_BLOCK_START}
 ## Graphify Policy
 
-- Use the canonical Graphify governance file at `~/code/Tools/graphify/docs/agent-governance.md`.
-- Before broad source exploration, architecture analysis, dependency tracing, unfamiliar large-surface work, or cross-repo planning, use Graphify first and reference `~/code/Tools/graphify/workspace/out/graph.json`.
-- Use the workspace graph for cross-repo routing.
+- Use `docs/agent-governance.md` from the installed Graphify tool repository as the canonical Graphify policy.
+- Before broad source exploration, architecture analysis, dependency tracing, unfamiliar large-surface work, or cross-repo planning, query the repo-local graph first when present. Use `graphify global path` and `graphify global list` to discover the configured cross-repo graph instead of assuming a user-specific filesystem layout.
+- Use the configured global graph for cross-repo routing.
 - Use normal repo inspection first for known-file edits, build/test errors, small scoped edits, and routine docs checks.
 - When a new repo becomes active, set up repo-local Graphify with `graphify-setup-project /path/to/repo`.
 - For full semantic repo graphs in heavy active repos, run `/graphify /path/to/repo` from Claude Code. Current Graphify skills can use Claude Code subagents when no Gemini key is set, so policy should constrain token burn through per-repo scope, caching, strict ignores, and cheap updates rather than hard-coding a provider or extraction backend.
@@ -223,8 +223,8 @@ MANAGED_INSTRUCTION_BLOCKS = {
             "end": GRAPHIFY_BLOCK_END,
             "content": COMMON_GRAPHIFY_BLOCK,
             "fragments": [
-                "Tools/graphify/docs/agent-governance.md",
-                "Tools/graphify/workspace/out/graph.json",
+                "docs/agent-governance.md",
+                "graphify global path",
                 "routine docs checks",
                 "context clear",
                 "graphify update . --no-cluster",
@@ -319,8 +319,8 @@ MANAGED_INSTRUCTION_BLOCKS = {
             "end": GRAPHIFY_BLOCK_END,
             "content": COMMON_GRAPHIFY_BLOCK,
             "fragments": [
-                "Tools/graphify/docs/agent-governance.md",
-                "Tools/graphify/workspace/out/graph.json",
+                "docs/agent-governance.md",
+                "graphify global path",
                 "routine docs checks",
                 "context clear",
                 "graphify update . --no-cluster",
@@ -429,8 +429,8 @@ Review `docs/standards/ship-ready-engineering-standard.md` before declaring mean
             "end": GRAPHIFY_BLOCK_END,
             "content": COMMON_GRAPHIFY_BLOCK,
             "fragments": [
-                "Tools/graphify/docs/agent-governance.md",
-                "Tools/graphify/workspace/out/graph.json",
+                "docs/agent-governance.md",
+                "graphify global path",
                 "routine docs checks",
                 "context clear",
                 "graphify update . --no-cluster",

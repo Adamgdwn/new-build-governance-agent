@@ -43,9 +43,9 @@ After a compaction, context clear, or fresh restart, use the latest handoff or w
 
 ## Graphify Policy
 
-Use the canonical Graphify governance file at the Graphify tools location in your workspace (typically `Tools/graphify/docs/agent-governance.md`).
+Use `docs/agent-governance.md` from the installed Graphify tool repository as the canonical Graphify policy (workspace installs commonly place it under `Tools/graphify/`).
 
-Before broad source exploration, architecture analysis, dependency tracing, unfamiliar large-surface work, or cross-repo planning, use Graphify first and reference the workspace graph when one exists (typically at `Tools/graphify/workspace/out/graph.json`). Use the workspace graph for cross-repo routing. For known files, build or test errors, small scoped edits, or routine docs checks, use normal repo inspection first. When a new repo becomes active, set up repo-local Graphify with `graphify-setup-project /path/to/repo`.
+Before broad source exploration, architecture analysis, dependency tracing, unfamiliar large-surface work, or cross-repo planning, query the repo-local graph first when present. Use `graphify global path` and `graphify global list` to discover the configured cross-repo graph instead of assuming a user-specific filesystem layout. Use the configured global graph for cross-repo routing. For known files, build or test errors, small scoped edits, or routine docs checks, use normal repo inspection first. When a new repo becomes active, set up repo-local Graphify with `graphify-setup-project /path/to/repo`.
 
 For full semantic repo graphs in heavy active repos, run `/graphify /path/to/repo` from Claude Code. Current Graphify skills can use Claude Code subagents when no Gemini key is set, so policy should constrain token burn through per-repo scope, caching, strict ignores, and cheap updates rather than hard-coding a provider or extraction backend.
 

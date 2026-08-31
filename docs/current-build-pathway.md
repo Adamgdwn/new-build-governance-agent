@@ -1,6 +1,6 @@
 # Current Build Pathway
 
-Last Updated: 2026-07-10
+Last Updated: 2026-08-31
 Status: active
 Owner: Technical Lead
 
@@ -53,6 +53,27 @@ Use second-level Markdown headings for active and planned chunks:
 ## Chunk One - Short Objective
 ## Chunk Two - Short Objective
 ```
+
+## Chunk Thirty-Five - Repository Audit And Portability Remediation
+
+Status: in progress
+
+Completion target: Task complete
+
+Budget class: Small
+
+Objective: audit the governance source, refresh stale control records, and remove verified portability failures without expanding into the strategic Tier 2/3 backlog.
+
+Acceptance criteria:
+
+- [ ] Governance preflight and automated audit have no blockers or required gaps.
+- [ ] Active/generated guidance contains no user-specific operational filesystem paths; historical audit and archive records remain unchanged.
+- [ ] Architecture and generated guidance describe current module boundaries and portable discovery paths.
+- [ ] Open carry-forward flags can record a review date without being falsely treated as abandoned.
+- [ ] Risk, change, backlog, carry-forward, and pathway records reflect the 2026-08-31 review.
+- [ ] Focused tests pass; any full-gate limitation is recorded without weakening enforcement.
+
+Stop condition: stop before any risk-tier/governance-level decision, dependency adoption, provider change, or broader backlog item that requires owner direction.
 
 ## Recent Completed Work
 

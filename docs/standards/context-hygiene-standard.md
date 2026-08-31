@@ -4,7 +4,7 @@ Document ID: STD-ENG-011
 Document type: supporting engineering standard
 Status: active
 Owner: Project owner or human technical lead
-Last Reviewed: 2026-07-10
+Last Reviewed: 2026-08-31
 Next Review: 2026-10-10
 Audience: coding agents, human coders, reviewers, and project owners
 Applies to: coding sessions, agent workflows, long-running implementation threads, reviews, handoffs, and governed build upgrades.
@@ -131,9 +131,9 @@ Use Graphify for broad architecture, cross-repo routing, dependency or path anal
 
 Use specialized plugins, MCP servers, hooks, and provider tools when they are relevant to the current task. Do not make one-off tool use permanent startup load unless repeated need, startup cost, narrow scope, and rollback path are documented.
 
-Integration note: `/home/adamgoodwin/Downloads/codex-startup-preflight-lean-out-plan.md` was integrated into this standard on 2026-06-13. Do not add that downloaded plan as a new mandatory startup read.
+Integration note: the downloaded `codex-startup-preflight-lean-out-plan.md` was integrated into this standard on 2026-06-13. Do not add that downloaded plan as a new mandatory startup read.
 
-Integration note: `/home/adamgoodwin/Downloads/cost_effective_agentic_coding_context_standard.md` was integrated into this standard on 2026-06-13. Do not add that downloaded standard as a new mandatory startup read.
+Integration note: the downloaded `cost_effective_agentic_coding_context_standard.md` was integrated into this standard on 2026-06-13. Do not add that downloaded standard as a new mandatory startup read.
 
 ### Work In Phases
 
