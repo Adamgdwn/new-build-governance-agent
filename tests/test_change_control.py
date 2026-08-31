@@ -26,6 +26,8 @@ class ChangeControlTests(unittest.TestCase):
             self.assertIn("docs/standards/README.md", paths)
             self.assertIn("docs/standards/ship-ready-engineering-standard.md", paths)
             self.assertIn("docs/standards/context-hygiene-standard.md", paths)
+            self.assertIn("docs/standards/code-complexity-control-standard.md", paths)
+            self.assertIn("docs/standards/governance-source-alignment-standard.md", paths)
             self.assertIn("docs/context-map.md", paths)
             self.assertIn("docs/domain-language.md", paths)
             self.assertIn("project-control.yaml", paths)
@@ -61,6 +63,18 @@ class ChangeControlTests(unittest.TestCase):
             )
             self.assertTrue(
                 any(
+                    action.get("block_id") == change_control.COMPLEXITY_BLOCK_ID
+                    for action in manifest["actions"]
+                )
+            )
+            self.assertTrue(
+                any(
+                    action.get("block_id") == change_control.ALIGNMENT_BLOCK_ID
+                    for action in manifest["actions"]
+                )
+            )
+            self.assertTrue(
+                any(
                     action.get("block_id") == change_control.GRAPHIFY_BLOCK_ID
                     for action in manifest["actions"]
                 )
@@ -77,10 +91,17 @@ class ChangeControlTests(unittest.TestCase):
             self.assertIn("primary: AI agent with tools", control)
             self.assertIn("docs/context-map.md", control)
             self.assertIn("agentic_coding:", control)
+            self.assertIn("cyclomatic_complexity:", control)
+            self.assertIn("governance_alignment:", control)
             agent_rules = (project / "AGENTS.md").read_text(encoding="utf-8")
             self.assertIn("Fundamentals-First AI Coding", agent_rules)
             self.assertIn("AI speed does not make bad code cheap", agent_rules)
             self.assertIn("smallest safe improvement", agent_rules)
+            self.assertIn("review signal, not a verdict", agent_rules)
+            self.assertIn("code-complexity-control-standard.md", agent_rules)
+            self.assertIn("more than 90 days old", agent_rules)
+            self.assertIn("not an ordinary-startup requirement", agent_rules)
+            self.assertIn("governance-source-alignment-standard.md", agent_rules)
             self.assertIn("Context Hygiene Managed Instructions", agent_rules)
             self.assertIn("docs/context-map.md", agent_rules)
             self.assertIn("The repository remembers", agent_rules)
@@ -125,7 +146,19 @@ class ChangeControlTests(unittest.TestCase):
             self.assertIn("# Engineering Standards Index", standards_index)
             self.assertIn("Ship-Ready Engineering Standard", standards_index)
             self.assertIn("Context Hygiene Standard", standards_index)
+            self.assertIn("Code Complexity Control Standard", standards_index)
+            self.assertIn("Governance Source Alignment Standard", standards_index)
             self.assertIn("Context Routing", standards_index)
+            complexity = (
+                project / "docs" / "standards" / "code-complexity-control-standard.md"
+            ).read_text(encoding="utf-8")
+            self.assertIn("smoke alarm, not a verdict", complexity)
+            self.assertIn("21+", complexity)
+            alignment = (
+                project / "docs" / "standards" / "governance-source-alignment-standard.md"
+            ).read_text(encoding="utf-8")
+            self.assertIn("at least every 90 days", alignment)
+            self.assertIn("not automatic adoption", alignment)
             ship_ready = (
                 project / "docs" / "standards" / "ship-ready-engineering-standard.md"
             ).read_text(encoding="utf-8")

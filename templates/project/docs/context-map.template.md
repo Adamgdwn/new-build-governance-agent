@@ -29,6 +29,8 @@ Keep these files compact. They should route to durable docs, not duplicate them.
 | Engineering standards map | `docs/standards/README.md` |
 | Context windows, token budgets, compaction, scoped reads, or handoffs | `docs/standards/context-hygiene-standard.md` |
 | Durable implementation, design quality, testing discipline, or AI coding fundamentals | `docs/policy/durable-development-engineering-policy.md` |
+| Cyclomatic complexity, branch-heavy code, complexity thresholds, or related exceptions | `docs/standards/code-complexity-control-standard.md` |
+| Periodic governance check-back, source comparison, or control updates | `docs/standards/governance-source-alignment-standard.md` |
 | Use-case controls, risk tier, governance level, or owner decisions | `docs/standards/engineering-governance-by-use-case.md` |
 | Completion labels, Definition of Shipped, release evidence, or finish reports | `docs/standards/ship-ready-engineering-standard.md` |
 | Architecture decisions or system shape | `docs/architecture.md` and relevant ADRs |

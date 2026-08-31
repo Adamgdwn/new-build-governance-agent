@@ -36,6 +36,12 @@ LEAN_STARTUP_BLOCK_END = f"<!-- GOVERNANCE-MANAGED-END: {LEAN_STARTUP_BLOCK_ID} 
 FUNDAMENTALS_BLOCK_ID = "fundamentals-first-ai-coding"
 FUNDAMENTALS_BLOCK_START = f"<!-- GOVERNANCE-MANAGED-START: {FUNDAMENTALS_BLOCK_ID} -->"
 FUNDAMENTALS_BLOCK_END = f"<!-- GOVERNANCE-MANAGED-END: {FUNDAMENTALS_BLOCK_ID} -->"
+COMPLEXITY_BLOCK_ID = "code-complexity-control"
+COMPLEXITY_BLOCK_START = f"<!-- GOVERNANCE-MANAGED-START: {COMPLEXITY_BLOCK_ID} -->"
+COMPLEXITY_BLOCK_END = f"<!-- GOVERNANCE-MANAGED-END: {COMPLEXITY_BLOCK_ID} -->"
+ALIGNMENT_BLOCK_ID = "governance-source-alignment"
+ALIGNMENT_BLOCK_START = f"<!-- GOVERNANCE-MANAGED-START: {ALIGNMENT_BLOCK_ID} -->"
+ALIGNMENT_BLOCK_END = f"<!-- GOVERNANCE-MANAGED-END: {ALIGNMENT_BLOCK_ID} -->"
 GRAPHIFY_BLOCK_ID = "graphify-policy"
 GRAPHIFY_BLOCK_START = f"<!-- GOVERNANCE-MANAGED-START: {GRAPHIFY_BLOCK_ID} -->"
 GRAPHIFY_BLOCK_END = f"<!-- GOVERNANCE-MANAGED-END: {GRAPHIFY_BLOCK_ID} -->"
@@ -119,6 +125,23 @@ COMMON_FUNDAMENTALS_BLOCK = f"""{FUNDAMENTALS_BLOCK_START}
 - Every change should make the next correct change easier.
 {FUNDAMENTALS_BLOCK_END}
 """
+COMMON_COMPLEXITY_BLOCK = f"""{COMPLEXITY_BLOCK_START}
+## Code Complexity Managed Instructions
+
+- Treat cyclomatic complexity as a review signal, not a verdict.
+- For changed code, use the configured project tool when practical: 1-10 is ordinary review, 11-20 prompts design and branch-test review, and 21+ requires a coherent refactor or a recorded exception by default.
+- Do not create shallow wrappers merely to lower a score. Keep inherently branch-heavy code when it is the clearest model, with focused tests and documented rationale.
+- Use `docs/standards/code-complexity-control-standard.md` for the full control.
+{COMPLEXITY_BLOCK_END}
+"""
+COMMON_ALIGNMENT_BLOCK = f"""{ALIGNMENT_BLOCK_START}
+## Governance Source Alignment Managed Instructions
+
+- At material planning or release-readiness work, check the project's last governance-alignment date. If it is absent or more than 90 days old, prompt for a bounded comparison with the New Build Governance Agent source.
+- This is not an ordinary-startup requirement. Compare only relevant standards, review changes before applying them, and never overwrite local risk tiers, governance levels, exceptions, or owner decisions.
+- Record the source revision, review date, outcome, and next review point. Use `docs/standards/governance-source-alignment-standard.md` for the full process.
+{ALIGNMENT_BLOCK_END}
+"""
 COMMON_GRAPHIFY_BLOCK = f"""{GRAPHIFY_BLOCK_START}
 ## Graphify Policy
 
@@ -134,8 +157,33 @@ COMMON_GRAPHIFY_BLOCK = f"""{GRAPHIFY_BLOCK_START}
 {GRAPHIFY_BLOCK_END}
 """
 
+COMPLEXITY_MANAGED_BLOCK = {
+    "block_id": COMPLEXITY_BLOCK_ID,
+    "start": COMPLEXITY_BLOCK_START,
+    "end": COMPLEXITY_BLOCK_END,
+    "content": COMMON_COMPLEXITY_BLOCK,
+    "fragments": [
+        "docs/standards/code-complexity-control-standard.md",
+        "review signal, not a verdict",
+        "recorded exception",
+    ],
+}
+ALIGNMENT_MANAGED_BLOCK = {
+    "block_id": ALIGNMENT_BLOCK_ID,
+    "start": ALIGNMENT_BLOCK_START,
+    "end": ALIGNMENT_BLOCK_END,
+    "content": COMMON_ALIGNMENT_BLOCK,
+    "fragments": [
+        "docs/standards/governance-source-alignment-standard.md",
+        "more than 90 days old",
+        "not an ordinary-startup requirement",
+    ],
+}
+
 MANAGED_INSTRUCTION_BLOCKS = {
     "AGENTS.md": [
+        COMPLEXITY_MANAGED_BLOCK,
+        ALIGNMENT_MANAGED_BLOCK,
         {
             "block_id": GOVERNANCE_BLOCK_ID,
             "start": GOVERNANCE_BLOCK_START,
@@ -232,6 +280,8 @@ MANAGED_INSTRUCTION_BLOCKS = {
         },
     ],
     "AI_BOOTSTRAP.md": [
+        COMPLEXITY_MANAGED_BLOCK,
+        ALIGNMENT_MANAGED_BLOCK,
         {
             "block_id": GOVERNANCE_BLOCK_ID,
             "start": GOVERNANCE_BLOCK_START,
@@ -328,6 +378,8 @@ MANAGED_INSTRUCTION_BLOCKS = {
         },
     ],
     "CLAUDE.md": [
+        COMPLEXITY_MANAGED_BLOCK,
+        ALIGNMENT_MANAGED_BLOCK,
         {
             "block_id": GOVERNANCE_BLOCK_ID,
             "start": GOVERNANCE_BLOCK_START,
@@ -469,6 +521,14 @@ CORE_BASELINE_FILES = {
     / "docs"
     / "standards"
     / "context-hygiene-standard.template.md",
+    "docs/standards/code-complexity-control-standard.md": TEMPLATE_ROOT
+    / "docs"
+    / "standards"
+    / "code-complexity-control-standard.template.md",
+    "docs/standards/governance-source-alignment-standard.md": TEMPLATE_ROOT
+    / "docs"
+    / "standards"
+    / "governance-source-alignment-standard.template.md",
     "docs/deployment-guide.md": TEMPLATE_ROOT / "docs" / "deployment-guide.template.md",
     "docs/runbook.md": TEMPLATE_ROOT / "docs" / "runbook.template.md",
     "docs/CHANGELOG.md": TEMPLATE_ROOT / "docs" / "CHANGELOG.template.md",

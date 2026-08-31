@@ -1,7 +1,7 @@
 # Context Map
 
 Document type: project context routing map
-Last Updated: 2026-07-10
+Last Updated: 2026-08-31
 Status: active
 Owner: Technical Lead
 Audience: coding agents, human coders, reviewers, and project owners
@@ -30,6 +30,8 @@ Keep these files compact. They should route to durable docs, not duplicate them.
 | Engineering standards map | `docs/standards/README.md` |
 | Context windows, token budgets, compaction, scoped reads, or handoffs | `docs/standards/context-hygiene-standard.md` |
 | Durable implementation, design quality, testing discipline, or AI coding fundamentals | `docs/policy/durable-development-engineering-policy.md` |
+| Cyclomatic complexity, branch-heavy code, complexity thresholds, or related exceptions | `docs/standards/code-complexity-control-standard.md` |
+| Periodic governance check-back, source comparison, or control updates | `docs/standards/governance-source-alignment-standard.md` |
 | Governance level meaning, level-to-tier crosswalk, or agent-action tiers | `docs/standards/governance-level-standard.md` |
 | Use-case controls, agent governance records, or owner decisions | `docs/standards/engineering-governance-by-use-case.md` |
 | Risk tier definitions or reclassification | `docs/standards/risk-classification-standard.md` |

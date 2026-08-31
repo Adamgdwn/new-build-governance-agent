@@ -1,6 +1,6 @@
 # Start Here
 
-Last Updated: 2026-06-13
+Last Updated: 2026-08-31
 Status: active
 Owner: Adam Goodwin
 
@@ -19,6 +19,8 @@ Current priorities:
 - keep startup lean: use short repo orientation first, then trigger governance, Graphify, plugins, MCP tools, and release checks by task risk or scope
 - make Graphify the first orientation tool before broad source exploration or architecture analysis, using workspace routing plus repo-local semantic graphs for heavy active repos
 - make agent work traceable with timestamps
+- make code-complexity review advisory first, risk-scaled, test-linked, and resistant to score gaming
+- prompt active builds to compare with this governance source every 90 days without adding a heavy ordinary-startup check
 - keep planning and implementation in context-window-friendly chunks
 - preserve copy-if-missing behavior for existing projects
 - integrated a downloaded codex startup-preflight lean-out plan into durable standards and agent instructions on 2026-06-13; do not add that downloaded plan as a new mandatory startup read

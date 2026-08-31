@@ -20,6 +20,8 @@ PROJECT_TYPES = {
 }
 RISK_TIERS = {"low", "medium", "high", "critical"}
 REPOSITORY_MODELS = {"single-repo", "monorepo"}
+COMPLEXITY_MODES = {"advisory", "no-regression", "enforced"}
+ALIGNMENT_MODES = {"review-before-apply"}
 PROMOTION_STAGES = [
     "local_compliance",
     "pre_promotion_checks",
@@ -142,6 +144,66 @@ def require_string_list(
             errors.append(f"{dotted}[{index}] must be a non-empty string")
 
 
+def validate_complexity_control(data: dict[str, Any], errors: list[str]) -> None:
+    complexity = get_path(data, "quality_controls.cyclomatic_complexity")
+    if complexity is None:
+        return
+    if not isinstance(complexity, dict):
+        errors.append("quality_controls.cyclomatic_complexity must be a mapping")
+        return
+
+    mode = get_path(data, "quality_controls.cyclomatic_complexity.mode")
+    if mode not in COMPLEXITY_MODES:
+        errors.append(
+            "quality_controls.cyclomatic_complexity.mode must be one of: "
+            + ", ".join(sorted(COMPLEXITY_MODES))
+        )
+    review_above = get_path(data, "quality_controls.cyclomatic_complexity.review_above")
+    decision_above = get_path(
+        data,
+        "quality_controls.cyclomatic_complexity.refactor_or_exception_above",
+    )
+    if not isinstance(review_above, int) or review_above < 1:
+        errors.append(
+            "quality_controls.cyclomatic_complexity.review_above must be a positive integer"
+        )
+    if not isinstance(decision_above, int) or decision_above < 1:
+        errors.append(
+            "quality_controls.cyclomatic_complexity.refactor_or_exception_above "
+            "must be a positive integer"
+        )
+    if (
+        isinstance(review_above, int)
+        and isinstance(decision_above, int)
+        and decision_above < review_above
+    ):
+        errors.append(
+            "quality_controls.cyclomatic_complexity.refactor_or_exception_above "
+            "must be greater than or equal to review_above"
+        )
+    require_string(data, "quality_controls.cyclomatic_complexity.scope", errors)
+
+
+def validate_governance_alignment(data: dict[str, Any], errors: list[str]) -> None:
+    alignment = get_path(data, "governance_alignment")
+    if alignment is None:
+        return
+    if not isinstance(alignment, dict):
+        errors.append("governance_alignment must be a mapping")
+        return
+
+    require_string(data, "governance_alignment.source", errors)
+    alignment_mode = get_path(data, "governance_alignment.mode")
+    if alignment_mode not in ALIGNMENT_MODES:
+        errors.append(
+            "governance_alignment.mode must be one of: " + ", ".join(sorted(ALIGNMENT_MODES))
+        )
+    cadence = get_path(data, "governance_alignment.review_cadence_days")
+    if not isinstance(cadence, int) or cadence < 1:
+        errors.append("governance_alignment.review_cadence_days must be a positive integer")
+    require_string_value(data, "governance_alignment.last_reviewed", errors)
+
+
 def validate_project_control_data(data: dict[str, Any]) -> list[str]:
     errors: list[str] = []
     for field in [
@@ -180,6 +242,8 @@ def validate_project_control_data(data: dict[str, Any]) -> list[str]:
     require_string_value(data, "data_classification.notes", errors)
     require_string_list(data, "controls.required_docs", errors, allow_empty=False)
     require_string_list(data, "controls.machine_enforcement", errors)
+    validate_complexity_control(data, errors)
+    validate_governance_alignment(data, errors)
 
     exceptions = get_path(data, "exceptions")
     if not isinstance(exceptions, list):

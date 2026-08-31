@@ -54,9 +54,39 @@ Use second-level Markdown headings for active and planned chunks:
 ## Chunk Two - Short Objective
 ```
 
+## Chunk Thirty-Six - Complexity Controls And Governance Alignment
+
+Status: complete
+
+Completion target: Integration complete
+
+Budget class: Small
+
+Objective: add plain-language cyclomatic-complexity controls and a lightweight periodic check-back from governed builds to this governance source.
+
+Acceptance criteria:
+
+- [x] A controlled complexity standard defines the metric's limits, advisory bands, test companion, anti-gaming rule, rollout, and exception evidence.
+- [x] A higher-level alignment standard prompts active builds every 90 days and before relevant release work without becoming an ordinary-startup check.
+- [x] Source instructions, project templates, the workspace umbrella, and managed upgrades carry concise prompts.
+- [x] New project controls default complexity to advisory mode and record governance-source cadence without overriding local risk or governance decisions.
+- [x] Schema, scaffold, and change-control tests cover the new controls and distribution paths.
+
+Known baseline: Ruff C901 currently reports 13 existing functions above 10, ranging from 11 to 37. They remain advisory and are not an authorization for unrelated refactoring.
+
+Stop condition: stop after validation and distribution are proven; do not refactor existing complexity findings or promote the advisory control to a blocking gate without a separate decision.
+
+Validation:
+
+- `python -m unittest tests.test_schema_validation tests.test_scaffold_project tests.test_change_control` passed (11 tests).
+- Full `unittest` suite passed (127 tests); coverage remained above the enforced floor at 34%.
+- Ruff lint and format checks passed; the advisory C901 report retained the 13-finding baseline with no new finding from this chunk.
+- Governance preflight and audit passed with zero required gaps; audit report `AUD-ENG-010` was refreshed.
+- Local mypy execution remains blocked by Windows Application Control as recorded in risk `R-009`; the unchanged CI gate remains authoritative for mypy.
+
 ## Chunk Thirty-Five - Repository Audit And Portability Remediation
 
-Status: in progress
+Status: complete
 
 Completion target: Task complete
 
@@ -66,13 +96,13 @@ Objective: audit the governance source, refresh stale control records, and remov
 
 Acceptance criteria:
 
-- [ ] Governance preflight and automated audit have no blockers or required gaps.
-- [ ] Active/generated guidance contains no user-specific operational filesystem paths; historical audit and archive records remain unchanged.
-- [ ] Architecture and generated guidance describe current module boundaries and portable discovery paths.
-- [ ] Open carry-forward flags can record a review date without being falsely treated as abandoned.
-- [ ] CI installs one pinned validation toolchain and cancels superseded runs within a bounded timeout.
-- [ ] Risk, change, backlog, carry-forward, and pathway records reflect the 2026-08-31 review.
-- [ ] Focused tests pass; any full-gate limitation is recorded without weakening enforcement.
+- [x] Governance preflight and automated audit have no blockers or required gaps.
+- [x] Active/generated guidance contains no user-specific operational filesystem paths; historical audit and archive records remain unchanged.
+- [x] Architecture and generated guidance describe current module boundaries and portable discovery paths.
+- [x] Open carry-forward flags can record a review date without being falsely treated as abandoned.
+- [x] CI installs one pinned validation toolchain and cancels superseded runs within a bounded timeout.
+- [x] Risk, change, backlog, carry-forward, and pathway records reflect the 2026-08-31 review.
+- [x] Focused tests pass; any full-gate limitation is recorded without weakening enforcement.
 
 Stop condition: stop before any risk-tier/governance-level decision, dependency adoption, provider change, or broader backlog item that requires owner direction.
 
@@ -91,6 +121,8 @@ Stop condition: stop before any risk-tier/governance-level decision, dependency 
 | Chunk Thirty-One - Housekeeping | complete | 2026-06-16 | Hard-coded personal names removed from automation; AGENTS.md trimmed to router; pathway split. |
 | Chunk Thirty-Two - Document Supersession Enforcement | complete | 2026-06-16 | Supersession scanner in change_control.py; Document Supersession section in audit report; GUI summary; template banner. |
 | Chunk Thirty-Four - GitHub Resource Efficiency Ingestion | complete | 2026-07-26T20:22:46-06:00 | STD-ENG-022 added as a single canonical copy; guardrail summary distributed through the workspace-level CLAUDE.md and the project bootstrap template; no per-repo standard copy, no enforced checks. |
+| Chunk Thirty-Five - Repository Audit And Portability Remediation | complete | 2026-08-31 | Audit/control records refreshed, portable Graphify discovery added, the validation toolchain pinned, and current GitHub Actions bounded and upgraded; CI and Windows packaging passed. |
+| Chunk Thirty-Six - Complexity Controls And Governance Alignment | complete | 2026-08-31T13:24:17-06:00 | STD-ENG-023 and STD-ENG-024 added; advisory complexity controls and 90-day check-back prompts distributed through source instructions, scaffolds, managed upgrades, and the workspace umbrella. |
 
 Full history: `docs/archive/pathway-history.md`
 

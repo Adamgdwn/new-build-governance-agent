@@ -23,6 +23,27 @@ class SchemaValidationTests(unittest.TestCase):
 
         self.assertIn("governance_level must be an integer from 0 through 4", errors)
 
+    def test_project_control_schema_rejects_invalid_complexity_control(self):
+        data = schema_validation.load_project_control(REPO_ROOT / "project-control.yaml")
+        data["quality_controls"]["cyclomatic_complexity"]["mode"] = "magic-score"
+        data["quality_controls"]["cyclomatic_complexity"]["refactor_or_exception_above"] = 5
+
+        errors = schema_validation.validate_project_control_data(data)
+
+        self.assertTrue(any("cyclomatic_complexity.mode" in error for error in errors))
+        self.assertTrue(any("greater than or equal to review_above" in error for error in errors))
+
+    def test_project_control_schema_rejects_invalid_alignment_cadence(self):
+        data = schema_validation.load_project_control(REPO_ROOT / "project-control.yaml")
+        data["governance_alignment"]["review_cadence_days"] = 0
+
+        errors = schema_validation.validate_project_control_data(data)
+
+        self.assertIn(
+            "governance_alignment.review_cadence_days must be a positive integer",
+            errors,
+        )
+
     def test_promotion_plan_schema_accepts_generated_plan(self):
         with tempfile.TemporaryDirectory() as tmp:
             project = Path(tmp) / "project"

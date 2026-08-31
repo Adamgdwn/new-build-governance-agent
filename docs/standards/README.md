@@ -4,7 +4,7 @@ Document ID: STD-ENG-016
 Document type: standards index
 Status: active
 Owner: Project owner or human technical lead
-Last Updated: 2026-07-10
+Last Updated: 2026-08-31
 Audience: coding agents, human coders, reviewers, project owners, and release reviewers
 
 ## Purpose
@@ -34,9 +34,11 @@ Use these when the work touches the matching area:
 
 | Standard | Use When |
 |---|---|
+| [Code Complexity Control Standard](code-complexity-control-standard.md) | Reviewing branch-heavy code, choosing cyclomatic-complexity thresholds, adding focused test evidence, or recording a complexity exception. |
 | [Context Hygiene Standard](context-hygiene-standard.md) | Managing long agent sessions, context windows, token budgets, compaction, scoped repo reads, or handoffs. |
 | [Document Control Standard](document-control-standard.md) | Creating or maintaining durable docs, handoffs, records, standards, pathway logs, ADRs, audits, or runbooks. Also owns the required project document set. |
 | [GitHub Resource Efficiency Standard](github-resource-efficiency-standard.md) | Changing repository storage, `.gitignore`, Git LFS, Actions workflows, artifacts, caches, Packages, releases, runners, or GitHub billing. Guardrails only; the short summary lives in the workspace-level `CLAUDE.md`. |
+| [Governance Source Alignment Standard](governance-source-alignment-standard.md) | Checking whether an active project is due to compare its local controls with this governance source. |
 | [Governance Level Standard](governance-level-standard.md) | Selecting or interpreting `governance_level` 0-4, or mapping levels to risk tiers and agent-action tiers. |
 | [Repository And Naming Standard](repository-and-naming-standard.md) | Naming repositories, files, modules, directories, common project structure, or monorepo layout. |
 | [Risk Classification Standard](risk-classification-standard.md) | Classifying risk tier, sensitive surfaces, or escalation needs. Sole definition of the Low/Medium/High/Critical tiers. |

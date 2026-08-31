@@ -6,6 +6,8 @@ Owner: Technical Lead
 
 ## Unreleased
 
+- Added the Code Complexity Control Standard with plain-language guidance, advisory 1-10/11-20/21+ bands, test-linked review, anti-gaming rules, optional validated project controls, and scaffold/change-control distribution.
+- Added the Governance Source Alignment Standard and a lightweight 90-day prompt so active builds periodically compare relevant local controls with this source without making governance sync an ordinary-startup requirement or silently overwriting project decisions.
 - Pinned the validation toolchain in `requirements-dev.txt`, wired CI to that single source, upgraded official actions to their Node 24-compatible majors, and added bounded timeouts, superseded-run cancellation, and seven-day package retention after repeated CI drift failures.
 - Made carry-forward staleness use an explicit last-reviewed date while retaining compatibility with existing five-column files.
 - Made same-day governance-audit reruns retain their existing document ID instead of consuming a new sequence number.

@@ -33,7 +33,9 @@ controls:
     - docs/roadmap.md
     - docs/policy/durable-development-engineering-policy.md
     - docs/standards/README.md
+    - docs/standards/code-complexity-control-standard.md
     - docs/standards/engineering-governance-by-use-case.md
+    - docs/standards/governance-source-alignment-standard.md
     - docs/standards/ship-ready-engineering-standard.md
     - docs/deployment-guide.md
     - docs/runbook.md
@@ -44,6 +46,17 @@ controls:
     - lint
     - tests
     - secret-scan
+quality_controls:
+  cyclomatic_complexity:
+    mode: advisory
+    review_above: 10
+    refactor_or_exception_above: 20
+    scope: changed-code
+governance_alignment:
+  source: New Build Governance Agent
+  mode: review-before-apply
+  review_cadence_days: 90
+  last_reviewed: ""
 exceptions: []
 agent_controls:
   # Governs this project's runtime AI system. Set applicable: true when the

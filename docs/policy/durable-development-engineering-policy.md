@@ -1,13 +1,13 @@
 # Durable Development Engineering Policy
 
 Document ID: POL-ENG-002
-Version: 1.0.0
+Version: 1.1.0
 Status: active
 Owner: Technical Lead
 Approver: Project Owner
 Effective Date: 2026-07-10
-Last Reviewed: 2026-07-10
-Next Review: 2026-10-10
+Last Reviewed: 2026-08-31
+Next Review: 2026-11-30
 Document type: risk-scaled operating policy
 Audience: coding team, contractors, AI coding agents, technical reviewers, and project leads
 Applies to: internal tools, SaaS products, websites, automations, AI-assisted builds, scripts, prototypes intended to become products, and production systems.
@@ -85,6 +85,21 @@ The framework therefore expects fundamentals-first software:
 The agent should not blindly regenerate code from specs while ignoring the condition of the codebase. When generated code makes the system harder to understand, test, secure, operate, or modify, the agent must flag the design issue and recommend the smallest safe improvement.
 
 The central question is not only "Did the code run?" The central question is: "Is this codebase becoming easier or harder to change?"
+
+### Use control-flow complexity as a signal
+
+Cyclomatic complexity is a rough count of the decision routes through a function. Use
+it as a prompt to inspect responsibilities, failure paths, and test evidence—not as a
+standalone judgment of quality.
+
+For changed code, the default bands are 1-10 for ordinary review, 11-20 for explicit
+design and branch-test review, and 21 or above for a coherent refactor or recorded
+exception. Projects may tune these bands for their language, tooling, baseline, and
+risk. Do not create shallow wrappers merely to lower the score or turn an existing
+baseline into an immediate blocking gate.
+
+The full control, rollout stages, and exception requirements are in
+`docs/standards/code-complexity-control-standard.md`.
 
 ### Shared design concept before coding
 

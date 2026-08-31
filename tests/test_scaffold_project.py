@@ -29,6 +29,12 @@ class ScaffoldProjectTests(unittest.TestCase):
             self.assertTrue(
                 (target / "docs" / "standards" / "context-hygiene-standard.md").exists()
             )
+            self.assertTrue(
+                (target / "docs" / "standards" / "code-complexity-control-standard.md").exists()
+            )
+            self.assertTrue(
+                (target / "docs" / "standards" / "governance-source-alignment-standard.md").exists()
+            )
             self.assertTrue((target / "scripts" / "governance-preflight.sh").exists())
 
             control = (target / "project-control.yaml").read_text(encoding="utf-8")
@@ -40,12 +46,21 @@ class ScaffoldProjectTests(unittest.TestCase):
             self.assertIn("docs/context-map.md", control)
             self.assertIn("agentic_coding:", control)
             self.assertIn("The repository remembers. Agents rent context.", control)
+            self.assertIn("cyclomatic_complexity:", control)
+            self.assertIn("mode: advisory", control)
+            self.assertIn("governance_alignment:", control)
+            self.assertIn("review_cadence_days: 90", control)
             self.assertIn("applicable: true", control)
             for relative_path in ["AGENTS.md", "AI_BOOTSTRAP.md", "CLAUDE.md"]:
                 instructions = (target / relative_path).read_text(encoding="utf-8")
                 self.assertIn("Fundamentals-First AI Coding", instructions)
                 self.assertIn("AI speed does not make bad code cheap", instructions)
                 self.assertIn("smallest safe improvement", instructions)
+                self.assertIn("review signal, not a verdict", instructions)
+                self.assertIn("code-complexity-control-standard.md", instructions)
+                self.assertIn("more than 90 days old", instructions)
+                self.assertIn("not an ordinary-startup requirement", instructions)
+                self.assertIn("governance-source-alignment-standard.md", instructions)
                 self.assertIn("Context Hygiene", instructions)
                 self.assertIn("docs/context-map.md", instructions)
                 self.assertIn("The repository remembers", instructions)
@@ -90,7 +105,21 @@ class ScaffoldProjectTests(unittest.TestCase):
             self.assertIn("# Engineering Standards Index", standards_index)
             self.assertIn("Ship-Ready Engineering Standard", standards_index)
             self.assertIn("Context Hygiene Standard", standards_index)
+            self.assertIn("Code Complexity Control Standard", standards_index)
+            self.assertIn("Governance Source Alignment Standard", standards_index)
             self.assertIn("Context Routing", standards_index)
+            complexity = (
+                target / "docs" / "standards" / "code-complexity-control-standard.md"
+            ).read_text(encoding="utf-8")
+            self.assertIn("smoke alarm, not a verdict", complexity)
+            self.assertIn("21+", complexity)
+            self.assertIn("Do not create shallow wrappers", complexity)
+            alignment = (
+                target / "docs" / "standards" / "governance-source-alignment-standard.md"
+            ).read_text(encoding="utf-8")
+            self.assertIn("at least every 90 days", alignment)
+            self.assertIn("not automatic adoption", alignment)
+            self.assertIn("This is not an ordinary-startup requirement", alignment)
             ship_ready = (
                 target / "docs" / "standards" / "ship-ready-engineering-standard.md"
             ).read_text(encoding="utf-8")

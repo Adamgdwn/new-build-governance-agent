@@ -248,6 +248,14 @@ def scaffold_project(
             "docs/standards/context-hygiene-standard.template.md",
             "docs/standards/context-hygiene-standard.md",
         ),
+        (
+            "docs/standards/code-complexity-control-standard.template.md",
+            "docs/standards/code-complexity-control-standard.md",
+        ),
+        (
+            "docs/standards/governance-source-alignment-standard.template.md",
+            "docs/standards/governance-source-alignment-standard.md",
+        ),
         ("docs/risk-register.template.md", "docs/risks/risk-register.md"),
         ("docs/CHANGELOG.template.md", "docs/CHANGELOG.md"),
         ("docs/adr.template.md", "docs/adr-template.md"),

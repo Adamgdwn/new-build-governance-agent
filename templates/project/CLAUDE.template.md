@@ -23,6 +23,14 @@ When you see weak design, flag it and propose the smallest safe improvement inst
 
 Every change should make the next correct change easier.
 
+## Code Complexity
+
+Treat cyclomatic complexity as a review signal, not a verdict. For changed code, use the configured tool when practical: 1-10 is ordinary review, 11-20 prompts design and branch-test review, and 21+ requires a coherent refactor or a recorded exception by default. Do not create shallow wrappers just to lower a score. See `docs/standards/code-complexity-control-standard.md`.
+
+## Periodic Governance Alignment
+
+At material planning or release-readiness work, check the last governance-alignment date. If it is absent or more than 90 days old, prompt for a bounded comparison with the New Build Governance Agent source. This is not an ordinary-startup requirement. Review changes before applying them, preserve local controls and owner decisions, and record the source revision, outcome, and next review point. See `docs/standards/governance-source-alignment-standard.md`.
+
 ## Context Hygiene
 
 Operate with strict context hygiene. Keep active context minimal, relevant, current, and recoverable.

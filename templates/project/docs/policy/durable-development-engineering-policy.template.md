@@ -78,6 +78,21 @@ The agent should not blindly regenerate code from specs while ignoring the condi
 
 The central question is not only "Did the code run?" The central question is: "Is this codebase becoming easier or harder to change?"
 
+### Use control-flow complexity as a signal
+
+Cyclomatic complexity is a rough count of the decision routes through a function. Use
+it as a prompt to inspect responsibilities, failure paths, and test evidence—not as a
+standalone judgment of quality.
+
+For changed code, the default bands are 1-10 for ordinary review, 11-20 for explicit
+design and branch-test review, and 21 or above for a coherent refactor or recorded
+exception. Projects may tune these bands for their language, tooling, baseline, and
+risk. Do not create shallow wrappers merely to lower the score or turn an existing
+baseline into an immediate blocking gate.
+
+The full control, rollout stages, and exception requirements are in
+`docs/standards/code-complexity-control-standard.md`.
+
 ### Shared design concept before coding
 
 Before meaningful implementation work, reach a shared design concept.
