@@ -1,6 +1,6 @@
 # Current Build Pathway
 
-Last Updated: 2026-08-31
+Last Updated: 2026-09-02
 Status: active
 Owner: Technical Lead
 
@@ -53,6 +53,41 @@ Use second-level Markdown headings for active and planned chunks:
 ## Chunk One - Short Objective
 ## Chunk Two - Short Objective
 ```
+
+## Chunk Thirty-Eight - AI Coding Best Practices Fold-In
+
+Status: complete
+
+Completion target: Integration complete
+
+Budget class: Medium
+
+Timestamp: 2026-09-02T15:21:24-06:00
+
+Objective: fold the plan-once, run-chunks pattern approved in the AI Coding Best Practices knowledge base (POL-AIC-001, STD-AIC-001 to 005, ADR-0001 to 0005, approved by the owner on 2026-09-02) into the generated project templates without changing this repository's standards.
+
+Owner decision: Adam Goodwin, 2026-09-02, approved folding the pattern into the templates.
+
+Acceptance criteria:
+
+- [x] `CLAUDE.template.md` is the one-line import `@AGENTS.md`. `AGENTS.template.md` is the single canonical instruction file in the STD-AIC-001 shape (What this is, Start, Commands, Rules, Finish a chunk, Read when relevant), 55 lines, and still carries every phrase the scaffold tests and the managed-block fragments require. `AI_BOOTSTRAP.template.md` holds commands only, with the `- Lint:`, `- Test:`, and `- Build:` lines the compliance report reads.
+- [x] `docs/current-build-pathway.template.md` uses runner-readable chunks (`### P-NN - Title`, `Status: Ready`, `Runner:`, `Files:` allow-list) and the plan-once, approve-once, fresh-session-per-chunk work pattern.
+- [x] `START_HERE.template.md`, `docs/context-map.template.md`, `docs/standards/README.template.md`, and `project-control.template.yaml` route to the AIC standards by name (canonical copies stay in the knowledge base) and tighten the instruction-file budgets (AGENTS.md 4 KB, CLAUDE.md 1 KB).
+- [x] `automation/change_control.py` skips managed-block appends to `CLAUDE.md` and `AI_BOOTSTRAP.md` when `CLAUDE.md` is an import-only file, so an upgrade cannot double-load guidance in the new layout. Two new tests cover it, and a freshly scaffolded project now yields an empty upgrade manifest.
+- [x] `README.md` and `docs/user-guide.md` describe the generated instruction files as they now are.
+
+Not done, deliberately:
+
+- The runner itself (`scripts/agent/`, hook wiring) is not scaffolded. It stays pinned in the knowledge base under `reference/agent-runner/` with the adoption process PRC-AIC-002, to avoid a third copy that drifts.
+- This repository's own `AGENTS.md`, `CLAUDE.md`, and `AI_BOOTSTRAP.md` still follow the compact-after-chunk close-out. See the new carry-forward flag.
+- The template `AGENTS.md` is 961 words against the STD-AIC-001 target of about 600, because the scaffold tests mandate the full Graphify policy text and ten governance phrases. Projects slim their own copy.
+- No standard in `docs/standards/` was changed.
+
+Validation:
+
+- `PYTHON=py bash scripts/validate.sh` exit 0: compliance (0 required gaps), schema, ruff lint and format, mypy, shellcheck, secret scan, 129 unit tests.
+- A throwaway `application` project scaffolded from the new templates: `bash automation/governance_check.sh` exit 0, 0 required gaps, 5 recommended items (command placeholders and optional files).
+- `python automation/governance_audit.py .`: 0 blockers, 0 required gaps, 0 warnings. Report: `docs/audits/governance-audit-2026-09-02.md`.
 
 ## Chunk Thirty-Seven - Public Documentation And GitHub Metadata
 

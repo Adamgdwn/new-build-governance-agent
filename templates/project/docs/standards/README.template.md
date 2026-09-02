@@ -33,6 +33,8 @@ Use these when the work touches the matching area. Some governed projects may st
 | Standard | Use When |
 |---|---|
 | AI Agent Governance Standard | Building or changing agents, tools, autonomy, prompt registries, model registries, or agent permissions. |
+| Agent Instruction File Standard (STD-AIC-001) | Writing or trimming `AGENTS.md`, `CLAUDE.md`, `AI_BOOTSTRAP.md`, `START_HERE.md`, or `CARRY_FORWARD.md`. Canonical copy stays in the AI Coding Best Practices knowledge base beside the governance source; this project does not carry a local copy. |
+| Chunk Specification Standard (STD-AIC-002) | Writing a build pathway, sizing chunks, or writing acceptance criteria, `Files:` allow-lists, and stop conditions. Canonical copy stays in the AI Coding Best Practices knowledge base beside the governance source; this project does not carry a local copy. |
 | [Code Complexity Control Standard](code-complexity-control-standard.md) | Reviewing branch-heavy code, choosing thresholds, adding focused tests, or recording a complexity exception. |
 | Context Hygiene Standard | Managing long agent sessions, context windows, token budgets, compaction, scoped repo reads, or handoffs. |
 | Deployment And Release Standard | Changing deployment, release, rollback, environments, external providers, or production promotion. |
@@ -40,11 +42,14 @@ Use these when the work touches the matching area. Some governed projects may st
 | Documentation Standard | Writing user, operator, architecture, setup, process, or support documentation. |
 | GitHub Resource Efficiency Standard | Changing repository storage, `.gitignore`, Git LFS, Actions workflows, artifacts, caches, Packages, releases, runners, or GitHub billing. Guardrails, not enforced checks. Canonical copy stays in the governance source; this project does not carry a local copy. |
 | [Governance Source Alignment Standard](governance-source-alignment-standard.md) | Checking whether this project is due to compare local controls with the current governance source. |
+| Hook Enforcement Standard (STD-AIC-004) | Deciding which rules become hooks and wiring them for Claude Code and Codex. Canonical copy stays in the AI Coding Best Practices knowledge base beside the governance source; this project does not carry a local copy. |
+| Model And Effort Routing Standard (STD-AIC-005) | Choosing planner, worker, and verifier models and effort levels. Canonical copy stays in the AI Coding Best Practices knowledge base beside the governance source; this project does not carry a local copy. |
 | Monorepo Standard | Structuring or changing a monorepo, package boundaries, shared libraries, or workspace layout. |
 | Repository And Naming Standard | Naming repositories, files, modules, directories, and common project structure. |
 | Risk Classification Standard | Classifying risk tier, governance level, sensitive surfaces, or escalation needs. |
 | Security And Secrets Standard | Handling secrets, auth, permissions, private data, external credentials, or trust boundaries. |
 | Testing Standard | Choosing test levels, writing validation evidence, or judging test adequacy. |
+| Unattended Execution Standard (STD-AIC-003) | Running chunks without a human in the session and judging whether a run was acceptable. Canonical copy stays in the AI Coding Best Practices knowledge base beside the governance source; this project does not carry a local copy. |
 
 ## Context Routing
 

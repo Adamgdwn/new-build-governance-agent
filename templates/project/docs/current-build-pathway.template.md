@@ -10,14 +10,14 @@ Owner: Technical Lead
 
 ## Purpose
 
-This document is the live path from current plan to completed build. It keeps agent work small, timestamped, and easy to resume.
+This document is the live path from current plan to completed build. It keeps agent work small, timestamped, and easy to resume. It holds the header and the active chunks only; completed pathways move to `docs/archive/` with `Status: superseded`.
 
 ## Required Work Pattern
 
 For ordinary scoped work, use lean startup:
 
 1. Check `git status --short`.
-2. Read the short repo-local agent instructions.
+2. Read `AGENTS.md`.
 3. Use `docs/context-map.md` when context routing is unclear.
 4. Inspect only the specific files, errors, or docs needed for the task.
 5. Run targeted validation after the change.
@@ -32,75 +32,71 @@ For material or risk-triggering work sessions:
 6. Review `docs/standards/ship-ready-engineering-standard.md`.
 7. Review `project-control.yaml` and open exceptions.
 8. Capture a timestamp with `date -Iseconds`.
-9. Define the next build chunk in this document.
-10. Complete and validate that chunk before expanding scope.
+9. Plan once: write every chunk of the build below and get one owner approval of the whole plan.
+10. Run one chunk per fresh agent session; complete and validate it before expanding scope.
 11. Update this document with status, validation, and the next chunk.
 
 Risk-triggering work includes production, deployment, authentication, authorization, payments, secrets, sensitive data, database migrations, customer communications, external side effects, infrastructure or provider settings, destructive actions, autonomous tool use, risk classification, governance policy changes, or release readiness.
 
-After compaction or a context clear, restart from the latest handoff or active
-work packet, then run `git status --short`, read short repo-local instructions,
-and open only this plan plus the files needed for the next objective.
+After compaction or a context clear, restart from this document and `CARRY_FORWARD.md`, then run `git status --short`, read `AGENTS.md`, and open only the files the next chunk names.
+
+Unattended runs: when the project has the agent runner installed, `node scripts/agent/run-chunks.mjs` takes each `Status: Ready` chunk in turn, runs a worker in a fresh context, gates on the Validation commands, has an independent verifier check the acceptance criteria against evidence, and commits. The runner and its hooks are documented in the AI Coding Best Practices knowledge base (RUN-AIC-001, STD-AIC-003, STD-AIC-004).
 
 ## Chunking Standard
 
-Each build chunk should be small enough to fit comfortably in an agent context window.
+Approval happens once per plan, not once per chunk. Each chunk should fit comfortably in one agent context window and take about 25 minutes of unattended work.
 
 A good chunk has:
 
 - one objective
 - a budget class: Tiny, Small, Medium, Large, or Strategic
 - a target completion state
-- clear acceptance criteria
-- clear input files or documents
-- clear output files or behavior
-- explicit validation steps
+- a runner: `claude`, `codex`, or `human`
+- a `Files:` allow-list of the paths the chunk may change; hooks block writes outside it when the runner is installed
+- acceptance criteria an independent reviewer can check against evidence, not against the worker's claim
+- explicit validation commands
 - an explicit stop condition or escalation trigger
 - a timestamped status note
 
-Use second-level Markdown headings for active and planned chunks so they are easy to scan. Spell out the chunk number in the heading:
+Use third-level headings with a `P-NN` number so the unattended runner and its hooks can find each chunk:
 
 ```md
-## Chunk One - Short Objective
-## Chunk Two - Short Objective
+### P-01 - Short Objective
+### P-02 - Short Objective
 ```
 
-Continue the pattern for later chunks: `## Chunk Three - ...`, `## Chunk Four - ...`, and so on.
-
-Avoid mixing unrelated code, governance, deployment, and product decisions in one chunk unless the change cannot be validated any other way.
+Status vocabulary: `Ready`, `Running`, `Review`, `Done`, `Blocked`, `Deferred`. Only `Status:` and `Files:` are machine-read; everything else is for people and the verifier. Keep chunks independent enough to run in any order unless a chunk states what it depends on. Avoid mixing unrelated code, governance, deployment, and product decisions in one chunk unless the change cannot be validated any other way.
 
 ## Active Path
 
 | Step | Status | Timestamp | Owner | Notes |
 |------|--------|-----------|-------|-------|
-| Define current chunk | active | YYYY-MM-DD | Technical Lead | Replace this row with the current project-specific build step, target completion state, acceptance criteria, and stop condition. |
-| Validate chunk | pending | YYYY-MM-DD | Technical Lead | Record commands run and results. |
-| Handoff next chunk | pending | YYYY-MM-DD | Technical Lead | Leave the next agent a narrow, actionable start point. |
+| Write and approve the plan | active | YYYY-MM-DD | Technical Lead | Replace this row once every chunk below is written and the owner has approved the plan. |
+| Run the chunks | pending | YYYY-MM-DD | Agent | One chunk per fresh session, or `node scripts/agent/run-chunks.mjs` when installed. |
+| Human review of the Done chunks | pending | YYYY-MM-DD | Technical Lead | Read the diffs and the verifier verdicts; decide merge, push, and release. |
 
-## Chunk One - Current Objective
+## Chunks
 
-Status: planned
+### P-01 - Current Objective
+
+Status: Ready
 
 Completion target: Draft complete / Task complete / Integration complete / Release ready / Blocked
 
 Budget class: Tiny / Small / Medium / Large / Strategic
 
+Runner: claude / codex / human
+
+Files:
+
+- `path/to/file-or-folder-this-chunk-may-change`
+
 Objective:
 
 Acceptance criteria:
 
-- [ ] Criterion one
+- [ ] Criterion one, checkable from evidence
 - [ ] Criterion two
-
-Inputs:
-
-- `START_HERE.md`
-- `docs/context-map.md`
-- `docs/current-build-pathway.md`
-
-Outputs:
-
-- Replace with the files, behavior, evidence, or decision this chunk should produce.
 
 Validation:
 
@@ -113,10 +109,6 @@ Stop condition:
 Known gaps:
 
 - Replace with unverified items, deferred hardening, or risks.
-
-Next action:
-
-- Replace with the next bounded step.
 
 ## Timestamp Rule
 
@@ -135,4 +127,4 @@ date -Iseconds
 
 ## Next Handoff
 
-Next agent should use lean startup for ordinary scoped work: check `git status --short`, read short repo-local instructions, use `docs/context-map.md` when routing is unclear, inspect targeted files, and run targeted validation. After compaction or a context clear, resume from the latest handoff/work packet before loading more context. Use this file to identify the current chunk, budget class, target completion state, acceptance criteria, stop condition, validation status, known gaps, and next bounded action.
+The next session starts fresh: check `git status --short`, read `AGENTS.md`, take the first `Status: Ready` chunk above, and open only the files it names. After compaction or a context clear, resume from this document and `CARRY_FORWARD.md` before loading anything else.

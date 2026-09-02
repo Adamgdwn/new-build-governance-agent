@@ -1,128 +1,19 @@
-# AI Bootstrap Rules
+# AI Bootstrap
 
-## Purpose
-This repository must be workable by Claude, Codex, and local coding agents
-using the same operating rules.
+Last Updated: YYYY-MM-DD
+Status: draft
+Owner: Project Owner
 
-## Change rules
-- Prefer editing existing files over creating duplicate replacements.
-- Keep changes small and reversible.
-- Do not rename or move core files unless explicitly instructed.
-- Explain new dependencies before adding them.
-- Update docs when behavior, interfaces, or architecture change.
-- Build the smallest useful thing in the safest durable way.
-- Treat "works locally" as incomplete until validation, security/privacy impact, documentation, and rollback expectations are addressed.
-
-## Governance
-- For ordinary scoped work, start with `git status --short`, this file, and the specific files or errors relevant to the task.
-- Read `START_HERE.md` and follow the active plan named there, defaulting to `docs/current-build-pathway.md`, for material implementation work, unclear scope, handoffs, or changes that affect the active plan.
-- Use `docs/context-map.md` when deciding which docs, standards, or source areas to load.
-- Use `docs/standards/README.md` as the standards map for coding and release work.
-- Review `docs/standards/engineering-governance-by-use-case.md`, confirm the work matches `use_case.primary`, and do not override the selected `risk_tier` or `governance_level`.
-- Review `docs/policy/durable-development-engineering-policy.md` before meaningful implementation work.
-- Review `docs/standards/ship-ready-engineering-standard.md` before declaring meaningful work complete.
-- Use `docs/standards/context-hygiene-standard.md` for long sessions, scoped repository reads, compaction, and handoffs.
-- Run governance preflight for material or risk-triggering work:
-  `bash scripts/governance-preflight.sh`
-- Governance triggers include production, deployment, authentication, authorization, payments, secrets, sensitive data, database migrations, customer communications, external side effects, infrastructure or provider settings, destructive actions, autonomous tool use, risk classification, governance policy changes, or release readiness.
-- Review `project-control.yaml` for governance level, risk tier, and required controls.
-- Do not add temporary lean-out plans or one-off tool notes as permanent mandatory startup reads.
-- Record deviations as exceptions rather than ignoring them.
-- Capture the work timestamp with `date -Iseconds` and use it in material work notes, decisions, validation, and handoffs.
-
-## Work chunking
-- Work in context-window-friendly chunks.
-- Each chunk should have one objective, clear input files, clear output files or behavior, and explicit validation.
-- Each meaningful chunk should state its target completion state: `Draft complete`, `Task complete`, `Integration complete`, `Release ready`, or `Blocked`.
-- Project completion is a human decision. Agents may report only bounded completion states when criteria and verification evidence support them.
-- Stop when the chunk's definition of done is met, when its stop condition is reached, or when repeated attempts stop producing new evidence.
-- In the active plan document, keep active and planned chunk headings clear and consistent with that document's existing pattern.
-- Update the active plan named by `START_HERE.md` when the active chunk or next handoff changes.
-
-## Fundamentals-First AI Coding
-
-Build fundamentals-first software. AI speed does not make bad code cheap.
-
-Before meaningful coding, reach shared understanding. Use consistent domain language. Prefer deep modules with simple interfaces over shallow pass-through layers.
-
-Let feedback loops set the pace: types, tests, linting, runtime checks, and user-visible validation.
-
-Design interfaces deliberately, then implement in small vertical slices.
-
-Avoid flimsy pass-through layers, generic helpers, premature abstractions, swallowed errors, untyped blobs, duplicated business rules, hidden production assumptions, and fake validation claims.
-
-When you see weak design, flag it and propose the smallest safe improvement instead of rewriting the project.
-
-Every change should make the next correct change easier.
-
-## Code Complexity
-
-Treat cyclomatic complexity as a review signal, not a verdict. It roughly counts the decision routes through a function.
-
-For changed code, use the configured project tool when practical: 1-10 is ordinary review, 11-20 prompts design and branch-test review, and 21+ requires a coherent refactor or a recorded exception by default.
-
-Do not create shallow wrappers merely to lower a score. Keep inherently branch-heavy code when it is the clearest model, with focused tests and documented rationale. Use `docs/standards/code-complexity-control-standard.md` for the full control.
-
-## Periodic Governance Alignment
-
-At material planning or release-readiness work, check the last governance-alignment date. If it is absent or more than 90 days old, prompt for a bounded comparison with the New Build Governance Agent source.
-
-This is not an ordinary-startup requirement. Compare only relevant standards, review changes before applying them, and never overwrite local risk tiers, governance levels, exceptions, or owner decisions. Record the source revision, review date, outcome, and next review point. Use `docs/standards/governance-source-alignment-standard.md` for the full process.
-
-## Context Hygiene
-
-Operate with strict context hygiene. Keep active context minimal, relevant, current, and recoverable.
-
-Work in clear phases. Summarize at phase boundaries. Compact or reset before quality degrades. Re-state critical constraints after compaction.
-
-Narrow file scope before reading. Prefer targeted diffs and specific files over whole-repo exploration.
-
-Treat tokens as a budget, but do not skip required governance, security, architecture, or task-critical reading.
-
-Use lean startup: keep always-on checks short, and trigger heavy governance, Graphify, plugin, MCP, and release checks by task risk or scope.
-
-The repository remembers. Agents rent context. Keep work packets, scout summaries, validation, and handoffs durable enough that the next agent does not need the chat thread.
-
-Keep read-only scout outputs summary-only.
-
-After a compaction, context clear, or fresh restart, use the latest handoff or work packet as the resume point. Then check `git status --short`, read short repo-local instructions, follow the active plan named by `START_HERE.md` only when needed, and avoid archived logs or broad scans unless the current objective requires them.
-
-## Graphify Policy
-
-Use `docs/agent-governance.md` from the installed Graphify tool repository as the canonical Graphify policy (workspace installs commonly place it under `Tools/graphify/`).
-
-Before broad source exploration, architecture analysis, dependency tracing, unfamiliar large-surface work, or cross-repo planning, query the repo-local graph first when present. Use `graphify global path` and `graphify global list` to discover the configured cross-repo graph instead of assuming a user-specific filesystem layout. Use the configured global graph for cross-repo routing. For known files, build or test errors, small scoped edits, or routine docs checks, use normal repo inspection first. When a new repo becomes active, set up repo-local Graphify with `graphify-setup-project /path/to/repo`.
-
-For full semantic repo graphs in heavy active repos, run `/graphify /path/to/repo` from Claude Code. Current Graphify skills can use Claude Code subagents when no Gemini key is set, so policy should constrain token burn through per-repo scope, caching, strict ignores, and cheap updates rather than hard-coding a provider or extraction backend.
-
-After code changes, update the relevant graph with `graphify update . --no-cluster`, or update the workspace graph for cross-repo work.
-
-Do not trigger a full `/graphify` rebuild to answer a question, at session start, or after a context clear; query the existing graph instead. A full semantic pass is a deliberate, once-per-major-change act, roughly 1M subagent tokens. Routine refreshes use the cheap incremental `graphify update . --no-cluster`.
-
-Preserve existing secret-handling rules: do not index, print, summarize, or commit secrets or environment files.
-
-## GitHub Resource Efficiency
-
-Guardrails, not hard rails — apply judgment and say plainly when a task warrants departing from one. These bullets are self-contained; the full standard lives once in the New Build Governance Agent source repository at `docs/standards/github-resource-efficiency-standard.md` (STD-ENG-022). This project does not carry its own copy.
-
-- Git holds source, config, docs, and small durable assets. Generated output — build artifacts, dependency folders, caches, logs, datasets, installers, archives, graph output, database dumps — belongs in `.gitignore`, a release, or outside GitHub.
-- Classify any new non-text file over ~10 MiB before committing it: can it be regenerated, how often will it change, how long must it be kept, what is the cheapest place that fits. Do not split, zip, or rename a file to duck the question.
-- Ask the owner before anything that creates or grows a recurring GitHub cost: a paid feature, `git lfs track` or a broader LFS pattern, a larger or paid runner, a raised cache or retention limit, a changed budget. Bring the use case, a cheaper alternative, an expected monthly cost, and a way to undo it.
-- In Actions: relevant triggers, cheap checks before expensive ones, a timeout on every job, cancel superseded runs, shallow checkout, LFS checkout off unless the job reads the objects. Standard Linux runners unless another platform is genuinely under test.
-- Upload an artifact only when something downstream consumes it, with 1-7 day retention. Promote anything worth keeping to a release instead of a long-lived artifact.
-- Deleting to save cost is its own decision, not a side effect of cleanup. Releases, packages, caches, tags, LFS objects, and history rewrites get checked with the owner first. Removing a file today does not reclaim what history already stores; do not imply that it does.
+Commands only. The rules live in `AGENTS.md`; Claude Code imports it through `CLAUDE.md`, and Codex and other agents read it directly. The governance compliance report reads the `- Lint:`, `- Test:`, and `- Build:` lines below, so keep those labels exactly.
 
 ## Commands
-<!-- Replace these with the actual commands for this project -->
+
+<!-- Replace each placeholder with the real command. One command per line. -->
 - Install: `<fill in>`
-- Dev:     `<fill in>`
-- Lint:    `<fill in>`
-- Build:   `<fill in>`
-- Test:    `<fill in>`
-
-## Document control
-- Architecture decisions go in `docs/`
-- If code behavior changes, update the nearest controlled document in the same task
-
-## Completion standard
-A task is not complete until relevant validation is run or a blocker is clearly stated. Use honest completion labels: `Draft complete`, `Task complete`, `Integration complete`, `Release ready`, or `Blocked`. Do not declare a whole project complete unless an authorized human has made that decision.
+- Dev: `<fill in>`
+- Lint: `<fill in>`
+- Typecheck: `<fill in>`
+- Test: `<fill in>`
+- Build: `<fill in>`
+- Validate: `<fill in, or node scripts/agent/validate.mjs when the runner is installed>`
+- Preflight: `bash scripts/governance-preflight.sh`

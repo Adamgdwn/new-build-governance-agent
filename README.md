@@ -151,9 +151,9 @@ You run one command. You answer six questions. You get this:
 my-app/
 ├── README.md
 ├── START_HERE.md             ← current plan and handoff pointer for material work
-├── CLAUDE.md                 ← instructions for Claude / any AI assistant
-├── AGENTS.md                 ← multi-agent coordination rules
-├── AI_BOOTSTRAP.md           ← shared bootstrap rules for material or unclear work
+├── CLAUDE.md                 ← one line, `@AGENTS.md`; Claude Code imports the canonical file
+├── AGENTS.md                 ← canonical agent instructions for Claude Code, Codex, and other agents
+├── AI_BOOTSTRAP.md           ← project commands only (install, lint, test, build)
 ├── INITIAL_SCOPE.md          ← timestamped intake answers + first-session checklist
 ├── project-control.yaml      ← governance level, risk tier, owner, project type, controls
 ├── docs/
@@ -401,7 +401,7 @@ flowchart TD
 
 Starting a project with an AI assistant typically means no structure, no scope record, no clear rules for the AI to follow, and no paper trail of decisions. This framework fixes that from minute zero.
 
-- Every project gets a `CLAUDE.md` / `AI_BOOTSTRAP.md` so the AI knows how to behave in this codebase from the first message.
+- Every project gets one canonical `AGENTS.md` (imported by a one-line `CLAUDE.md`) so every coding agent knows how to behave in this codebase from the first message, and an `AI_BOOTSTRAP.md` that lists the project commands.
 - `project-control.yaml` records the governance level, risk tier, and owner so you can apply the right level of process.
 - `START_HERE.md` gives agents a shared plan and handoff pointer for material work without becoming a mandatory read for every small edit.
 - `INITIAL_SCOPE.md` captures why the project exists before any code is written, with a generated timestamp.

@@ -51,8 +51,18 @@ class ScaffoldProjectTests(unittest.TestCase):
             self.assertIn("governance_alignment:", control)
             self.assertIn("review_cadence_days: 90", control)
             self.assertIn("applicable: true", control)
-            for relative_path in ["AGENTS.md", "AI_BOOTSTRAP.md", "CLAUDE.md"]:
+            self.assertEqual("@AGENTS.md\n", (target / "CLAUDE.md").read_text(encoding="utf-8"))
+            bootstrap = (target / "AI_BOOTSTRAP.md").read_text(encoding="utf-8")
+            self.assertIn("- Lint:", bootstrap)
+            self.assertIn("- Test:", bootstrap)
+            self.assertIn("- Build:", bootstrap)
+            self.assertIn("AGENTS.md", bootstrap)
+            self.assertNotIn("Graphify Policy", bootstrap)
+            for relative_path in ["AGENTS.md"]:
                 instructions = (target / relative_path).read_text(encoding="utf-8")
+                self.assertLessEqual(len(instructions.splitlines()), 80)
+                self.assertIn("(hook: guard-protected-paths)", instructions)
+                self.assertIn("fresh session (`/clear`), not `/compact`", instructions)
                 self.assertIn("Fundamentals-First AI Coding", instructions)
                 self.assertIn("AI speed does not make bad code cheap", instructions)
                 self.assertIn("smallest safe improvement", instructions)
@@ -154,6 +164,11 @@ class ScaffoldProjectTests(unittest.TestCase):
             self.assertIn("Stop condition", pathway)
             self.assertIn("Known gaps", pathway)
             self.assertIn("After compaction or a context clear", pathway)
+            self.assertIn("### P-01 - ", pathway)
+            self.assertIn("Status: Ready", pathway)
+            self.assertIn("Runner:", pathway)
+            self.assertIn("Files:", pathway)
+            self.assertIn("Plan once", pathway)
 
     def test_scaffold_is_copy_if_missing(self):
         with tempfile.TemporaryDirectory() as tmp:

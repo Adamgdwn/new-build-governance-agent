@@ -8,6 +8,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_ROOT / "automation"))
 
 import change_control
+import scaffold_project
 
 
 class ChangeControlTests(unittest.TestCase):
@@ -196,6 +197,38 @@ class ChangeControlTests(unittest.TestCase):
 
             second_manifest = change_control.build_manifest(project)
             self.assertEqual([], second_manifest["actions"])
+
+    def test_import_only_instruction_files_receive_no_managed_blocks(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            project = Path(tmp) / "single-canonical"
+            project.mkdir()
+            (project / "AGENTS.md").write_text("# Agent Rules\n", encoding="utf-8")
+            (project / "CLAUDE.md").write_text("@AGENTS.md\n", encoding="utf-8")
+            (project / "AI_BOOTSTRAP.md").write_text("- Lint: npm run lint\n", encoding="utf-8")
+
+            manifest = change_control.build_manifest(project)
+            appended = {
+                action["relative_path"]
+                for action in manifest["actions"]
+                if action["action"] == "append_managed_block"
+            }
+
+            self.assertEqual({"AGENTS.md"}, appended)
+
+    def test_scaffolded_project_needs_no_managed_instruction_upgrade(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            target = Path(tmp) / "fresh-app"
+
+            scaffold_project.scaffold_project(target, "application", "2")
+            manifest = change_control.build_manifest(target)
+            appended = [
+                action
+                for action in manifest["actions"]
+                if action["action"] == "append_managed_block"
+            ]
+
+            self.assertEqual([], appended)
+            self.assertEqual("@AGENTS.md\n", (target / "CLAUDE.md").read_text(encoding="utf-8"))
 
     def test_document_control_manifest_syncs_standard_only(self):
         with tempfile.TemporaryDirectory() as tmp:

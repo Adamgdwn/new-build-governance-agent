@@ -628,6 +628,28 @@ def baseline_files_for_profile(profile: dict) -> dict[str, Path]:
     return files
 
 
+IMPORT_ONLY_INSTRUCTION_FILES = {"CLAUDE.md", "AI_BOOTSTRAP.md"}
+
+
+def is_single_canonical_instruction_layout(project_path: Path) -> bool:
+    """Return True when CLAUDE.md is a bare import of AGENTS.md.
+
+    In that layout AGENTS.md is the only instruction file that carries rules,
+    CLAUDE.md is `@AGENTS.md`, and AI_BOOTSTRAP.md holds commands only.
+    Appending managed blocks to those two files would make Claude load the
+    guidance twice and would break the import-only file.
+    """
+    claude = project_path / "CLAUDE.md"
+    if not claude.exists():
+        return False
+    lines = [
+        line.strip()
+        for line in claude.read_text(encoding="utf-8", errors="ignore").splitlines()
+        if line.strip()
+    ]
+    return bool(lines) and all(line.startswith("@") for line in lines)
+
+
 def has_managed_instruction_guidance(block: dict, text: str) -> bool:
     if block["start"] in text and block["end"] in text:
         return True
@@ -654,7 +676,10 @@ def build_manifest(project_path: Path) -> dict:
                 action["chmod"] = "+x"
             actions.append(action)
 
+    single_canonical = is_single_canonical_instruction_layout(project_path)
     for relative_path, blocks in MANAGED_INSTRUCTION_BLOCKS.items():
+        if single_canonical and relative_path in IMPORT_ONLY_INSTRUCTION_FILES:
+            continue
         target = project_path / relative_path
         if not target.exists():
             continue

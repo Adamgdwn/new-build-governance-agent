@@ -286,9 +286,9 @@ Every project receives:
 |------|---------|
 | `README.md` | Project description (from template — fill in) |
 | `START_HERE.md` | First file for agents; current plan and handoff pointer |
-| `CLAUDE.md` | Instructions loaded by Claude at the start of every session |
-| `AGENTS.md` | Rules for multi-agent coordination |
-| `AI_BOOTSTRAP.md` | Canonical project rules for any AI assistant — fill in the Commands section |
+| `CLAUDE.md` | One line, `@AGENTS.md`; Claude Code imports the canonical file |
+| `AGENTS.md` | Canonical instructions for Claude Code, Codex, and other coding agents (under 80 lines) |
+| `AI_BOOTSTRAP.md` | Project commands only — fill in the Commands section |
 | `INITIAL_SCOPE.md` | Timestamped intake answers, classification, and first-session checklist |
 | `project-control.yaml` | Governance level, risk tier, owner, project type, and required controls |
 | `docs/architecture.md` | Architecture overview |
@@ -512,7 +512,7 @@ python3 automation/compliance_report.py /path/to/project --json
 
 ### Fundamentals-first governance
 
-Generated projects now include fundamentals-first AI coding guidance in `AGENTS.md`, `AI_BOOTSTRAP.md`, and `CLAUDE.md`.
+Generated projects include fundamentals-first AI coding guidance in `AGENTS.md`, the single canonical instruction file. `CLAUDE.md` imports it and `AI_BOOTSTRAP.md` holds commands only, so the guidance is loaded once per session.
 
 The guidance tells AI and human builders to:
 
@@ -635,16 +635,15 @@ The framework stores both `governance_level` and `risk_tier`, and the two are se
 
 ### Claude
 
-`CLAUDE.md` is automatically read at the start of every Claude session in the project directory. It points Claude to `AI_BOOTSTRAP.md` as the canonical rule file.
+`CLAUDE.md` is automatically read at the start of every Claude Code session in the project directory. It contains one line, `@AGENTS.md`, which imports the canonical rule file. Do not add a `.claude/CLAUDE.md`; Claude Code would load both.
 
-`AI_BOOTSTRAP.md` is where you put:
-- The actual commands to install, run, test, and build the project
-- Any project-specific rules (e.g. "never modify the migrations directly")
-- A pointer to `project-control.yaml` for risk context
+`AGENTS.md` is where the rules live: what the project is, how a session starts, the owner-authorization boundaries, the governed read-only paths, the commit format, and how a chunk is finished. Keep it under 80 lines.
+
+`AI_BOOTSTRAP.md` is where you put the actual commands to install, run, lint, test, and build the project, one per line. The compliance report reads the `- Lint:`, `- Test:`, and `- Build:` lines.
 
 ### Other assistants (Codex, Cursor, etc.)
 
-`AGENTS.md` covers multi-agent coordination rules. `AI_BOOTSTRAP.md` is written to be read by any assistant, not just Claude. Point your assistant's configuration at `AI_BOOTSTRAP.md` at the start of each session.
+Codex reads `AGENTS.md` natively, and so do most other coding agents. Point any assistant that does not at `AGENTS.md` at the start of each session. The same file serves every tool, so there is nothing to keep in sync.
 
 Generated instruction files also include fundamentals-first AI coding guidance. The important behavior is simple: before meaningful coding, reach shared understanding, use consistent domain language, work in small validated slices, and flag weak design with the smallest safe improvement instead of broad rewrites.
 

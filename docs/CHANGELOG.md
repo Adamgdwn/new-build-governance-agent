@@ -1,11 +1,12 @@
 # Change Log
 
-Last Updated: 2026-08-31
+Last Updated: 2026-09-02
 Status: active
 Owner: Technical Lead
 
 ## Unreleased
 
+- Folded the approved AI Coding Best Practices pattern into the generated project templates: one canonical `AGENTS.md` (Claude Code imports it through a one-line `CLAUDE.md`), a commands-only `AI_BOOTSTRAP.md`, runner-readable pathway chunks (`### P-NN`, `Status: Ready`, `Runner:`, `Files:`), the plan-once, approve-once, fresh-session-per-chunk work pattern, AIC standards routed by name in the context map and standards index, and a change-control guard that never appends managed blocks to import-only instruction files. Standards in this repository are unchanged (Chunk Thirty-Eight).
 - Updated the public README, user guide, project manual, generated project documentation, automation reference, and GitHub repository metadata so the new complexity and periodic alignment controls are visible from the project landing page.
 - Added the Code Complexity Control Standard with plain-language guidance, advisory 1-10/11-20/21+ bands, test-linked review, anti-gaming rules, optional validated project controls, and scaffold/change-control distribution.
 - Added the Governance Source Alignment Standard and a lightweight 90-day prompt so active builds periodically compare relevant local controls with this source without making governance sync an ordinary-startup requirement or silently overwriting project decisions.

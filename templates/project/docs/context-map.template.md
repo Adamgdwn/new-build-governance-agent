@@ -27,6 +27,7 @@ Keep these files compact. They should route to durable docs, not duplicate them.
 |---|---|
 | Current plan, chunking, validation, or handoff | Active plan named by `START_HERE.md`; default `docs/current-build-pathway.md` |
 | Engineering standards map | `docs/standards/README.md` |
+| Writing or slimming agent instruction files, writing chunks, running chunks unattended, hooks, or model and effort routing | `AGENTS.md` first; the canonical standards (STD-AIC-001 to STD-AIC-005) live in the AI Coding Best Practices knowledge base beside the governance source, not in this project |
 | Context windows, token budgets, compaction, scoped reads, or handoffs | `docs/standards/context-hygiene-standard.md` |
 | Durable implementation, design quality, testing discipline, or AI coding fundamentals | `docs/policy/durable-development-engineering-policy.md` |
 | Cyclomatic complexity, branch-heavy code, complexity thresholds, or related exceptions | `docs/standards/code-complexity-control-standard.md` |
