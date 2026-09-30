@@ -30,6 +30,7 @@ Keep these files compact. They should route to durable docs, not duplicate them.
 | Engineering standards map | `docs/standards/README.md` |
 | Context windows, token budgets, compaction, scoped reads, or handoffs | `docs/standards/context-hygiene-standard.md` |
 | Durable implementation, design quality, testing discipline, or AI coding fundamentals | `docs/policy/durable-development-engineering-policy.md` |
+| Product lifecycle for a project intended for sale: market validation, pre-sale, feature priority, commercial readiness, or funding, credits and partners | `docs/standards/build-to-sale-lifecycle-standard.md` (Part A first; open Part B sections as needed) |
 | Cyclomatic complexity, branch-heavy code, complexity thresholds, or related exceptions | `docs/standards/code-complexity-control-standard.md` |
 | Periodic governance check-back, source comparison, or control updates | `docs/standards/governance-source-alignment-standard.md` |
 | Governance level meaning, level-to-tier crosswalk, or agent-action tiers | `docs/standards/governance-level-standard.md` |

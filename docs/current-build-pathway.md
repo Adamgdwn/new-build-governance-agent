@@ -1,6 +1,6 @@
 # Current Build Pathway
 
-Last Updated: 2026-09-02
+Last Updated: 2026-09-30
 Status: active
 Owner: Technical Lead
 
@@ -53,6 +53,37 @@ Use second-level Markdown headings for active and planned chunks:
 ## Chunk One - Short Objective
 ## Chunk Two - Short Objective
 ```
+
+## Chunk Thirty-Nine - Build-To-Sale Lifecycle Standard
+
+Status: complete
+
+Completion target: Integration complete
+
+Budget class: Small
+
+Timestamp: 2026-09-30T10:43:32-06:00
+
+Objective: make the owner-supplied Build-to-Sale Operating System a cross-project standard, so projects intended for sale carry market validation, pre-sale, commercial readiness and a funding, credits and partners search alongside the existing engineering controls.
+
+Owner decision: Adam Goodwin, 2026-09-30, approved cross-project use after it was first applied to Span OS, and asked that the lifecycle include a search for grants, loans, hosting credits and partners.
+
+Acceptance criteria:
+
+- [x] `docs/standards/build-to-sale-lifecycle-standard.md` (STD-ENG-025) holds adoption rules in Part A (scope, relationship to existing standards, core rules, funding/credits/partners track, agent boundaries, document locations) and the source framework as Part B, with headings shifted one level and text otherwise unchanged.
+- [x] The standards index, context map and governance-source alignment examples route to it. It is not a mandatory startup read.
+- [x] The workspace-level `CLAUDE.md` carries a short summary, following the STD-ENG-022 distribution pattern.
+- [x] A carry-forward flag records the deferred distribution work.
+
+Not done, deliberately:
+
+- No scaffold template, managed-upgrade block, `project-control.yaml` field or schema change. The owner decides scope and order (carry-forward flag).
+- No alignment review of existing projects. Span OS applied the framework directly on 2026-09-30; GazeCut and others have not been reviewed.
+
+Validation:
+
+- `PYTHON=py bash scripts/validate.sh` exit 0: compliance (0 required gaps), schema, lint, secret scan, 129 unit tests.
+- `py automation/governance_audit.py .`: 0 blockers, 0 required gaps, 3 warnings (existing carry-forward flags due for review). Report: `docs/audits/governance-audit-2026-09-30.md`.
 
 ## Chunk Thirty-Eight - AI Coding Best Practices Fold-In
 
@@ -185,6 +216,7 @@ Stop condition: stop before any risk-tier/governance-level decision, dependency 
 | Chunk Thirty-Five - Repository Audit And Portability Remediation | complete | 2026-08-31 | Audit/control records refreshed, portable Graphify discovery added, the validation toolchain pinned, and current GitHub Actions bounded and upgraded; CI and Windows packaging passed. |
 | Chunk Thirty-Six - Complexity Controls And Governance Alignment | complete | 2026-08-31T13:24:17-06:00 | STD-ENG-023 and STD-ENG-024 added; advisory complexity controls and 90-day check-back prompts distributed through source instructions, scaffolds, managed upgrades, and the workspace umbrella. |
 | Chunk Thirty-Seven - Public Documentation And GitHub Metadata | complete | 2026-08-31T13:49:39-06:00 | Public and generated documentation now explain the controls; GitHub description and topics surface the addition without creating an unapproved version release. |
+| Chunk Thirty-Nine - Build-To-Sale Lifecycle Standard | complete | 2026-09-30T10:43:32-06:00 | STD-ENG-025 added as a single canonical copy with a workspace `CLAUDE.md` summary; scaffold and upgrade distribution deferred to a carry-forward flag. |
 
 Full history: `docs/archive/pathway-history.md`
 

@@ -85,6 +85,7 @@ checking include:
 - code complexity review and its advisory-to-enforced rollout
 - context hygiene and bounded agent work
 - ship-readiness evidence
+- the build-to-sale lifecycle, for projects intended for external customers or sale
 - GitHub resource efficiency
 - agent autonomy, tool permissions, and human oversight
 

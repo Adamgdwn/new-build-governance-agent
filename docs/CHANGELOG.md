@@ -1,11 +1,12 @@
 # Change Log
 
-Last Updated: 2026-09-02
+Last Updated: 2026-09-30
 Status: active
 Owner: Technical Lead
 
 ## Unreleased
 
+- Added the Build-To-Sale Lifecycle Standard (STD-ENG-025): lifecycle phase status, evidence-based phase exits, validation instruments, P0-P3 priority, four definitions of done, and a funding, credits and partners track, with the owner-supplied Build-to-Sale Operating System as Part B. Single canonical copy with a short workspace `CLAUDE.md` summary; scaffold and upgrade distribution deferred (Chunk Thirty-Nine).
 - Folded the approved AI Coding Best Practices pattern into the generated project templates: one canonical `AGENTS.md` (Claude Code imports it through a one-line `CLAUDE.md`), a commands-only `AI_BOOTSTRAP.md`, runner-readable pathway chunks (`### P-NN`, `Status: Ready`, `Runner:`, `Files:`), the plan-once, approve-once, fresh-session-per-chunk work pattern, AIC standards routed by name in the context map and standards index, and a change-control guard that never appends managed blocks to import-only instruction files. Standards in this repository are unchanged (Chunk Thirty-Eight).
 - Updated the public README, user guide, project manual, generated project documentation, automation reference, and GitHub repository metadata so the new complexity and periodic alignment controls are visible from the project landing page.
 - Added the Code Complexity Control Standard with plain-language guidance, advisory 1-10/11-20/21+ bands, test-linked review, anti-gaming rules, optional validated project controls, and scaffold/change-control distribution.
