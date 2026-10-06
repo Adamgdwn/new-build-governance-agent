@@ -8,7 +8,7 @@ description: |
   project-control.yaml, INITIAL_SCOPE.md, docs/, scripts/) and registers
   the project in the local registry.
 version: "0.3.0"
-owner: adamgoodwin@shaw.ca
+owner: "@Adamgdwn"
 tags: [scaffolding, governance, build-lane]
 
 intent:

@@ -11,7 +11,7 @@
 
 Do **not** open a public GitHub issue for security vulnerabilities.
 
-Email **adamgoodwin@shaw.ca** with:
+Report it privately through GitHub: use **Security -> Report a vulnerability** on this repository if private reporting is enabled, or contact the maintainer, **@Adamgdwn**, on GitHub and ask for a private channel. Include:
 - A description of the vulnerability and the affected component
 - Steps to reproduce or a minimal proof of concept
 - Any suggested mitigations if you have them
