@@ -181,44 +181,7 @@ fi
 
 SLUG="$("${PYTHON[@]}" "${AUTOMATION}/project_naming.py" slug "$PROJECT_NAME")" || exit 1
 
-# ── plan preview (mirrors new_build.ps1; headless owns the real routing) ──────
-
-if [[ -n "${NEW_BUILD_CODE_ROOT:-}" ]]; then
-  CODE_ROOT="${NEW_BUILD_CODE_ROOT}"
-else
-  parent="$(cd "${GOVERNANCE_HOME}/.." && pwd)"
-  parent_name="$(basename "$parent")"
-  if [[ "$parent_name" == "code" || "$parent_name" == "01. Code Projects" ]]; then
-    CODE_ROOT="$parent"
-  else
-    CODE_ROOT="${HOME}/code"
-  fi
-fi
-if [[ "$BUILD_TYPE" == "agent" || "$GOVERNANCE_TYPE" == "agent" ]]; then
-  TARGET_DIR="${CODE_ROOT}/agents/${SLUG}"
-else
-  TARGET_DIR="${CODE_ROOT}/Applications/${SLUG}"
-fi
-
-echo
-echo "Plan"
-echo "  Name:       ${PROJECT_NAME}"
-echo "  Slug:       ${SLUG}"
-echo "  Type:       ${BUILD_TYPE}"
-echo "  Governance: ${GOVERNANCE_LEVEL}"
-echo "  Builder:    ${PRIMARY_BUILDER}"
-echo "  Stack:      ${STACK}"
-echo "  Location:   ${TARGET_DIR}"
-if [[ -d "$TARGET_DIR" ]]; then
-  echo "  Warning: location already exists. Existing files will not be overwritten."
-fi
-CONFIRM="$(read_choice "Create this project?" "" yes no)"
-if [[ "$CONFIRM" != "yes" ]]; then
-  echo "Aborted."
-  exit 0
-fi
-
-# ── delegate to the headless entry point ──────────────────────────────────────
+# ── build the request once: the preview and the real run both read it ─────────
 
 PARAMS_JSON="$(
   NB_PROJECT_NAME="$PROJECT_NAME" \
@@ -250,5 +213,43 @@ if governance_type:
 print(json.dumps(params))
 PYEOF
 )"
+
+# ── plan preview: headless --plan runs the real routing and writes nothing ────
+
+PLAN_JSON="$(printf '%s\n' "$PARAMS_JSON" | "${PYTHON[@]}" "$HEADLESS" --plan 2>/dev/null | tail -n 1)" || true
+TARGET_DIR="$(printf '%s' "$PLAN_JSON" | "${PYTHON[@]}" -c '
+import json
+import sys
+
+try:
+    plan = json.load(sys.stdin)
+except ValueError:
+    print("Error: the headless planner returned no plan.", file=sys.stderr)
+    sys.exit(1)
+if plan.get("status") != "planned":
+    print("Error: " + plan.get("error", "the project could not be planned"), file=sys.stderr)
+    sys.exit(1)
+print(plan["project_path"])
+')" || exit 1
+
+echo
+echo "Plan"
+echo "  Name:       ${PROJECT_NAME}"
+echo "  Slug:       ${SLUG}"
+echo "  Type:       ${BUILD_TYPE}"
+echo "  Governance: ${GOVERNANCE_LEVEL}"
+echo "  Builder:    ${PRIMARY_BUILDER}"
+echo "  Stack:      ${STACK}"
+echo "  Location:   ${TARGET_DIR}"
+if [[ -d "$TARGET_DIR" ]]; then
+  echo "  Warning: location already exists. Existing files will not be overwritten."
+fi
+CONFIRM="$(read_choice "Create this project?" "" yes no)"
+if [[ "$CONFIRM" != "yes" ]]; then
+  echo "Aborted."
+  exit 0
+fi
+
+# ── delegate to the headless entry point ──────────────────────────────────────
 
 printf '%s\n' "$PARAMS_JSON" | "${PYTHON[@]}" "$HEADLESS"

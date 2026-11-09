@@ -1,6 +1,6 @@
 # Architecture Overview
 
-Last reviewed: 2026-08-31T12:16:25-06:00
+Last reviewed: 2026-11-08T19:59:12-06:00
 Status: active
 Owner: Technical Lead
 
@@ -35,12 +35,12 @@ The repository itself is the source of truth for governance templates, standards
 6. Promotion plans are written as JSON in `data/new-build-governance-agent/exports/`.
 7. Checks read promotion plans and write check reports.
 8. GitHub execution reads an approved plan, stages approved files, commits, pushes, and may create a draft PR.
-9. Env and Stripe tools read `~/code/.env.master`; reports are redacted and secret values are not printed.
+9. Env and Stripe tools read `.env.master` in the code root (default `~/code/.env.master`); reports are redacted and secret values are not printed.
 
 ## Trust Boundaries
 
-- The repository may write under `NEW_BUILD_CODE_ROOT/{agents,Applications}` (or the workspace-derived/default code root) and `data/new-build-governance-agent`.
-- Env tooling may read and write `~/code/.env.master` and project env files.
+- The repository may write under the code root's agents and applications category folders (`NEW_BUILD_CODE_ROOT`, or the workspace-derived/default code root; existing numbered folders such as `03. Agents` are reused, see `automation/workspace_paths.py`) and `data/new-build-governance-agent`.
+- Env tooling may read and write `.env.master` in the code root and project env files.
 - GitHub publishing uses the local `gh` authentication state.
 - Stripe provisioning can call Stripe APIs only when explicitly invoked with a reviewed plan.
 - Use-case classification informs controls but does not override selected `risk_tier` or `governance_level`.

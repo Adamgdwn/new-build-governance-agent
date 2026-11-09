@@ -96,7 +96,9 @@ New Build Governance Agent keeps the same project categories on every machine:
 - `agents` for AI agent projects
 - `Applications` for apps, tools, automations, and other builds
 
-By default, generated projects are created under your code workspace. If the agent is installed inside a folder named `code` or `01. Code Projects`, that parent folder becomes the project root. Otherwise, the default is `~/code`.
+By default, generated projects are created under your code workspace. If the agent is installed inside a folder named `code` or `Code Projects`, that folder becomes the project root; if it is installed inside a category folder (for example `<root>/agents/new-build-governance-agent`), the folder above it is the root. Otherwise, the default is `~/code`.
+
+Folder names may carry a numeric ordering prefix, so `01. Code`, `03. Agents`, and `02. Applications` work like `code`, `agents`, and `Applications`. An existing category folder is always reused, so the agent never creates a plain `Applications` folder beside your `02. Applications`.
 
 Set `NEW_BUILD_CODE_ROOT` before launching the agent when you want a different project root:
 

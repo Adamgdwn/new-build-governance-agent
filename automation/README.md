@@ -455,19 +455,22 @@ python3 automation/stripe_provision.py apply --plan data/new-build-governance-ag
 
 ## master_env.py — Master Env Population Helper
 
-Inspects and populates the private master env file without printing secret values.
-Use this before `env_sync.py` when you are collecting provider credentials from
-Supabase, Vercel, Stripe, Resend, OpenAI, Anthropic, and similar systems.
+Inspects and updates the private master env file without printing secret values.
+Use this before `env_sync.py` when you are collecting shared provider credentials
+from Supabase, Vercel, Stripe, Resend, OpenAI, Anthropic, and similar systems.
 
-The master env should hold both:
+The master env should hold reviewed, cross-project values only:
 - **Control-plane credentials**: account/org tokens that allow governed automation
   to create or configure provider resources, such as `SUPABASE_ACCESS_TOKEN`,
   `SUPABASE_ORG_ID`, `VERCEL_TOKEN`, `VERCEL_TEAM_ID`, `STRIPE_SECRET_KEY`, or
   `STRIPE_RESTRICTED_KEY`. Populate these first when the goal is to let AI
   building agents create provider-side resources on your behalf.
-- **Project runtime credentials**: URLs, project refs, publishable keys,
-  service-role keys, database URLs, webhook secrets, and other values generated
-  for one specific app or environment.
+- **Shared service configuration**: non-project-specific provider URLs, model
+  defaults, and workspace runtime configuration.
+
+Project runtime credentials (project refs, publishable or secret keys, database
+URLs, webhook secrets, and app-specific values) belong in the owning project's
+ignored `.env` or `.env.local` file.
 
 **Examples:**
 ```bash
@@ -475,18 +478,25 @@ python3 automation/master_env.py status
 python3 automation/master_env.py status --control-plane
 python3 automation/master_env.py missing --priority
 python3 automation/master_env.py missing --control-plane
-python3 automation/master_env.py set SUPABASE_URL SUPABASE_SERVICE_ROLE_KEY
+python3 automation/master_env.py set SUPABASE_ACCESS_TOKEN VERCEL_TOKEN
 python3 automation/master_env.py merge --source ~/Downloads/provider.env
 ```
 
 **Governance behavior:**
-- Defaults to `~/code/.env.master`.
+- Defaults to `.env.master` in the code root (`~/code/.env.master` unless the
+  code root is configured or detected; see `workspace_paths.py`).
 - Prompts with hidden input by default for `set`.
 - Does not print secret values.
 - Preserves existing values unless `--overwrite` is passed.
 - Writes the master env file with owner-only `600` permissions.
+- Allows `set` and `merge` only for keys already reviewed into the master
+  registry; it reports and ignores unregistered keys from a source file.
 - Keeps the master env outside individual project folders so one app does not
-  accidentally own or commit organization-level provider access.
+  accidentally own, commit, or repopulate organization-level provider access.
+
+To introduce a new shared key, review its ownership and add it to the private
+master registry deliberately before using this helper. Do not use the helper to
+promote project-local keys.
 
 ---
 

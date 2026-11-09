@@ -74,7 +74,7 @@ agents        AI agent projects
 Applications  apps, tools, automations, and other builds
 ```
 
-By default, generated projects are created under your code workspace. If this agent is installed inside `code` or `01. Code Projects`, that parent folder is used. Otherwise, the default is `%USERPROFILE%\code`.
+By default, generated projects are created under your code workspace. If this agent is installed inside `code` or `Code Projects`, that parent folder is used. If it is installed inside a category folder (for example `<root>\agents\new-build-governance-agent`), the folder above it is used. Folder names may carry a numeric ordering prefix (`01. Code`, `03. Agents`, `02. Applications`), and an existing category folder is always reused. Otherwise, the default is `%USERPROFILE%\code`.
 
 Set `NEW_BUILD_CODE_ROOT` before launching when you want a specific project root:
 
@@ -117,7 +117,7 @@ agents        AI agent projects
 Applications  apps, tools, automations, and other builds
 ```
 
-By default, generated projects are created under your code workspace. If this agent is installed inside `code` or `01. Code Projects`, that parent folder is used. Otherwise, the default is `~/code`.
+By default, generated projects are created under your code workspace. If this agent is installed inside `code` or `Code Projects`, that parent folder is used. If it is installed inside a category folder (for example `<root>/agents/new-build-governance-agent`), the folder above it is used. Folder names may carry a numeric ordering prefix (`01. Code`, `03. Agents`, `02. Applications`), and an existing category folder is always reused. Otherwise, the default is `~/code`.
 
 Set `NEW_BUILD_CODE_ROOT` before launching when you want a specific project root:
 

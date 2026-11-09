@@ -10,8 +10,8 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT / "automation"))
-from env_file import parse_env_file, update_env_values  # noqa: E402
-from workspace_paths import default_code_root  # noqa: E402
+from env_file import parse_env_file, update_env_values
+from workspace_paths import default_code_root
 
 DEFAULT_MASTER = default_code_root(REPO_ROOT) / ".env.master"
 MASTER_FILE_HEADER = [
@@ -81,6 +81,11 @@ def update_values(path: Path, updates: dict[str, str], overwrite: bool) -> dict[
     )
 
 
+def registered_master_keys(path: Path) -> set[str]:
+    """Return the reviewed shared-service keys already present in the registry."""
+    return set(parse_env_file(path).keys())
+
+
 def cmd_status(args: argparse.Namespace) -> int:
     values = parse_env_file(Path(args.master).expanduser())
     keys = args.key or (CONTROL_PLANE_KEYS if args.control_plane else PRIORITY_KEYS)
@@ -112,6 +117,16 @@ def read_prompted_value(key: str, visible: bool) -> str:
 
 def cmd_set(args: argparse.Namespace) -> int:
     master = Path(args.master).expanduser()
+    registered_keys = registered_master_keys(master)
+    unregistered = sorted(set(args.key) - registered_keys)
+    if unregistered:
+        for key in unregistered:
+            print(
+                f"Rejected {key}: it is not a reviewed shared-service key in {master}",
+                file=sys.stderr,
+            )
+        return 2
+
     updates: dict[str, str] = {}
     for key in args.key:
         value = args.value
@@ -130,12 +145,27 @@ def cmd_set(args: argparse.Namespace) -> int:
 def cmd_merge(args: argparse.Namespace) -> int:
     master = Path(args.master).expanduser()
     source = Path(args.source).expanduser()
+    registered_keys = registered_master_keys(master)
     source_values = parse_env_file(source)
     if args.key:
+        unregistered = sorted(set(args.key) - registered_keys)
+        if unregistered:
+            for key in unregistered:
+                print(
+                    f"Rejected {key}: it is not a reviewed shared-service key in {master}",
+                    file=sys.stderr,
+                )
+            return 2
         source_values = {key: source_values[key] for key in args.key if source_values.get(key)}
+
+    unregistered_source_keys = sorted(set(source_values) - registered_keys)
+    source_values = {
+        key: value for key, value in source_values.items() if key in registered_keys and value
+    }
     applied = update_values(master, source_values, args.overwrite)
     print(f"source\t{source}")
     print(f"candidate_keys\t{len(source_values)}")
+    print(f"ignored_unregistered_keys\t{len(unregistered_source_keys)}")
     print(f"applied_keys\t{len(applied)}")
     for key, action in sorted(applied.items()):
         print(f"{action}\t{key}")

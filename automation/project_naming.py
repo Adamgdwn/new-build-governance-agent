@@ -59,6 +59,8 @@ GOV_TYPES = frozenset(
         "agentic-harness",
     }
 )
+# Project types created in the agents category folder; all others go to applications.
+AGENT_PROJECT_TYPES = frozenset({"agent", "agentic-harness"})
 GOVERNANCE_LEVELS = frozenset({"0", "1", "2", "3", "4"})
 RISK_TIERS = frozenset({"low", "medium", "high", "critical"})
 GOVERNANCE_TO_RISK = {

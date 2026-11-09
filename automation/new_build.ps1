@@ -79,20 +79,6 @@ function ConvertTo-Slug {
     return $slug.Trim("-")
 }
 
-function Get-CodeRoot {
-    if (-not [string]::IsNullOrWhiteSpace($env:NEW_BUILD_CODE_ROOT)) {
-        return $env:NEW_BUILD_CODE_ROOT
-    }
-
-    $parent = Split-Path -Parent $RepoRoot
-    $parentName = Split-Path -Leaf $parent
-    if ($parentName -in @("code", "01. Code Projects")) {
-        return $parent
-    }
-
-    return (Join-Path $HOME "code")
-}
-
 $python = Get-PythonCommand
 $pythonExe = $python[0]
 $pythonPrefix = @()
@@ -164,15 +150,43 @@ if ($reservedSlugs -contains $slug.ToLowerInvariant()) {
     Write-Error "Slug '$slug' is a reserved OS name. Choose a different project name."
     exit 1
 }
-$codeRoot = Get-CodeRoot
-$agentsRoot = Join-Path $codeRoot "agents"
-$applicationsRoot = Join-Path $codeRoot "Applications"
-New-Item -ItemType Directory -Force -Path $agentsRoot, $applicationsRoot | Out-Null
-if ($BuildType -eq "agent" -or $GovernanceType -eq "agent") {
-    $targetDir = Join-Path $agentsRoot $slug
-} else {
-    $targetDir = Join-Path $applicationsRoot $slug
+# Build the request once: the preview and the real run both read it.
+$params = @{
+    project_name = $ProjectName
+    build_type = $BuildType
+    governance_level = $GovernanceLevel
+    primary_builder = $PrimaryBuilder
+    stack = $Stack
+    scope_problem = $ScopeProblem
+    scope_user = $ScopeUser
+    scope_mvp = $ScopeMvp
 }
+if (-not [string]::IsNullOrWhiteSpace($GovernanceType)) {
+    $params["governance_type"] = $GovernanceType
+}
+$json = $params | ConvertTo-Json -Depth 5 -Compress
+
+# Preview through headless --plan, which runs the real routing and writes nothing.
+# Only stdout is captured: redirecting a native command's stderr turns progress
+# lines into terminating errors under Windows PowerShell 5.1 with Stop.
+$planOutput = $json | & $pythonExe @pythonPrefix $Headless --plan
+$plan = $null
+if ($planOutput) {
+    try {
+        $plan = ($planOutput | Select-Object -Last 1) | ConvertFrom-Json
+    } catch {
+        $plan = $null
+    }
+}
+if ($null -eq $plan -or $plan.status -ne "planned") {
+    $reason = "the headless planner returned no plan"
+    if ($null -ne $plan -and $plan.error) {
+        $reason = $plan.error
+    }
+    Write-Error "Could not plan this project: $reason"
+    exit 1
+}
+$targetDir = $plan.project_path
 
 Write-Host ""
 Write-Host "Plan"
@@ -192,20 +206,5 @@ if ($confirm -ne "yes") {
     exit 0
 }
 
-$params = @{
-    project_name = $ProjectName
-    build_type = $BuildType
-    governance_level = $GovernanceLevel
-    primary_builder = $PrimaryBuilder
-    stack = $Stack
-    scope_problem = $ScopeProblem
-    scope_user = $ScopeUser
-    scope_mvp = $ScopeMvp
-}
-if (-not [string]::IsNullOrWhiteSpace($GovernanceType)) {
-    $params["governance_type"] = $GovernanceType
-}
-
-$json = $params | ConvertTo-Json -Depth 5 -Compress
 $json | & $pythonExe @pythonPrefix $Headless
 exit $LASTEXITCODE

@@ -46,10 +46,12 @@ from self_update import (
 from update_check import check_for_updates  # noqa: E402
 from update_check import format_result as format_update_check_result
 from version import get_version  # noqa: E402
-from workspace_paths import default_code_root, ensure_category_roots  # noqa: E402
+from workspace_paths import category_roots, default_code_root, ensure_category_roots  # noqa: E402
 
+# Resolved without side effects so importing this module (as the tests do) never
+# creates folders; main() creates any missing category folder at launch.
 CODE_ROOT = default_code_root(GOVERNANCE_HOME)
-AGENTS_ROOT, APPS_ROOT = ensure_category_roots(GOVERNANCE_HOME)
+AGENTS_ROOT, APPS_ROOT = category_roots(GOVERNANCE_HOME)
 
 try:
     import tkinter as tk
@@ -2490,7 +2492,7 @@ class App(TkBase):
             title="Select governed project",
             initialdir=str(Path(self.v_change_project.get()).expanduser().resolve().parent)
             if self.v_change_project.get()
-            else str(Path.home() / "code"),
+            else str(CODE_ROOT),
         )
         if selected:
             self.v_change_project.set(selected)
@@ -2502,7 +2504,7 @@ class App(TkBase):
             title="Select repo for document control",
             initialdir=str(Path(self.v_doc_project.get()).expanduser().resolve().parent)
             if self.v_doc_project.get()
-            else str(Path.home() / "code"),
+            else str(CODE_ROOT),
         )
         if selected:
             self.v_doc_project.set(selected)
@@ -3561,6 +3563,7 @@ def main() -> None:
                 "Tkinter is not available for this Python installation. "
                 "Install python3-tk and relaunch New Build Governance Agent."
             )
+        ensure_category_roots(GOVERNANCE_HOME)
         App().mainloop()
     except Exception as exc:
         details = "".join(traceback.format_exception(exc))

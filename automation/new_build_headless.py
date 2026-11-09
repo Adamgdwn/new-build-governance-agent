@@ -5,6 +5,9 @@ New Build Governance Agent — headless wrapper.
 Reads one JSON object from stdin, scaffolds a governed project, emits one JSON
 object to stdout as the last line. Progress lines go to stderr.
 
+With ``--plan`` it validates and routes the same input but writes nothing, and
+reports ``status: planned`` with the project path a real run would use.
+
 Called by the Freedom dispatcher via params_transport: stdin_json.
 """
 
@@ -21,6 +24,7 @@ REGISTRY = GOVERNANCE_HOME / "automation" / "project_registry.py"
 
 sys.path.insert(0, str(GOVERNANCE_HOME / "automation"))
 from project_naming import (  # noqa: E402,F401
+    AGENT_PROJECT_TYPES,
     BUILD_TYPE_GOV_MAP,
     GOV_TYPES,
     GOVERNANCE_LEVELS,
@@ -63,7 +67,7 @@ def fail(msg: str, slug: str = "", project_path: str = "") -> None:
 
 
 def resolve_target_root(build_type: str, governance_type: str) -> Path:
-    if build_type == "agent" or governance_type == "agent":
+    if build_type == "agent" or governance_type in AGENT_PROJECT_TYPES:
         return AGENTS_ROOT
     return APPS_ROOT
 
@@ -101,6 +105,10 @@ def main() -> None:
         if update_result.status not in {"updated", "up_to_date", "would_update"}:
             sys.exit(2)
         return
+
+    # --plan runs the same validation and routing as a real build, then stops
+    # before writing anything. The terminal launchers use it for their preview.
+    plan_only = len(sys.argv) > 1 and sys.argv[1] == "--plan"
 
     raw = sys.stdin.read()
     try:
@@ -147,6 +155,23 @@ def main() -> None:
         f"name={project_name!r} slug={slug!r} type={governance_type} "
         f"governance_level={governance_level} target={target_dir}"
     )
+
+    if plan_only:
+        print(
+            json.dumps(
+                {
+                    "status": "planned",
+                    "project_path": str(target_dir),
+                    "slug": slug,
+                    "governance_type": governance_type,
+                    "governance_level": governance_level,
+                    "risk_tier": risk_tier,
+                    "already_exists": target_dir.exists(),
+                }
+            ),
+            flush=True,
+        )
+        return
 
     if target_dir.exists():
         progress("Directory already exists — returning already-existed.")

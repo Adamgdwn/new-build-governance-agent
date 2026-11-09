@@ -1,6 +1,6 @@
 # Current Build Pathway
 
-Last Updated: 2026-09-30
+Last Updated: 2026-11-08
 Status: active
 Owner: Technical Lead
 
@@ -53,6 +53,60 @@ Use second-level Markdown headings for active and planned chunks:
 ## Chunk One - Short Objective
 ## Chunk Two - Short Objective
 ```
+
+## 2026-11-08 Frontier Refresh Plan
+
+Owner request, 2026-11-08: research current AI engineering practice (the AI Engineer channel, frontier-lab guidance, independent practitioners), write per-build-type instructions that agents can be given, refresh this repository's rules for current frontier models, place Jev and Laya where they add the most value, treat a harness as what people mean by "agent", and finish the unfinished 2026-09-05 path work.
+
+Owner decisions, Adam Goodwin, 2026-11-08:
+
+- Fix the Freedom dispatcher so `freedom.tool.yaml` keeps a portable `cwd: "."`.
+- Align this repository's own chunk close-out with the fresh-session-per-chunk pattern (ADR-0002 in the AI Coding Practices knowledge base). This resolves the matching carry-forward flag.
+- Merge the intake's "AI helper" and "agentic harness" choices into one "AI agent (harness)" choice.
+- Frontier updates to AI Coding Practices topics go into a dated change proposal for that knowledge base. The knowledge base itself is not edited.
+
+| Chunk | Objective | Budget class | Status |
+|---|---|---|---|
+| Forty | Workspace paths and preview routing | Small | complete |
+| Forty-One | Freedom dispatcher resolves a relative `cwd` (the-freedom-engine-os) | Tiny | planned |
+| Forty-Two | One "AI agent (harness)" intake choice | Medium | planned |
+| Forty-Three | Frontier AI engineering research record, including Jev and Laya | Medium | planned |
+| Forty-Four | Build-type agent playbooks | Large | planned |
+| Forty-Five | Frontier-model rules refresh and knowledge-base change proposal | Large | planned |
+
+## Chunk Forty - Workspace Paths And Preview Routing
+
+Status: complete
+
+Completion target: Task complete
+
+Budget class: Small
+
+Timestamp: 2026-11-08T19:59:12-06:00
+
+Objective: finish the 2026-09-05 home-folder path work so New Build works with numbered workspace folders (`01. Code`, `03. Agents`, `02. Applications`) without hard-coding one machine's layout, and make the terminal previews impossible to drift from the real routing.
+
+Context: the 2026-09-05 edits were found uncommitted on a base eight commits behind `origin/main`. They are preserved unchanged on the local branch `wip/2026-09-05-path-migration` (`564a23a`). On synced `main`, importing the GUI tried to create `~/code/Applications`, which on this workstation resolves through the temporary `code` alias to a stray `~/01. Code/Applications`. The sandbox blocked it and the GUI test module errored.
+
+Acceptance criteria:
+
+- [x] `automation/workspace_paths.py` ignores a numeric ordering prefix when recognising code-root and category folders, reuses an existing category folder (real folders before aliases), and treats the parent of a category folder as the code root. Public defaults stay `~/code/agents` and `~/code/Applications`.
+- [x] Resolving paths never creates folders. The GUI creates missing category folders in `main()` at launch, not at import, and its folder pickers default to the detected code root.
+- [x] `new_build_headless.py --plan` runs the same validation and routing as a real build and writes nothing. `new_build.sh` and `new_build.ps1` preview through it and no longer carry their own code-root logic.
+- [x] Headless routes `agentic-harness` projects to the agents folder, matching the GUI (`AGENT_PROJECT_TYPES` in `automation/project_naming.py`).
+- [x] `master_env.py` registry gating from the preserved branch is re-applied: `set` and `merge` accept only keys already reviewed into the master registry.
+- [x] README, INSTALL, architecture, and automation reference describe the detection rules.
+
+Not done, deliberately:
+
+- The path edits on the preserved branch were not merged. Upstream commit `5e68ca6` had already replaced the `change_control.py` Graphify block and the runbook path with portable versions, and the remaining edits hard-coded one workstation's layout.
+- The PowerShell create path was not executed locally (no PowerShell on this machine). The Windows CI job parses it with PSScriptAnalyzer and smoke-tests `-Version` only.
+
+Validation:
+
+- A dry run on this workstation previewed `/home/adamgoodwin/01. Code/03. Agents/preview-probe` for a harness through `bash automation/new_build.sh`, aborted at the confirmation prompt, and created nothing (no stray `Applications` folder).
+- New tests cover prefix detection, alias preference, side-effect-free resolution, `--plan` (no writes, harness routing, validation failure), and harness routing.
+- `bash scripts/validate.sh` with the pinned `requirements-dev.txt` tools (ruff 0.15.21, mypy 2.2.0, coverage 7.15.0) exit 0: compliance (0 required gaps), schema, ruff lint and format, mypy, shellcheck, secret scan, 141 unit tests, coverage 35% against the 25% floor.
 
 ## Chunk Thirty-Nine - Build-To-Sale Lifecycle Standard
 
@@ -217,6 +271,7 @@ Stop condition: stop before any risk-tier/governance-level decision, dependency 
 | Chunk Thirty-Six - Complexity Controls And Governance Alignment | complete | 2026-08-31T13:24:17-06:00 | STD-ENG-023 and STD-ENG-024 added; advisory complexity controls and 90-day check-back prompts distributed through source instructions, scaffolds, managed upgrades, and the workspace umbrella. |
 | Chunk Thirty-Seven - Public Documentation And GitHub Metadata | complete | 2026-08-31T13:49:39-06:00 | Public and generated documentation now explain the controls; GitHub description and topics surface the addition without creating an unapproved version release. |
 | Chunk Thirty-Nine - Build-To-Sale Lifecycle Standard | complete | 2026-09-30T10:43:32-06:00 | STD-ENG-025 added as a single canonical copy with a workspace `CLAUDE.md` summary; scaffold and upgrade distribution deferred to a carry-forward flag. |
+| Chunk Forty - Workspace Paths And Preview Routing | complete | 2026-11-08T19:59:12-06:00 | Numbered workspace folders detected without hard-coding a layout; side-effect-free path resolution; launchers preview through `new_build_headless.py --plan`; harness routing matches the GUI; master env registry gating re-applied. |
 
 Full history: `docs/archive/pathway-history.md`
 

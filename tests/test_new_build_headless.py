@@ -1,5 +1,8 @@
 import json
+import os
+import subprocess
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -80,6 +83,62 @@ class TargetRootTests(unittest.TestCase):
             new_build_headless.APPS_ROOT,
             new_build_headless.resolve_target_root("app", "application"),
         )
+
+    def test_harness_projects_route_to_agents_category(self):
+        # The GUI puts harnesses with agents; headless must agree.
+        self.assertEqual(
+            new_build_headless.AGENTS_ROOT,
+            new_build_headless.resolve_target_root("other", "agentic-harness"),
+        )
+
+
+class PlanModeTests(unittest.TestCase):
+    """--plan is what the terminal launchers preview with; it must never write."""
+
+    def _plan(self, code_root: str, params: dict) -> tuple[int, dict]:
+        env = {**os.environ, "NEW_BUILD_CODE_ROOT": code_root}
+        completed = subprocess.run(
+            [sys.executable, str(REPO_ROOT / "automation" / "new_build_headless.py"), "--plan"],
+            input=json.dumps(params),
+            capture_output=True,
+            text=True,
+            env=env,
+            timeout=60,
+            check=False,
+        )
+        return completed.returncode, json.loads(completed.stdout.strip().splitlines()[-1])
+
+    def test_plan_reports_target_without_writing(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            code, plan = self._plan(tmp, {"project_name": "Plan Probe", "build_type": "app"})
+
+            self.assertEqual(0, code)
+            self.assertEqual("planned", plan["status"])
+            self.assertEqual(str(Path(tmp) / "Applications" / "plan-probe"), plan["project_path"])
+            self.assertFalse(plan["already_exists"])
+            self.assertEqual([], list(Path(tmp).iterdir()), "--plan must not create anything")
+
+    def test_plan_routes_harness_to_agents(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            code, plan = self._plan(
+                tmp,
+                {
+                    "project_name": "Harness Probe",
+                    "build_type": "other",
+                    "governance_type": "agentic-harness",
+                },
+            )
+
+            self.assertEqual(0, code)
+            self.assertEqual(str(Path(tmp) / "agents" / "harness-probe"), plan["project_path"])
+
+    def test_plan_reports_validation_failure(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            code, plan = self._plan(tmp, {"project_name": "!!!", "build_type": "app"})
+
+            self.assertEqual(1, code)
+            self.assertEqual("failed", plan["status"])
+            self.assertEqual([], list(Path(tmp).iterdir()))
 
 
 class SlugValidationTests(unittest.TestCase):

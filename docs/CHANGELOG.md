@@ -1,10 +1,12 @@
 # Change Log
 
-Last Updated: 2026-09-30
+Last Updated: 2026-11-08
 Status: active
 Owner: Technical Lead
 
 ## Unreleased
+
+- 2026-11-08: Fixed workspace paths after the home-folder migration (Chunk Forty). Folder names may carry a numeric ordering prefix (`01. Code`, `03. Agents`), existing category folders are reused instead of creating a parallel `Applications` folder, and a checkout installed inside a category folder treats the folder above it as the code root. Importing the GUI no longer creates folders. The terminal launchers preview through a new `new_build_headless.py --plan` dry run, so the preview always matches the real routing, and headless now routes `agentic-harness` projects to the agents folder as the GUI does. `master_env.py set` and `merge` accept only keys already reviewed into the master registry.
 
 - Added the Build-To-Sale Lifecycle Standard (STD-ENG-025): lifecycle phase status, evidence-based phase exits, validation instruments, P0-P3 priority, four definitions of done, and a funding, credits and partners track, with the owner-supplied Build-to-Sale Operating System as Part B. Single canonical copy with a short workspace `CLAUDE.md` summary; scaffold and upgrade distribution deferred (Chunk Thirty-Nine).
 - Folded the approved AI Coding Best Practices pattern into the generated project templates: one canonical `AGENTS.md` (Claude Code imports it through a one-line `CLAUDE.md`), a commands-only `AI_BOOTSTRAP.md`, runner-readable pathway chunks (`### P-NN`, `Status: Ready`, `Runner:`, `Files:`), the plan-once, approve-once, fresh-session-per-chunk work pattern, AIC standards routed by name in the context map and standards index, and a change-control guard that never appends managed blocks to import-only instruction files. Standards in this repository are unchanged (Chunk Thirty-Eight).
