@@ -7,6 +7,15 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_ROOT / "automation"))
 
 import scaffold_project
+import schema_validation
+
+# Documentation projects skip these; every other type gets them.
+OPERATIONAL_DOCS = ("docs/deployment-guide.md", "docs/runbook.md")
+
+
+def required_docs(control_file: Path) -> list[str]:
+    control = schema_validation.load_project_control(control_file)
+    return schema_validation.get_path(control, "controls.required_docs")
 
 
 class ScaffoldProjectTests(unittest.TestCase):
@@ -201,6 +210,56 @@ class ScaffoldProjectTests(unittest.TestCase):
             self.assertIn("project_type: service", control)
             self.assertIn("risk_tier: medium", control)
             self.assertIn("governance_level: 2", control)
+
+
+class OperationalDocsTests(unittest.TestCase):
+    """A scaffold must not require docs it does not create (AUD-ENG-004 B-6)."""
+
+    def test_documentation_project_neither_gets_nor_requires_operational_docs(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            target = Path(tmp) / "handbook"
+
+            scaffold_project.scaffold_project(target, "documentation", "2")
+
+            for path in OPERATIONAL_DOCS:
+                self.assertFalse((target / path).exists(), path)
+            template_docs = required_docs(
+                scaffold_project.TEMPLATE_ROOT / "project-control.template.yaml"
+            )
+            self.assertEqual(
+                [path for path in template_docs if path not in OPERATIONAL_DOCS],
+                required_docs(target / "project-control.yaml"),
+            )
+
+    def test_other_projects_get_and_require_operational_docs(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            target = Path(tmp) / "sample-app"
+
+            scaffold_project.scaffold_project(target, "application", "2")
+
+            required = required_docs(target / "project-control.yaml")
+            for path in OPERATIONAL_DOCS:
+                self.assertTrue((target / path).exists(), path)
+                self.assertIn(path, required)
+
+    def test_existing_documentation_control_file_is_left_unchanged(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            target = Path(tmp) / "handbook"
+            target.mkdir()
+            existing = (
+                "project_name: handbook\n"
+                "project_type: documentation\n"
+                "controls:\n"
+                "  required_docs:\n"
+                "    - README.md\n"
+                "    - docs/runbook.md\n"
+            )
+            (target / "project-control.yaml").write_text(existing, encoding="utf-8")
+
+            scaffold_project.scaffold_project(target, "documentation", "2")
+
+            control = (target / "project-control.yaml").read_text(encoding="utf-8")
+            self.assertEqual(existing, control)
 
 
 class AgentHarnessScaffoldTests(unittest.TestCase):

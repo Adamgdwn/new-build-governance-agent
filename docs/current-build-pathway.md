@@ -54,6 +54,43 @@ Use second-level Markdown headings for active and planned chunks:
 ## Chunk Two - Short Objective
 ```
 
+## Chunk Forty-Six - Documentation Scaffold Passes Its Own Compliance Check
+
+Status: complete
+
+Completion target: Task complete
+
+Budget class: Small
+
+Timestamp: 2026-11-08T21:01:34-06:00
+
+Source: AUD-ENG-004 item B-6 (the documentation-type sub-item), chosen by the owner on 2026-11-08 as the next chunk.
+
+Objective: a freshly scaffolded `documentation` project passes its own compliance report. The scaffold deliberately skips `docs/deployment-guide.md` and `docs/runbook.md` for documentation projects, but the generated `project-control.yaml` still listed both as required, so `compliance_report.py` returned `failed` at every governance level.
+
+Acceptance criteria:
+
+- [x] `automation/scaffold_project.py` keeps the skipped docs and the generated `required_docs` list in step: one table names the operational docs and the types that skip them, and the list is trimmed only when the scaffold writes `project-control.yaml`. Existing control files are kept as they are.
+- [x] Regression test: every project type at every governance level passes its own compliance report straight after scaffolding.
+- [x] Structural tests: documentation projects neither get nor require the two docs, other types get and require both, and an existing documentation `project-control.yaml` is left unchanged.
+- [x] Backlog bookkeeping: the B-6 documentation sub-item recorded as done, B-14 closed, and the review dates current.
+- [x] `bash scripts/validate.sh` with the pinned tools exits 0, and the governance audit stays clean.
+
+Stop condition: stop before any template edit, any other B-6 sub-item, or any change to how `change_control.py` treats existing projects.
+
+Findings:
+
+- Before the fix, a probe of all 45 type and level combinations found documentation as the only failing type, failing at all five levels. The new tests failed on exactly those six cases before the fix and pass after it.
+- The scaffolded `scripts/governance-check.sh` already treated the two docs as optional for documentation projects. Only the compliance report, which reads `required_docs`, disagreed.
+- `change_control.py` offers both docs to every project type, documentation included, so a promoted documentation project stays consistent when it accepts them. The only documentation project found in the workspace, `home-assistant-manager`, has both docs and is unaffected.
+- Not fixed (out of scope): `compliance_report.required_files_from_control` adds the AI register files only for `project_type: agent`, not legacy `agentic-harness`. Those projects still pass, because the scaffold creates the files, but their check is less strict.
+
+Validation:
+
+- `bash scripts/validate.sh` with the pinned tools (ruff 0.15.21, mypy 2.2.0, coverage 7.15.0) exit 0: 158 tests, coverage 36%.
+- CLI check: `scaffold_project.py <dir> documentation`, then `compliance_report.py <dir>` exits 0 with 0 required gaps (exit 1 before the fix).
+- `python3 automation/governance_audit.py .`: 0 blockers, 0 required gaps, 0 warnings. `graphify update . --no-cluster` exit 0.
+
 ## 2026-11-08 Frontier Refresh Plan
 
 Owner request, 2026-11-08: research current AI engineering practice (the AI Engineer channel, frontier-lab guidance, independent practitioners), write per-build-type instructions that agents can be given, refresh this repository's rules for current frontier models, place Jev and Laya where they add the most value, treat a harness as what people mean by "agent", and finish the unfinished 2026-09-05 path work.
@@ -422,6 +459,7 @@ Stop condition: stop before any risk-tier/governance-level decision, dependency 
 | Chunk Forty-Three - Build-Type Agent Playbooks | complete | 2026-11-08T20:18:42-06:00 | Eight agent-facing playbooks delivered as `docs/build-playbook.md` by project type and offered to existing projects through change control. |
 | Chunk Forty-Four - Frontier AI Engineering Research Record | complete | 2026-11-08T20:30:23-06:00 | Dated research record: AI Engineer talks, lab guidance, practitioner, evaluation, and security sources, and the Jev and Laya placement analysis. |
 | Chunk Forty-Five - Frontier-Model Rules Refresh | complete | 2026-11-08T20:31:59-06:00 | Fresh-session close-out here; frontier-model rules in AI_BOOTSTRAP, context hygiene, use-case standard, policy, and harness templates; knowledge-base change proposal for owner review. |
+| Chunk Forty-Six - Documentation Scaffold Passes Its Own Compliance Check | complete | 2026-11-08T21:01:34-06:00 | One table drives the documentation type's skipped docs and its `required_docs`; every type at every governance level now passes its own compliance report; audit backlog B-14 closed. |
 
 Full history: `docs/archive/pathway-history.md`
 

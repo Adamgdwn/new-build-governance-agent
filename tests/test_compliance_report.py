@@ -63,6 +63,24 @@ class ComplianceReportTests(unittest.TestCase):
                 )
             )
 
+    def test_every_fresh_scaffold_passes_its_own_compliance_report(self):
+        # A documentation scaffold used to fail here: its project-control.yaml
+        # required two docs the scaffold does not create (AUD-ENG-004 B-6).
+        for project_type in sorted(scaffold_project.GOV_TYPES):
+            for level in sorted(scaffold_project.GOVERNANCE_LEVELS):
+                with (
+                    self.subTest(project_type=project_type, governance_level=level),
+                    tempfile.TemporaryDirectory() as tmp,
+                ):
+                    target = Path(tmp) / f"fresh-{project_type}"
+                    scaffold_project.scaffold_project(target, project_type, level)
+
+                    report = compliance_report.build_compliance_report(target)
+
+                    gaps = [finding["message"] for finding in report["findings"]["required_gaps"]]
+                    self.assertEqual([], gaps)
+                    self.assertEqual("passed", report["overall_status"])
+
     def test_promotion_checks_classify_failed_and_manual_results(self):
         self.assertEqual(
             "required_gaps",

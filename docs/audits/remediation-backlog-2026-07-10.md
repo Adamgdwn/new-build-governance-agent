@@ -1,13 +1,13 @@
 # Remediation Backlog — Repository Audit 2026-07-10
 
 Document ID: AUD-ENG-004
-Version: 1.0
+Version: 1.1
 Status: active
 Owner: Project Owner
 Approver: Project Owner
 Effective Date: 2026-07-10
-Last Reviewed: 2026-08-31
-Next Review: 2026-09-30
+Last Reviewed: 2026-11-08
+Next Review: 2026-12-08
 
 Source: `docs/audits/repository-audit-2026-07-10.md` (AUD-ENG-003).
 Scope: the Tier 2 and Tier 3 recommendations from that audit, expanded into
@@ -22,10 +22,18 @@ When an item is closed, set its status and add the closing commit hash.
 
 ## Tier 2 — paved road and proportionality
 
-### B-6. Scaffold a real paved road (audit rec 6) — open
+### B-6. Scaffold a real paved road (audit rec 6) — partially addressed, open
 
 **What:** New projects created from `templates/project/` receive governance
 paperwork but none of the working machinery that makes compliance easy.
+
+Done 2026-11-08 (Chunk Forty-Six): the documentation-type failure is fixed.
+`automation/scaffold_project.py` now takes both the skipped docs and the
+generated `required_docs` entries from one table, so a fresh documentation
+project passes its own compliance report. A test scaffolds every project
+type at every governance level and requires each to pass. Chunk Forty-Three
+(2026-11-08) also gave every project type a build playbook; that is agent
+guidance, not the working machinery the remaining items below describe.
 
 **Work items:**
 - Add `templates/project/tests/` with one passing sample test (e.g.
@@ -40,11 +48,6 @@ paperwork but none of the working machinery that makes compliance easy.
   `testing-standard.md`, `deployment-and-release-standard.md` (or its
   post-consolidation parent), `security-and-secrets-standard.md` — projects
   are governed against docs they never receive.
-- Fix the documentation-type failure: `automation/scaffold_project.py`
-  (~lines 104–121, 191–195) skips deployment-guide/runbook for
-  `documentation` projects but leaves them in `required_docs`, so
-  `compliance_report.py` returns `overall_status: failed` out of the box.
-  Strip skipped docs from the generated `required_docs` list.
 - Unify the two divergent governance checkers: make the scaffolded
   `templates/project/scripts/governance-check.template.sh` delegate to (or
   generate its file list from) the same source `compliance_report.py` uses,
@@ -209,19 +212,24 @@ commits, and there is no downgrade path.
   asserts ~40 exact prose fragments, coupling tests to template wording —
   assert structure/keys instead.
 
-### B-14. Purge stale/broken references (audit rec 14) — in progress
+### B-14. Purge stale/broken references (audit rec 14) — done (`5e68ca6`)
 
 Done 2026-07-10: `/home/adamgoodwin/...` paths removed from the
 agent-instruction files edited in Tier 1; legacy path removed from
 `new_build.sh`; the nonexistent audit citation in
 `docs/processes/implementation-plan-2026-06-16.md` corrected and its
 illegal `archived` statuses fixed to `retired`.
-Remaining:
+Remaining as of 2026-07-10, both completed by commit `5e68ca6` (2026-08-31):
 - Sweep remaining `/home/adamgoodwin` hits: `docs/runbook.md`,
   `docs/deployment-guide.md`, and anything else `grep -r "adamgoodwin" .`
   finds.
 - Risk register: last reviewed 2026-05-31 against a quarterly requirement
   with no next-review date — review it and stamp the next date.
+
+Closing check 2026-11-08: the `/home/adamgoodwin` hits left in tracked files
+are historical records (archive, audits, dated plans, pathway notes) and two
+tests that assert the path is absent from generated instructions. The risk
+register was reviewed 2026-08-31, and its next review is 2026-11-30.
 
 ### B-15. Promotion honesty (audit rec 15) — open
 

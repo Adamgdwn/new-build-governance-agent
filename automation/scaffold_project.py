@@ -101,6 +101,15 @@ AUTONOMY_BY_GOVERNANCE = {
     "4": "A0",
 }
 
+# Deployment and operations docs (template, destination). Documentation projects do
+# not get them, so their generated project-control.yaml must not require them either;
+# otherwise a fresh scaffold fails its own compliance report (AUD-ENG-004 B-6).
+OPERATIONAL_DOCS = (
+    ("docs/deployment-guide.template.md", "docs/deployment-guide.md"),
+    ("docs/runbook.template.md", "docs/runbook.md"),
+)
+TYPES_WITHOUT_OPERATIONAL_DOCS = frozenset({"documentation"})
+
 
 @dataclass
 class ScaffoldResult:
@@ -152,6 +161,9 @@ def _patch_project_control(
         text = text.replace(
             "autonomy_level: A0", f"autonomy_level: {AUTONOMY_BY_GOVERNANCE[governance_level]}"
         )
+    if project_type in TYPES_WITHOUT_OPERATIONAL_DOCS:
+        for _, doc in OPERATIONAL_DOCS:
+            text = text.replace(f"    - {doc}\n", "")
     project_control.write_text(text, encoding="utf-8")
 
 
@@ -281,13 +293,8 @@ def scaffold_project(
         ("scripts/governance-preflight.template.sh", "scripts/governance-preflight.sh"),
     ]
 
-    if project_type != "documentation":
-        copies.extend(
-            [
-                ("docs/deployment-guide.template.md", "docs/deployment-guide.md"),
-                ("docs/runbook.template.md", "docs/runbook.md"),
-            ]
-        )
+    if project_type not in TYPES_WITHOUT_OPERATIONAL_DOCS:
+        copies.extend(OPERATIONAL_DOCS)
 
     ai_registers = project_type in {"agent", "agentic-harness"}
     if ai_registers:
