@@ -126,9 +126,11 @@ def _current_user_sid(path: Path) -> str:
 
 
 def _restrict_windows(path: Path) -> None:
-    # /inheritance:r removes every inherited entry and /grant:r leaves one
-    # full-control entry for the current user. Explicit entries that another
-    # tool added to an existing file are not removed.
+    # /inheritance:r removes every inherited entry and /grant:r gives the
+    # current user full control. Explicit entries stay: ones another tool
+    # added, and copies a new file receives from a parent folder whose list is
+    # not auto-inherited (Python's temp folders pass on SYSTEM, Administrators
+    # and Owner Rights this way).
     sid = _current_user_sid(path)
     command = [_system_tool("icacls.exe"), str(path), "/inheritance:r", "/grant:r", f"*{sid}:F"]
     try:
@@ -144,12 +146,13 @@ def _restrict_windows(path: Path) -> None:
 
 
 def restrict_to_owner(path: Path) -> None:
-    """Restrict an existing file so only the current user can read or write it.
+    """Restrict an existing file to the current user.
 
-    POSIX sets mode 0600. Windows, where chmod cannot do this, removes the
-    inherited access-control entries and grants full control to the current
-    user only. Raises SecretFileProtectionError when the restriction cannot be
-    applied, for example on a FAT or exFAT drive.
+    POSIX sets mode 0600. On Windows, where chmod cannot do this, icacls
+    removes every inherited access-control entry and grants the current user
+    full control; explicit entries are kept (see _restrict_windows). Raises
+    SecretFileProtectionError when the restriction cannot be applied, for
+    example on a FAT or exFAT drive.
     """
     if _is_windows():
         _restrict_windows(path)
@@ -161,7 +164,7 @@ def restrict_to_owner(path: Path) -> None:
 
 
 def write_private_text(path: Path, text: str) -> None:
-    """Write a secret file that only the current user can read.
+    """Write a secret file restricted to the current user (see restrict_to_owner).
 
     The file is restricted before any content is written. When the
     restriction fails, nothing is written: a file this call created is

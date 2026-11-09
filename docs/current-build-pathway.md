@@ -54,7 +54,7 @@ Use second-level Markdown headings for active and planned chunks:
 ## Chunk Two - Short Objective
 ```
 
-## Chunk Forty-Seven - Secret Env Files Are Owner-Only On Windows
+## Chunk Forty-Seven - Secret Env Files Restricted To The Owner On Windows
 
 Status: complete
 
@@ -66,7 +66,7 @@ Timestamp: 2026-11-08T21:24:23-06:00
 
 Source: AUD-ENG-004 item B-13, its first two work items. This was the carry-forward's suggested next item; the owner started the chunk on 2026-11-08.
 
-Objective: the secret env files this repository writes can be read only by the current user, on every platform. On Windows, `os.chmod(path, 0o600)` changes only the read-only flag. `.env.master` and project env files therefore kept whatever access their folder granted, and outside the user profile that can include every local user.
+Objective: the secret env files this repository writes are restricted to the current user on every platform, so no other ordinary user or group keeps access. On Windows, `os.chmod(path, 0o600)` changes only the read-only flag. `.env.master` and project env files therefore kept whatever access their folder granted, and outside the user profile that can include every local user.
 
 Acceptance criteria:
 
@@ -77,7 +77,7 @@ Acceptance criteria:
   - POSIX modes: 0600 from creation even with umask 0, and an existing 0644 file becomes 0600.
   - Restriction before any content is written, and the refused-write paths.
   - The Windows branch, with mocked tools, on every OS.
-  - Two Windows-only tests that read the resulting access-control list back with `icacls /save`.
+  - Windows-only tests that read the resulting access-control list back with `icacls /save`, in a folder with normal inheritance and in a `tempfile.mkdtemp` folder.
   - The first tests of `apply_sync`'s write path.
 - [x] Backlog, changelog, runbook, and carry-forward updated.
 
@@ -90,16 +90,19 @@ Findings:
 - The backlog's three `chmod` sites had already narrowed to two. `master_env.py` and `stripe_provision.py` write through `env_file.update_env_values`, so the only direct calls left were `env_file.py:82` and `env_sync.py:291`.
 - POSIX had a related gap. Content was written before `chmod` ran, so a new file briefly held secrets at the default mode (0644 under the usual umask). The new order closes it.
 - `apply_sync`'s write path had no test before this chunk. `env_sync.py` coverage rose from 38% to 53%.
-- Known limit: `icacls /inheritance:r` removes inherited entries but keeps explicit entries that another tool added to an existing file. Files this code creates have none. Running `icacls /reset` first would remove them. It would also briefly re-open an already-protected file to inherited readers on every rewrite, so it was not used. This is now a B-13 work item.
+- Known limit, confirmed in CI: `icacls /inheritance:r` removes only inherited entries. Explicit entries stay: ones another tool added to an existing file, and copies a new file receives from a parent folder whose list is not auto-inherited.
+  - CI run 42556335162 showed the second case: a file created in a `tempfile.mkdtemp` folder kept explicit SYSTEM, Administrators, and Owner Rights entries next to the user's. Python 3.12.4+ creates those folders with a protected list without auto-inheritance.
+  - Those three entries are the Windows equivalent of root, so the outcome is acceptable. In a folder with normal inheritance, only the user's entry remains.
+  - Exact single-entry replacement is now a B-13 work item. Running `icacls /reset` first was not used, because it would briefly re-open an already-protected file on every rewrite.
 - Mutation check: five deliberate regressions each failed the new tests: bypassing the helper, writing before restricting, creating with mode 0666, keeping inheritance on Windows, and a plain write in `env_sync`.
 - For the owner: STD-ENG-019's Next Review date (2026-10-10) has passed. The standard was not edited.
 
 Validation:
 
-- `bash scripts/validate.sh` with the pinned tools exit 0: 173 tests, coverage 37%. The 2 Windows-only tests are skipped on Linux. `env_file.py` has 100% coverage, its Windows branch included.
+- `bash scripts/validate.sh` with the pinned tools exit 0: 173 tests run, coverage 37%. The 3 Windows-only tests are skipped on Linux and are not counted in that total (176 test cases). `env_file.py` has 100% coverage, its Windows branch included.
 - CLI checks on throwaway files: `env_sync.py apply` under umask 000 wrote a 0600 `.env.local`, and `master_env.py set` changed a 0644 master to 0600.
 - `python3 automation/governance_audit.py .`: 0 blockers, 0 required gaps, 0 warnings. `graphify update . --no-cluster` exit 0.
-- Windows CI: pending at commit time; the result is recorded below once the push's run finishes.
+- Windows CI: run 42556335162 on `a2ac691` failed, with 175 tests run, 2 failures, and 4 skipped. Both failures were the real-Windows tests' strict "exactly one entry" assertion meeting the `mkdtemp` case above. `whoami`, `icacls`, and every existing env test passed through real `icacls`. The fix-forward commit asserts the actual property and adds the normal-inheritance case. Its run is recorded below.
 
 ## Chunk Forty-Six - Documentation Scaffold Passes Its Own Compliance Check
 

@@ -1,10 +1,12 @@
 import os
 import re
+import shutil
 import stat
 import subprocess
 import sys
 import tempfile
 import unittest
+import uuid
 from pathlib import Path
 from unittest import mock
 
@@ -348,7 +350,11 @@ class WindowsBranchTests(unittest.TestCase):
 
 @WINDOWS_ONLY
 class WindowsAccessControlTests(unittest.TestCase):
-    """Reads the real access-control list back with icacls /save (SDDL text)."""
+    """Reads the real access-control list back with icacls /save (SDDL text).
+
+    Entries look like "A;;FA;;;S-1-5-21-...": type, flags ("ID" means
+    inherited), rights, two object fields, then the SID or an SDDL alias.
+    """
 
     def saved_dacl(self, path):
         saved = path.with_name(path.name + ".acl")
@@ -365,37 +371,62 @@ class WindowsAccessControlTests(unittest.TestCase):
         assert match is not None
         return match.group(1), re.findall(r"\(([^)]*)\)", match.group(2))
 
-    def assert_only_current_user(self, path):
-        # A file this helper created has no explicit entries from other tools,
-        # so exactly one entry must remain.
+    def plain_folder(self):
+        # os.mkdir without a mode inherits normally. tempfile.mkdtemp folders do
+        # not: Python 3.12.4+ gives them a protected list without auto-inheritance.
+        folder = Path(tempfile.gettempdir()) / f"nbga-acl-{uuid.uuid4().hex}"
+        os.mkdir(folder)
+        self.addCleanup(shutil.rmtree, folder, ignore_errors=True)
+        probe = folder / "probe.txt"
+        probe.write_text("probe\n", encoding="utf-8")
+        _, entries = self.saved_dacl(probe)
+        self.assertTrue(
+            all("ID" in entry.split(";")[1] for entry in entries),
+            f"a plain temp folder should pass inherited entries to new files: {entries}",
+        )
+        return folder
+
+    def assert_restricted(self, path, others_allowed=frozenset()):
         flags, entries = self.saved_dacl(path)
         self.assertIn("P", flags, "inherited entries should be blocked")
-        self.assertEqual(1, len(entries), entries)
-        fields = entries[0].split(";")
-        self.assertEqual("A", fields[0])
-        self.assertNotIn("ID", fields[1])
         sid = env_file._current_user_sid(path)
-        expected = {sid}
-        if sid.endswith("-500"):
-            expected.add("LA")  # SDDL's name for the built-in Administrator account
-        self.assertIn(fields[5], expected)
+        # SDDL writes the built-in Administrator account (RID 500) as "LA".
+        user = {sid, "LA"} if sid.endswith("-500") else {sid}
+        user_entries = 0
+        for entry in entries:
+            ace_type, ace_flags, _, _, _, ace_sid = entry.split(";")[:6]
+            self.assertEqual("A", ace_type, entries)
+            self.assertNotIn("ID", ace_flags, entries)
+            if ace_sid in user:
+                user_entries += 1
+            else:
+                self.assertIn(ace_sid, others_allowed, entries)
+        self.assertEqual(1, user_entries, entries)
 
     def test_new_secret_file_grants_only_the_current_user(self):
+        path = self.plain_folder() / ".env"
+        env_file.write_private_text(path, "KEY=placeholder\n")
+
+        self.assert_restricted(path)
+        self.assertEqual("KEY=placeholder\n", path.read_text(encoding="utf-8"))
+
+    def test_protection_survives_a_rewrite(self):
+        path = self.plain_folder() / ".env"
+        env_file.write_private_text(path, "KEY=first\n")
+        env_file.write_private_text(path, "KEY=second\n")
+
+        self.assert_restricted(path)
+        self.assertEqual("KEY=second\n", path.read_text(encoding="utf-8"))
+
+    def test_entries_copied_from_a_folder_without_auto_inheritance_are_kept(self):
+        # CI run 42556335162: in a mkdtemp folder the file also kept explicit
+        # SYSTEM, Administrators and Owner Rights entries. That is the known
+        # limit in backlog B-13; no other principal may appear.
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / ".env"
             env_file.write_private_text(path, "KEY=placeholder\n")
 
-            self.assert_only_current_user(path)
-            self.assertEqual("KEY=placeholder\n", path.read_text(encoding="utf-8"))
-
-    def test_protection_survives_a_rewrite(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp) / ".env"
-            env_file.write_private_text(path, "KEY=first\n")
-            env_file.write_private_text(path, "KEY=second\n")
-
-            self.assert_only_current_user(path)
-            self.assertEqual("KEY=second\n", path.read_text(encoding="utf-8"))
+            self.assert_restricted(path, others_allowed={"SY", "BA", "OW"})
 
 
 if __name__ == "__main__":

@@ -192,16 +192,24 @@ two, because `master_env.py` and `stripe_provision.py` write through
 `env_file.write_env_lines` and `env_sync.apply_sync`, now both write through
 `env_file.write_private_text`. That helper restricts the file before any
 secret is written: mode 0600 on POSIX; on Windows, an `icacls` call removes
-inherited access and grants full control to the current user's SID only.
-When the restriction fails, the write is refused and the target is left as it
-was (the fail-closed decision is recorded in the build pathway). Two
-Windows-only tests read the resulting access-control list back; they run in
-the Windows CI job.
+all inherited access and grants the current user's SID full control.
+Explicit entries are kept (see the first work item). When the restriction
+fails, the write is refused and the target is left as it was (the
+fail-closed decision is recorded in the build pathway). Windows-only tests
+read the resulting access-control list back in the Windows CI job.
 
 **Work items:**
-- Optional: also remove explicit access entries that another tool added to
-  an existing secret file. `icacls /inheritance:r` keeps them, and running
-  `icacls /reset` first would briefly re-open an already-protected file.
+- Replace the whole Windows access list in one step, so a secret file ends
+  with exactly one entry, for the current user. `icacls /inheritance:r`
+  keeps explicit entries. CI run 42556335162 showed that a file created in a
+  `tempfile.mkdtemp` folder also gets explicit copies of SYSTEM,
+  Administrators, and Owner Rights. Python 3.12.4+ creates those folders with
+  a protected list that is not auto-inherited. Those three are acceptable,
+  as the Windows equivalent of root, but a parent folder like that with broad
+  entries would pass them on too. Candidates: `SetNamedSecurityInfoW` with a
+  protected one-entry list, or `icacls /reset` before `/inheritance:r` on
+  files the helper has just created (safe only while they are still empty).
+  Running `/reset` on an existing file would briefly re-open it.
 - Add unit tests for `master_env.py` and `stripe_provision.py` (502 and 256
   untested lines of the two most secret-sensitive modules); also
   `governance_audit.py`, `project_registry.py`, `audit_projects.py`,
