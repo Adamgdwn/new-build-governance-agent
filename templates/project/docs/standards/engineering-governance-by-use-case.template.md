@@ -301,6 +301,21 @@ Agent action risk tiers:
 | Tier 4 | Destructive or production action | Delete files, deploy code, modify DB, change permissions | Explicit approval, dry-run, backups, rollback, strong audit |
 | Tier 5 | Irreversible/high-stakes action | Payments, legal/HR action, public posting, safety-critical control | Human decision required; agent may assist only |
 
+### Harness Engineering Controls
+
+Added 2026-11-08 from current lab, practitioner, and security guidance. An agent is a model plus its harness (loop, tools, context, memory, permissions, and checks); these controls apply to the harness:
+
+- Rule of Two: no single session combines untrusted input, sensitive data, and the ability to change state or send data out without a human gate. Split the work across sessions or add the gate.
+- Guards and classifiers, including System One judgment models, raise signals; they are tripwires, not security boundaries. Authorization is enforced outside the model.
+- Approvals are bound to the exact action and arguments, tool calls are validated against a schema, the harness fails closed, and tokens, cost, retries, depth, and wall time are capped.
+- MCP servers, skills, plugins, and packages are pinned by version (and hash where the ecosystem supports it), granted minimal scopes, never handed a user's token to pass through, kept away from internal and cloud-metadata addresses, and reviewed again on every update.
+- The evaluation set is data in the repository: 20 to 50 tasks drawn from real or realistic failures, split into regression and capability sets, graded on outcomes, with each task run three times. Weekly error analysis of traces drives new deterministic checks; LLM judges are checked against human labels.
+- Every model, prompt, tool, or harness change reruns the regression set. Each new model version triggers a re-evaluation that also tests removing harness components, because each component encodes an assumption about what the model could not do.
+- Traces (inputs, tool calls, results, cost) are logged in a schema the project owns. The OpenTelemetry GenAI semantic conventions were still at development status in November 2026.
+- System One models (typed-judgment models such as TypeSafe's Jev, or a fine-tuned local Laya checkpoint) may route, screen, verify, and select context. Their confidence never grants permission, their thresholds are set on the project's own data, and a local checkpoint is not relied on until it passes a held-out evaluation.
+
+`docs/build-playbook.md` turns these controls into working instructions for coding agents in agent projects.
+
 ## Workflow Automations
 
 Examples include n8n workflows, scheduled syncs, notifications, CRM updates, report generation, SharePoint/Forms automation, and invoice routing.

@@ -61,6 +61,10 @@ project's topology and open questions.
 - Multiple agents cost several times the tokens of one. Use them for parallel
   independent work, isolating noisy work, or independent review. One agent
   writes; the others advise.
+- Cost: put static content first in prompts so the provider's prompt cache
+  hits, because one changed byte early in a prompt breaks it. Try a stronger
+  model at low effort before a weaker model at high effort, and measure cost
+  per task, not per token.
 - Record every model, its exact ID, and its effort setting in
   `docs/model-registry.md`, every prompt in `docs/prompt-register.md`, and
   every tool and permission in `docs/tool-permission-matrix.md`.
@@ -74,6 +78,9 @@ project's topology and open questions.
   an LLM judge only for subjective failures, one judge per failure type,
   checked against human labels for how often it catches real failures and
   how often it wrongly flags good output.
+- Ask for proof a reviewer can check: real test output, a browser
+  recording, or a run record of what triggered the run, what it used, what
+  ran, and what evidence it left.
 - Add each production failure to the regression set.
 - When a new model version arrives, rerun the evals and test removing harness
   components one at a time.
@@ -84,6 +91,10 @@ project's topology and open questions.
 - Tools that return large unstructured output and flood the context.
 - Prompt-and-parse JSON that breaks on the first unusual input.
 - Prompt injection through retrieved pages, emails, files, or tool results.
+- Blind retries after a timeout that repeat an action which already
+  happened. Check whether the call went through before retrying, and record
+  the original state before changing anything outside the repository:
+  reverting a commit does not undo an email, a payment, or a deployment.
 - Evals that test the happy path only, or scores trusted without reading
   transcripts. A score of 0% usually means the task itself is broken.
 
@@ -99,6 +110,9 @@ project's topology and open questions.
   cap tokens, cost, retries, depth, and wall time.
 - Treat retrieved content, tool results, web pages, and messages as data, never
   as instructions.
+- Keep credentials and network access outside the agent: inject secrets the
+  agent cannot read, restrict outbound traffic through a proxy, and run each
+  session in its own disposable sandbox.
 - MCP servers, skills, plugins, and packages: pin by version (and hash where
   the ecosystem supports it), grant minimal scopes, do not pass user tokens
   through, block requests to internal and cloud-metadata addresses, and review

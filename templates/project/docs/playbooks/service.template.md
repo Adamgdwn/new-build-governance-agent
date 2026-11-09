@@ -31,7 +31,8 @@ conflict, `AGENTS.md` and `project-control.yaml` win.
   just per route.
 - Make writes that may be retried idempotent (an idempotency key or a natural
   unique key).
-- Give every outbound call a timeout and bounded retries with backoff.
+- Give every outbound call a timeout and bounded retries with backoff. After
+  a timeout on a write, check the outcome before retrying it.
 - Bound resource use: paginate lists, cap payload sizes, and rate-limit
   expensive endpoints.
 - Never pass model output, or any other untrusted text, into SQL, a shell, a

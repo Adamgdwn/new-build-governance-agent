@@ -26,7 +26,9 @@ Always-on rules:
 Follow the canonical 5-step protocol in `AI_BOOTSTRAP.md` (Chunk Close-Out
 Protocol). In short: at the end of every chunk, check `CARRY_FORWARD.md` and
 surface any open items first, then stage, commit, and push automatically,
-confirm the push succeeded, and suggest `/compact` (not `/clear`). Do not
-auto-compact, and do not skip the commit step without flagging why. A chunk
-ends when the active plan's definition-of-done is met, a stop condition is
-reached, or the user signals done.
+confirm the push succeeded, and suggest starting the next chunk in a fresh
+session (`/clear`); the active plan and `CARRY_FORWARD.md` are the handoff.
+Within a chunk, rely on automatic compaction rather than resetting, and do not
+skip the commit step without flagging why. A chunk ends when the active plan's
+definition-of-done is met, a stop condition is reached, or the user signals
+done.

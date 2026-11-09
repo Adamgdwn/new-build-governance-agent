@@ -2,7 +2,7 @@
 
 Document ID: AUD-ENG-013
 Date: 2026-11-08
-Timestamp: 2026-11-08T20:30:23-06:00
+Timestamp: 2026-11-08T20:32:03-06:00
 Scope: /home/adamgoodwin/01. Code/03. Agents/New Build Agent
 Status: active
 Owner: Project Owner
@@ -11,7 +11,7 @@ Owner: Project Owner
 
 ## Executive Summary
 
-Automated governance audit of `New Build Agent`. 6 positive finding(s). 0 blocker(s), 0 required gap(s), 3 warning(s).
+Automated governance audit of `New Build Agent`. 7 positive finding(s). 0 blocker(s), 0 required gap(s), 0 warning(s).
 
 **Conclusion:** PASS — no required gaps or blockers found.
 
@@ -39,16 +39,13 @@ Checks performed:
 - All superseded docs reference their replacement.
 - Single active pathway document: `docs/current-build-pathway.md`.
 - All standards/policy/processes files have Document ID fields.
+- No stale carry-forward flags.
 
 ---
 
 ## Findings
 
-### Warnings
-
-- [ ] Carry-forward flag `Audit Tier 2/3 backlog open` not reviewed for 69 days (last reviewed 2026-08-31) — review, resolve, or update its status.
-- [ ] Carry-forward flag `GitHub standard distribution gaps` not reviewed for 69 days (last reviewed 2026-08-31) — review, resolve, or update its status.
-- [ ] Carry-forward flag `Build-to-sale standard distribution` not reviewed for 39 days (last reviewed 2026-09-30) — review, resolve, or update its status.
+No findings. All checks passed.
 
 
 ---
@@ -71,6 +68,6 @@ Checks performed:
 ## Audit Conclusion
 
 PASS — no required gaps or blockers found.
-Total findings: 3 (0 blocker, 0 required gap, 3 warning).
+Total findings: 0 (0 blocker, 0 required gap, 0 warning).
 
 _This report was generated automatically. Review each finding and tick the checkbox when resolved._

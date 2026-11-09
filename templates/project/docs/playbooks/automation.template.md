@@ -31,7 +31,8 @@ jobs, scripts, and workflow tools such as n8n alike.
 - Authenticate every trigger. Do not expose public webhooks without
   authentication.
 - Give each workflow its own credentials, scoped to what it needs.
-- Deduplicate with idempotency keys so retries and replays are safe.
+- Deduplicate with idempotency keys so retries and replays are safe. After a
+  timeout, check whether the action already happened before retrying it.
 - Use bounded retries with backoff, a timeout on every step, and a place where
   failed items wait for review.
 - Respect the rate limits of every service the workflow calls.

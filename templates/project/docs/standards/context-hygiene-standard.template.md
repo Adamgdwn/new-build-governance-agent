@@ -91,8 +91,12 @@ For meaningful tasks, prefer a scoped work packet with:
 
 ## Agent Routing
 
-Use one main editing agent by default. Add subagents only when they reduce
-context pollution or provide independent review.
+Use one main editing agent by default. Add subagents for parallel independent
+work, to keep noisy exploration out of the main session, or for independent
+review with a fresh context. Protecting context capacity is no longer a reason
+on its own: current models have about 1M tokens of context and compact
+automatically, and every subagent multiplies token cost. One agent writes; the
+others advise.
 
 Use read-only scouts for high-volume discovery, log review, dependency survey,
 test-gap review, migration impact review, or security review. Scout outputs
@@ -144,7 +148,9 @@ should still avoid reading unrelated files.
 
 ### Compact Or Reset Before Drift
 
-Do not wait until the context window is nearly exhausted. Summarize or reset when signal quality starts dropping.
+On current models (2026), running out of room is rare: windows are about 1M tokens and compact automatically near the top. Cost and drift are the real constraints. Start each new chunk or unrelated task in a fresh session, with the handoff as its written definition of done. Within a task, prefer automatic or focused compaction to a reset. After two failed corrections, clear the session and restate the task more precisely instead of correcting a third time.
+
+Summarize or reset when signal quality starts dropping, not when the window is nearly full.
 
 Use compaction or a fresh handoff when:
 

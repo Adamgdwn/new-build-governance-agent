@@ -72,7 +72,37 @@ Owner decisions, Adam Goodwin, 2026-11-08:
 | Forty-Two | One "AI agent (harness)" intake choice | Medium | complete |
 | Forty-Three | Build-type agent playbooks | Large | complete |
 | Forty-Four | Frontier AI engineering research record, including Jev and Laya | Medium | complete |
-| Forty-Five | Frontier-model rules refresh and knowledge-base change proposal | Large | planned |
+| Forty-Five | Frontier-model rules refresh and knowledge-base change proposal | Large | complete |
+
+## Chunk Forty-Five - Frontier-Model Rules Refresh
+
+Status: complete
+
+Completion target: Integration complete
+
+Budget class: Large
+
+Timestamp: 2026-11-08T20:31:59-06:00
+
+Objective: bring this repository's own rules and the generated standards up to date for current frontier models, align this repository's chunk close-out with the fresh-session pattern (owner decision 2026-11-08), and propose matching changes to the AI Coding Practices knowledge base without editing it.
+
+Acceptance criteria:
+
+- [x] `AI_BOOTSTRAP.md` and `CLAUDE.md`: chunk close-out ends with a fresh session for the next chunk, and within a chunk relies on automatic compaction rather than resets. The stated reason is a clean start from a written definition of done, not context capacity. A "Working With Frontier Models" section covers plain-language rules, evidence of completion, deterministic checks first, hooks for hard rules, the role of subagents, package and configuration trust, and model settings over prompt wording.
+- [x] Context Hygiene Standard and its template: subagents justified by parallelism, isolation, or independent review rather than capacity; compaction guidance for 1M-token models.
+- [x] Engineering Governance By Use Case and its template: Harness Engineering Controls under AI Agents With Tools (Rule of Two, tripwires versus boundaries, bound approvals and caps, supply-chain pinning, evaluation sets as data, retesting at model releases, trace logging, System One rules).
+- [x] Durable Development Policy and its template: working with current coding agents.
+- [x] Harness README template (decisions table, Rule of Two question) and model registry template (exact model IDs, settings, eval set, re-evaluation before switching).
+- [x] Build playbooks gained the AI Engineer findings: checking before retrying after a timeout, recording state before external changes, prompt-cache ordering, effort-for-cost trade-offs, credentials and egress outside the agent, and proof a reviewer can check.
+- [x] README screenshots retaken from the current GUI on a virtual display, with updated alt text.
+- [x] `docs/proposals/2026-11-08 - AI Coding Practices Knowledge Base Change Proposal.md`: seven items for owner review. The knowledge base was not edited.
+- [x] Carry-forward: fresh-context and screenshot flags cleared, the proposal flagged, and the three standing flags reviewed with what changed.
+
+Finding during research: Anthropic's current guidance says context resets are no longer needed to save room on 1M-token models, and lists "subagents to protect context" under things to stop doing. Fresh sessions remain recommended between unrelated tasks and when starting a build from a written specification, which is what a chunk is. The owner's close-out decision stands on that basis.
+
+Validation:
+
+- `bash scripts/validate.sh` with the pinned tools exit 0 (154 tests, coverage 36%); governance audit 0 blockers, 0 required gaps, 0 warnings.
 
 ## Chunk Forty-Four - Frontier AI Engineering Research Record
 
@@ -391,6 +421,7 @@ Stop condition: stop before any risk-tier/governance-level decision, dependency 
 | Chunk Forty-Two - One AI Agent (Harness) Intake Choice | complete | 2026-11-08T20:11:35-06:00 | One agent choice that always asks the AI topology; every agent project gets a harness record; v0.3.0 harness projects now pass schema validation. |
 | Chunk Forty-Three - Build-Type Agent Playbooks | complete | 2026-11-08T20:18:42-06:00 | Eight agent-facing playbooks delivered as `docs/build-playbook.md` by project type and offered to existing projects through change control. |
 | Chunk Forty-Four - Frontier AI Engineering Research Record | complete | 2026-11-08T20:30:23-06:00 | Dated research record: AI Engineer talks, lab guidance, practitioner, evaluation, and security sources, and the Jev and Laya placement analysis. |
+| Chunk Forty-Five - Frontier-Model Rules Refresh | complete | 2026-11-08T20:31:59-06:00 | Fresh-session close-out here; frontier-model rules in AI_BOOTSTRAP, context hygiene, use-case standard, policy, and harness templates; knowledge-base change proposal for owner review. |
 
 Full history: `docs/archive/pathway-history.md`
 

@@ -1,7 +1,7 @@
 # Context Map
 
 Document type: project context routing map
-Last Updated: 2026-08-31
+Last Updated: 2026-11-08
 Status: active
 Owner: Technical Lead
 Audience: coding agents, human coders, reviewers, and project owners
@@ -42,6 +42,8 @@ Keep these files compact. They should route to durable docs, not duplicate them.
 | Repository storage, `.gitignore`, Git LFS, Actions workflows, artifacts, caches, Packages, releases, runners, or GitHub billing | `docs/standards/github-resource-efficiency-standard.md` |
 | Deployment, release, rollback, or environment changes | `docs/deployment-guide.md`, `docs/runbook.md`, and release standards |
 | Agent autonomy, tools, prompts, models, or permissions | `docs/agent-inventory.md`, `docs/model-registry.md`, `docs/prompt-register.md`, and `docs/tool-permission-matrix.md` |
+| Instructions coding agents get for each build type, or the generated `docs/build-playbook.md` | `templates/project/docs/playbooks/` |
+| Why an AI-engineering rule exists, current frontier-model practice, or where Jev and Laya fit | `docs/research/2026-11-08 - Frontier AI Engineering Practice Research.md` |
 
 ## Search Before Loading
 

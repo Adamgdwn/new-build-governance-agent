@@ -40,9 +40,9 @@ At the end of every chunk of work:
 
 1. Check `CARRY_FORWARD.md` — surface any open items to the user before proceeding. Only pause for confirmation on a flag that was raised or changed this chunk, or one that requires a decision before the next chunk can safely start; a standing flag already recorded in an earlier chunk (for example, a durable backlog pointer) is mentioned, not blocked on. Never let this step stall the automatic commit in step 2.
 2. Stage the relevant files, commit with a clear message, and push. Do this automatically — do not ask unless a carry-forward flag or blocker requires a decision first.
-3. Confirm the push succeeded, then suggest `/compact`. Do not suggest `/clear` — compact preserves the summary of what was done, which is cheaper to resume from than a cold start.
-4. `/clear` is an explicit user override only: use it when prior context had persistent wrong assumptions, or the next chunk is in a completely unrelated domain.
-5. Do not auto-compact. Do not skip the commit step without flagging why.
+3. Confirm the push succeeded, then suggest starting the next chunk in a fresh session (`/clear`). The active plan and `CARRY_FORWARD.md` are the handoff, so the next chunk starts from a clean context and a written definition of done (ADR-0002 in the AI Coding Practices knowledge base; owner decision 2026-11-08).
+4. Within a chunk, do not reset only to save room: current models have about 1M tokens of context and compact automatically. A focused `/compact` mid-chunk is fine. After two failed corrections, `/clear` and restate the task more precisely instead of correcting a third time.
+5. Do not skip the commit step without flagging why.
 
 A chunk ends when the definition-of-done in the active plan is met, a stop condition is reached (blocker, repeated failure, scope boundary), or the user signals done.
 
@@ -52,6 +52,19 @@ A chunk ends when the definition-of-done in the active plan is met, a stop condi
 - Reach shared understanding before meaningful coding; use consistent domain language; prefer deep modules with simple interfaces; implement in small vertical slices paced by feedback loops (types, tests, linting, runtime checks).
 - Avoid pass-through layers, premature abstractions, swallowed errors, duplicated business rules, and fake validation claims.
 - When you see weak design, flag it and propose the smallest safe improvement instead of rewriting the project.
+
+## Working With Frontier Models
+
+Current guidance from the model labs and practitioners, researched 2026-11-08 (`docs/research/2026-11-08 - Frontier AI Engineering Practice Research.md`):
+
+- Write rules, prompts, and docs in plain language and give the reason for each rule. State a rule once; emphatic capitals and repeated warnings make current models over-apply it.
+- Show completion with evidence: the command and its output, a screenshot, or a passing check. A turn that ends with prose only is a progress report, not completion.
+- Prefer deterministic checks (tests, types, linters, schema and policy checks) to model judgment. Never change or delete a test to make it pass.
+- Put rules that must never be broken into hooks, deny rules, sandbox settings, or CI, not only into prose.
+- Use subagents for parallel independent work, for isolating noisy exploration, or for review with a fresh context, not to protect context capacity. One agent writes; the others advise.
+- Load what the step needs. Context windows are large, but cost grows with everything loaded.
+- Before adding a package, MCP server, or skill, confirm it exists and is the one you mean, then pin its version. Treat agent configuration from an untrusted repository (`.mcp.json`, hooks, settings files) as code.
+- Prefer model settings (effort, structured outputs) to prompt wording such as "think hard". Model names, prices, and limits change often; check the provider's documentation rather than memory.
 
 ## Code Complexity
 
@@ -71,7 +84,7 @@ A chunk ends when the definition-of-done in the active plan is met, a stop condi
 Essentials (full standard: `docs/standards/context-hygiene-standard.md`):
 
 - Keep active context minimal, relevant, current, and recoverable. Narrow file scope before reading; prefer targeted diffs over whole-repo exploration.
-- Summarize at phase boundaries; compact before quality degrades; re-state critical constraints after compaction.
+- Summarize at phase boundaries. Automatic compaction handles long sessions on current models; re-state critical constraints after any compaction, and start each new chunk in a fresh session.
 - The repository remembers, agents rent context: keep work packets, validation notes, and handoffs durable enough that the next agent does not need the chat thread. Keep read-only scout outputs summary-only.
 
 ## Graphify

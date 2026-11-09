@@ -1,13 +1,13 @@
 # Durable Development Engineering Policy
 
 Document ID: POL-ENG-002
-Version: 1.1.0
+Version: 1.2.0
 Status: active
 Owner: Technical Lead
 Approver: Project Owner
 Effective Date: 2026-07-10
-Last Reviewed: 2026-08-31
-Next Review: 2026-11-30
+Last Reviewed: 2026-11-08
+Next Review: 2027-02-08
 Document type: risk-scaled operating policy
 Audience: coding team, contractors, AI coding agents, technical reviewers, and project leads
 Applies to: internal tools, SaaS products, websites, automations, AI-assisted builds, scripts, prototypes intended to become products, and production systems.
@@ -197,6 +197,19 @@ Every meaningful change should invest in the design of the system.
 Do not only make the requested change. Leave the touched area slightly clearer, better named, better tested, easier to understand, or easier to modify.
 
 This is not permission for broad rewrites. Prefer small, safe design improvements near the work being performed.
+
+### Work with current coding agents
+
+Added 2026-11-08 from current model-lab and practitioner guidance:
+
+- Deterministic checks come before model judgment. Tests, types, linters, schema checks, and policy-as-code decide whether work is correct; a model reviewer adds signal on top.
+- Never change or delete an existing test to make it pass. Fix the code, or record why the test itself is wrong and get it reviewed.
+- Completion needs evidence a reviewer can check: the command and its output, a screenshot of the running feature, or a passing check. A summary of intent is not evidence.
+- Review the plan before the code. A wrong plan produces a large, plausible, wrong diff.
+- One agent writes to a set of files at a time; additional agents research, test, or review with a fresh context.
+- Confirm that a package, MCP server, or skill exists and is the one you meant before adding it, and pin its version. Agent-suggested package names are sometimes invented.
+- Hard rules live in hooks, deny rules, sandbox settings, and CI, not only in prose.
+- Each project type has a build playbook (`docs/build-playbook.md`) with the type-specific done-criteria, verification, and failure modes.
 
 ## Stack Guidance
 

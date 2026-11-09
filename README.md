@@ -28,11 +28,11 @@ Use it when you want to:
 - check whether a repo is ready for release, GitHub publishing, or external deployment
 - keep Windows, macOS, and Linux users on the same setup path
 
-![New Build Governance Agent desktop GUI — Step 1 of 5, showing all project types including the new Agentic Harness option selected.](docs/assets/new-build-governance-agent-gui.png)
+![New Build Governance Agent desktop GUI — Step 1 of 6, showing the project types with "An AI agent (harness)" selected.](docs/assets/new-build-governance-agent-gui.png)
 
 The desktop GUI walks users through one decision at a time. Choosing **An AI agent (harness)** opens a topology step that sets the governance profile for your AI product:
 
-![Step 2 of 6 — harness topology selection showing Single LLM, Multi-LLM, Non-LLM AI (with model suggestions), and Combination options, plus a free-text description field.](docs/assets/new-build-harness-topology.png)
+![Step 2 of 6 — AI topology for an agent (harness), explaining that an agent is a model plus its harness, with Single LLM, Multi-LLM, Non-LLM AI (with model suggestions), and Combination options.](docs/assets/new-build-harness-topology.png)
 
 The generated project files give agents a standards map, durable development policy, ship-readiness gate, compact context map, context hygiene guidance, code-complexity controls, periodic governance-alignment prompts, and — for AI projects — a harness governance README, agent inventory, model registry, prompt register, and tool permission matrix.
 
@@ -269,6 +269,7 @@ Current capabilities:
 - create new governed projects from the terminal or desktop GUI
 - scaffold **AI agents as harnesses**, with topology-specific governance profiles and AI registers
 - scaffold compact context maps, budget classes, and token-friendly agent instructions
+- give coding agents a build playbook for each project type (AI agent harness, application, website, service, internal tool, automation, infrastructure, documentation) covering done-criteria, verification, common agent failure modes, security, and where typed-judgment models such as Jev or Laya fit
 - scaffold plain-language, advisory cyclomatic-complexity controls with anti-gaming and exception guidance
 - prompt active builds to review relevant governance-source updates every 90 days without adding a heavy startup check
 - register and audit governed projects across `~/code/agents` and `~/code/Applications`
