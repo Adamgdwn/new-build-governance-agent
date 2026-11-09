@@ -93,7 +93,7 @@ Findings:
 - Known limit, confirmed in CI: `icacls /inheritance:r` removes only inherited entries. Explicit entries stay: ones another tool added to an existing file, and copies a new file receives from a parent folder whose list is not auto-inherited.
   - CI run 42556335162 showed the second case: a file created in a `tempfile.mkdtemp` folder kept explicit SYSTEM, Administrators, and Owner Rights entries next to the user's. Python 3.12.4+ creates those folders with a protected list without auto-inheritance.
   - Run 42557263741 showed that such parents are not rare. On the runner, even a plain `os.mkdir` folder under the temp directory passed explicit copies (SYSTEM, Administrators, and the user).
-  - Those entries are the Windows equivalent of root, so the outcome is acceptable. The case where the parent passes only inherited entries is tested in a folder reset with `icacls /reset`; see the Windows CI line.
+  - Those entries are the Windows equivalent of root, so the outcome is acceptable. Where the parent passes only inherited entries (tested in a folder reset with `icacls /reset`), only the user's entry remains (run 42557576490).
   - Exact single-entry replacement is now a B-13 work item. Running `icacls /reset` first was not used, because it would briefly re-open an already-protected file on every rewrite.
 - Mutation check: five deliberate regressions each failed the new tests: bypassing the helper, writing before restricting, creating with mode 0666, keeping inheritance on Windows, and a plain write in `env_sync`.
 - For the owner: STD-ENG-019's Next Review date (2026-10-10) has passed. The standard was not edited.
@@ -104,7 +104,8 @@ Validation:
 - CLI checks on throwaway files: `env_sync.py apply` under umask 000 wrote a 0600 `.env.local`, and `master_env.py set` changed a 0644 master to 0600.
 - `python3 automation/governance_audit.py .`: 0 blockers, 0 required gaps, 0 warnings. `graphify update . --no-cluster` exit 0.
 - Windows CI: run 42556335162 on `a2ac691` failed, with 175 tests run, 2 failures, and 4 skipped. Both failures were the real-Windows tests' strict "exactly one entry" assertion meeting the `mkdtemp` case above. `whoami`, `icacls`, and every existing env test passed through real `icacls`. The fix-forward commit asserts the actual property and adds the normal-inheritance case.
-- Windows CI: run 42557263741 on `ba5197b` failed, with 176 tests run, 2 failures, and 4 skipped. Both failures were the new precondition check: a plain `os.mkdir` folder under the runner's temp directory did not pass inherited entries. The kept-entries test passed. The next commit resets its test folder with `icacls /reset` first; its run is recorded below.
+- Windows CI: run 42557263741 on `ba5197b` failed, with 176 tests run, 2 failures, and 4 skipped. Both failures were the new precondition check: a plain `os.mkdir` folder under the runner's temp directory did not pass inherited entries. The kept-entries test passed. The next commit resets its test folder with `icacls /reset` first.
+- Windows CI: run 42557576490 on `e320d6f` passed, with 176 tests run and 4 skipped (the POSIX-only tests). All three real-Windows tests passed. A file in a normally inheriting folder has exactly one entry, for the current user, and still has one after a rewrite. In `mkdtemp` and plain-mkdir folders, nothing but SYSTEM, Administrators, or Owner Rights sits beside the user. Ubuntu and the Windows launcher build also passed.
 
 ## Chunk Forty-Six - Documentation Scaffold Passes Its Own Compliance Check
 
