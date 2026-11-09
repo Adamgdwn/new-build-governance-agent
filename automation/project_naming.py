@@ -61,6 +61,19 @@ GOV_TYPES = frozenset(
 )
 # Project types created in the agents category folder; all others go to applications.
 AGENT_PROJECT_TYPES = frozenset({"agent", "agentic-harness"})
+# Build playbook for each type: templates/project/docs/playbooks/<name>.template.md,
+# delivered to a project as docs/build-playbook.md.
+PLAYBOOK_BY_TYPE = {
+    "application": "application",
+    "website": "website",
+    "service": "service",
+    "internal-tool": "internal-tool",
+    "automation": "automation",
+    "infrastructure": "infrastructure",
+    "documentation": "documentation",
+    "agent": "agent",
+    "agentic-harness": "agent",
+}
 GOVERNANCE_LEVELS = frozenset({"0", "1", "2", "3", "4"})
 RISK_TIERS = frozenset({"low", "medium", "high", "critical"})
 GOVERNANCE_TO_RISK = {

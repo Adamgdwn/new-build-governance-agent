@@ -254,5 +254,19 @@ class ChangeControlTests(unittest.TestCase):
             self.assertEqual([], change_control.build_document_control_manifest(project)["actions"])
 
 
+class BuildPlaybookUpgradeTests(unittest.TestCase):
+    def test_existing_projects_are_offered_their_playbook(self):
+        service = change_control.baseline_files_for_profile(
+            {"project_type": "service", "is_agent": False}
+        )
+        legacy_harness = change_control.baseline_files_for_profile(
+            {"project_type": "agentic-harness", "is_agent": True}
+        )
+
+        self.assertEqual("service.template.md", service["docs/build-playbook.md"].name)
+        self.assertEqual("agent.template.md", legacy_harness["docs/build-playbook.md"].name)
+        self.assertIn("docs/model-registry.md", legacy_harness)
+
+
 if __name__ == "__main__":
     unittest.main()

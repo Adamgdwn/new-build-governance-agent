@@ -4,7 +4,7 @@ Document ID: STD-ENG-016
 Document type: standards index
 Status: active
 Owner: Project owner or human technical lead
-Last Updated: 2026-09-30
+Last Updated: 2026-11-08
 Audience: coding agents, human coders, reviewers, project owners, and release reviewers
 
 ## Purpose
@@ -45,6 +45,10 @@ Use these when the work touches the matching area:
 | [Risk Classification Standard](risk-classification-standard.md) | Classifying risk tier, sensitive surfaces, or escalation needs. Sole definition of the Low/Medium/High/Critical tiers. |
 | [Security And Secrets Standard](security-and-secrets-standard.md) | Handling secrets, auth, permissions, private data, external credentials, or trust boundaries. |
 | [Testing Standard](testing-standard.md) | Choosing test levels, writing validation evidence, or judging test adequacy. |
+
+## Build Playbooks
+
+Every generated project receives one build playbook as `docs/build-playbook.md`, chosen by its `project_type`: AI agent (harness), application, website, service, internal tool, automation, infrastructure, or documentation. Playbooks are instructions for coding agents: what done looks like, build rules, verification, the failure modes agents produce, security, where a System One model (Jev or Laya) fits, and when to stop and ask. They are guidance inside the existing standards, not new controls. The canonical text is in `templates/project/docs/playbooks/`; existing projects receive their playbook through `automation/change_control.py propose`.
 
 Retired standards (kept as tombstones; content merged into their parents on 2026-07-10):
 

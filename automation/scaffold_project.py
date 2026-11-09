@@ -16,6 +16,7 @@ from project_naming import (  # noqa: F401
     GOV_TYPES,
     GOVERNANCE_LEVELS,
     GOVERNANCE_TO_RISK,
+    PLAYBOOK_BY_TYPE,
     RISK_TIERS,
     RISK_TO_GOVERNANCE,
     resolve_governance,
@@ -246,6 +247,7 @@ def scaffold_project(
         ("docs/manual.template.md", "docs/manual.md"),
         ("docs/roadmap.template.md", "docs/roadmap.md"),
         ("docs/current-build-pathway.template.md", "docs/current-build-pathway.md"),
+        (f"docs/playbooks/{PLAYBOOK_BY_TYPE[project_type]}.template.md", "docs/build-playbook.md"),
         ("docs/standards/README.template.md", "docs/standards/README.md"),
         (
             "docs/policy/durable-development-engineering-policy.template.md",

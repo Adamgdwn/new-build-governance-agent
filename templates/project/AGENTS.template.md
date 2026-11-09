@@ -50,6 +50,7 @@ A rule that a hook enforces names the hook. Hooks live in `scripts/agent/hooks/`
 
 ## Read when relevant
 
+- `docs/build-playbook.md`: how to build, verify, and secure this type of project. Read it before designing or verifying a feature.
 - `docs/context-map.md`: routing by task. `docs/architecture.md`, `docs/risks/risk-register.md`, and `docs/domain-language.md` when the task touches them.
 - `docs/standards/README.md`: which standards apply and where the source text lives. `docs/standards/engineering-governance-by-use-case.md` is control guidance only, never a reason to change tier or level.
 - Graphify Policy: an optional orientation tool, never a startup step. The canonical policy is `docs/agent-governance.md` in the installed Graphify tool repository. Query the repo-local graph before broad source exploration or architecture analysis; use `graphify global path` and `graphify global list` to find the configured global graph for cross-repo routing rather than hard-coding a provider or a user-specific filesystem layout. Use normal inspection for known files, build or test errors, small scoped edits, and routine docs checks. Set up a new repo with `graphify-setup-project /path/to/repo`; full semantic repo graphs come from `/graphify /path/to/repo` in Claude Code as a deliberate once-per-major-change act. Do not trigger a full `/graphify` rebuild to answer a question, at session start, or after a context clear. After code changes run `graphify update . --no-cluster`. Measure use before keeping any Graphify hooks.

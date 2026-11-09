@@ -70,9 +70,38 @@ Owner decisions, Adam Goodwin, 2026-11-08:
 | Forty | Workspace paths and preview routing | Small | complete |
 | Forty-One | Freedom dispatcher resolves a relative `cwd` (the-freedom-engine-os) | Tiny | complete (draft PR #73 awaiting merge) |
 | Forty-Two | One "AI agent (harness)" intake choice | Medium | complete |
-| Forty-Three | Frontier AI engineering research record, including Jev and Laya | Medium | planned |
-| Forty-Four | Build-type agent playbooks | Large | planned |
+| Forty-Three | Build-type agent playbooks | Large | complete |
+| Forty-Four | Frontier AI engineering research record, including Jev and Laya | Medium | planned |
 | Forty-Five | Frontier-model rules refresh and knowledge-base change proposal | Large | planned |
+
+## Chunk Forty-Three - Build-Type Agent Playbooks
+
+Status: complete
+
+Completion target: Integration complete
+
+Budget class: Large
+
+Timestamp: 2026-11-08T20:18:42-06:00
+
+Objective: give coding agents type-specific instructions they can be handed for each kind of build, delivered with every new project and offered to existing ones, grounded in the 2026-11-08 research (frontier-lab guidance, independent practitioners, security and evaluation sources, TypeSafe documentation, and Laya's published limits).
+
+Acceptance criteria:
+
+- [x] Eight playbooks in `templates/project/docs/playbooks/`: agent (harness), application, website, service, internal tool, automation, infrastructure, and documentation. Each covers what done looks like, preparation, build rules, verification, the failure modes agents produce in that build type, security, where a System One model fits (Jev hosted, Laya local), and when to stop and ask.
+- [x] Written for current frontier models: plain language with reasons, no emphatic capitals, deterministic checks before model judgment, and evidence-based completion.
+- [x] The scaffold delivers the matching playbook as `docs/build-playbook.md` (legacy `agentic-harness` gets the agent playbook), and the generated `AGENTS.md` routes to it.
+- [x] `automation/change_control.py propose` offers the playbook to existing projects. A fresh scaffold still yields an empty upgrade manifest.
+- [x] One type-to-playbook table (`PLAYBOOK_BY_TYPE` in `automation/project_naming.py`) serves both the scaffold and change control.
+- [x] The standards index and README route to the playbooks. They are guidance inside existing standards, not new controls.
+
+Also fixed: change control treated only `agent`, not legacy `agentic-harness`, as an agent project, so v0.3.0 harness projects were not offered their AI registers.
+
+Validation:
+
+- Throwaway `application` and `agent` projects scaffolded from the new templates: the application's own `scripts/governance-check.sh` exited 0, the agent passed schema validation, and `change_control.py propose` on the fresh agent project produced 0 actions.
+- New tests: every project type has a playbook template; the scaffold delivers the matching playbook; `AGENTS.md` routes to it; change control offers the right playbook and AI registers to existing projects.
+- `bash scripts/validate.sh` exit 0 (154 tests, coverage 36%); governance audit 0 blockers, 0 required gaps.
 
 ## Chunk Forty-Two - One AI Agent (Harness) Intake Choice
 
@@ -333,6 +362,7 @@ Stop condition: stop before any risk-tier/governance-level decision, dependency 
 | Chunk Forty - Workspace Paths And Preview Routing | complete | 2026-11-08T19:59:12-06:00 | Numbered workspace folders detected without hard-coding a layout; side-effect-free path resolution; launchers preview through `new_build_headless.py --plan`; harness routing matches the GUI; master env registry gating re-applied. |
 | Chunk Forty-One - Freedom Dispatcher Relative Tool Working Directory | complete | 2026-11-08T20:04:39-06:00 | Dispatcher resolves a relative tool `cwd` against the manifest folder; delivered as draft PR #73 in the-freedom-engine-os. |
 | Chunk Forty-Two - One AI Agent (Harness) Intake Choice | complete | 2026-11-08T20:11:35-06:00 | One agent choice that always asks the AI topology; every agent project gets a harness record; v0.3.0 harness projects now pass schema validation. |
+| Chunk Forty-Three - Build-Type Agent Playbooks | complete | 2026-11-08T20:18:42-06:00 | Eight agent-facing playbooks delivered as `docs/build-playbook.md` by project type and offered to existing projects through change control. |
 
 Full history: `docs/archive/pathway-history.md`
 

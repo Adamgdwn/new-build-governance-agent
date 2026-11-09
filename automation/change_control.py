@@ -10,6 +10,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from project_naming import AGENT_PROJECT_TYPES, PLAYBOOK_BY_TYPE
+
 REPO_ROOT = Path(__file__).resolve().parent.parent
 TEMPLATE_ROOT = REPO_ROOT / "templates" / "project"
 EXPORT_ROOT = REPO_ROOT / "data" / "new-build-governance-agent" / "exports"
@@ -618,7 +620,7 @@ def infer_project_profile(project_path: Path) -> dict:
         "governance_level": governance_level,
         "handles_money": handles_money,
         "handles_sensitive_data": handles_sensitive_data,
-        "is_agent": project_type == "agent",
+        "is_agent": project_type in AGENT_PROJECT_TYPES,
     }
 
 
@@ -626,6 +628,11 @@ def baseline_files_for_profile(profile: dict) -> dict[str, Path]:
     files = dict(CORE_BASELINE_FILES)
     if profile.get("is_agent"):
         files.update(AGENT_ONLY_FILES)
+    playbook = PLAYBOOK_BY_TYPE.get(str(profile.get("project_type", "")))
+    if playbook:
+        files["docs/build-playbook.md"] = (
+            TEMPLATE_ROOT / "docs" / "playbooks" / f"{playbook}.template.md"
+        )
     return files
 
 

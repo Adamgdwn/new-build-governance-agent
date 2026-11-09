@@ -162,6 +162,7 @@ my-app/
 │   ├── architecture.md
 │   ├── context-map.md       ← short routing map for agent context loads
 │   ├── current-build-pathway.md ← live chunked build route and validation log
+│   ├── build-playbook.md    ← how to build, verify, and secure this type of project
 │   ├── domain-language.md   ← shared vocabulary across code, docs, tests, UI, prompts
 │   ├── policy/durable-development-engineering-policy.md ← code health, testing, security, release standards
 │   ├── standards/README.md  ← standards map for coding and release sessions

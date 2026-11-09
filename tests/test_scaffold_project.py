@@ -247,5 +247,33 @@ class AgentHarnessScaffoldTests(unittest.TestCase):
             self.assertFalse((target / "docs" / "harness").exists())
 
 
+class BuildPlaybookTests(unittest.TestCase):
+    def test_every_project_type_has_a_playbook_template(self):
+        for project_type in sorted(scaffold_project.GOV_TYPES):
+            name = scaffold_project.PLAYBOOK_BY_TYPE[project_type]
+            template = scaffold_project.TEMPLATE_ROOT / "docs" / "playbooks" / f"{name}.template.md"
+            self.assertTrue(template.exists(), project_type)
+
+    def test_scaffold_delivers_the_matching_playbook(self):
+        cases = {
+            "website": "Website",
+            "infrastructure": "Infrastructure",
+            "agent": "AI Agent (Harness)",
+            "agentic-harness": "AI Agent (Harness)",
+        }
+        for project_type, title in cases.items():
+            with tempfile.TemporaryDirectory() as tmp:
+                target = Path(tmp) / f"p-{project_type}"
+
+                scaffold_project.scaffold_project(target, project_type, "2")
+
+                playbook = (target / "docs" / "build-playbook.md").read_text(encoding="utf-8")
+                self.assertEqual(f"# Build Playbook: {title}", playbook.splitlines()[0])
+
+    def test_agents_file_routes_to_the_playbook(self):
+        agents = (scaffold_project.TEMPLATE_ROOT / "AGENTS.template.md").read_text(encoding="utf-8")
+        self.assertIn("`docs/build-playbook.md`", agents)
+
+
 if __name__ == "__main__":
     unittest.main()
