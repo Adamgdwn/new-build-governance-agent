@@ -1,6 +1,6 @@
 # Current Build Pathway
 
-Last Updated: 2026-11-08
+Last Updated: 2026-11-09
 Status: active
 Owner: Technical Lead
 
@@ -54,6 +54,46 @@ Use second-level Markdown headings for active and planned chunks:
 ## Chunk Two - Short Objective
 ```
 
+## Chunk Forty-Eight - Exact Single-Entry Windows Access List For Secret Files
+
+Status: ready · Completion target: Task complete · Budget class: Medium
+
+Source: chunk 48, the default set at the Chunk Forty-Seven close-out: AUD-ENG-004 B-13's first open work item. If the owner names another item, do that instead (alternate at the end).
+
+Objective: on Windows, every secret file written by `write_private_text` ends with exactly one access entry, the current user's. Today `_restrict_windows` runs `icacls <file> /inheritance:r /grant:r *<SID>:F`. That keeps the explicit entries a folder without auto-inheritance copies into new files, such as SYSTEM, Administrators and Owner Rights (CI runs 42556335162 and 42557263741). Writes must still fail closed.
+
+Read only:
+
+- `automation/env_file.py:89-197`, the protection helpers.
+- `tests/test_env_file.py:263-446`. `WindowsBranchTests` runs on every OS and pins the exact tool argv. `WindowsAccessControlTests` runs only on Windows; its `..._are_kept` test (line 432) must become a check that those entries are removed.
+- Background, only if needed: the next section, Chunk Forty-Seven (its decision and known limit).
+
+Not needed: the rest of the backlog, the validate scripts, the workflow files. CI's Validate workflow runs `validate.sh` on ubuntu-latest and `validate.ps1` (the full unittest suite) on windows-latest. Only that Windows job can prove Windows code.
+
+Candidate fixes (untested; pick one and record why):
+
+- `SetNamedSecurityInfoW` through `ctypes`, with a protected list holding one entry.
+- `icacls <folder> /restore <aclfile>` with a crafted `D:P(A;;FA;;;<SID>)` entry, which stays pure icacls.
+- `icacls /reset` before `/inheritance:r`. It briefly widens access, so only on a file that is still empty.
+
+Acceptance criteria:
+
+- [ ] On windows-latest, a new file and a rewritten file that already holds explicit entries each end with exactly one entry, the current user's. This holds in a normally inheriting folder and in folders without auto-inheritance (`tempfile.mkdtemp`, plain `os.mkdir`).
+- [ ] A failed restriction still raises `SecretFileProtectionError` and writes nothing; POSIX behaviour is unchanged.
+- [ ] The local gate passes; Validate passes on both OSes.
+
+Validation:
+
+- Preflight: `bash scripts/governance-preflight.sh`. Standards review: `docs/standards/security-and-secrets-standard.md:59` and `:88`.
+- Gate: `PYTHON=$V/bin/python3 bash scripts/validate.sh`. `V` is an existing `/tmp/claude-1000/*New-Build-Agent/*/scratchpad/devvenv` whose ruff, mypy and coverage match `requirements-dev.txt`; otherwise build one (memory `validation-gate-tools`).
+- Windows: push to `main`, take the run id from `gh run list --commit <sha>`, then `timeout 15m gh run watch <id> --exit-status`.
+
+Stop condition: stop when the criteria pass. Do not start the other B-13 items (tests for untested modules, the coverage ratchet, the `validate.ps1` coverage step, test anti-patterns). Do not edit standards or templates.
+
+Close-out: mark this section complete with findings and validation. Add its row to Recent Completed Work, and update B-13 (`docs/audits/remediation-backlog-2026-07-10.md:183-235`), `docs/CHANGELOG.md` and `CARRY_FORWARD.md`. Then define Chunk Forty-Nine here in this same compact form.
+
+Alternate, only if the owner names it: tests for `automation/stripe_provision.py` (477 lines, no tests; it writes secrets through `update_env_file` at line 37 and `apply_plan` at line 364), then raise `fail_under = 25` in `pyproject.toml:31`.
+
 ## Chunk Forty-Seven - Secret Env Files Restricted To The Owner On Windows
 
 Status: complete
@@ -106,6 +146,7 @@ Validation:
 - Windows CI: run 42556335162 on `a2ac691` failed, with 175 tests run, 2 failures, and 4 skipped. Both failures were the real-Windows tests' strict "exactly one entry" assertion meeting the `mkdtemp` case above. `whoami`, `icacls`, and every existing env test passed through real `icacls`. The fix-forward commit asserts the actual property and adds the normal-inheritance case.
 - Windows CI: run 42557263741 on `ba5197b` failed, with 176 tests run, 2 failures, and 4 skipped. Both failures were the new precondition check: a plain `os.mkdir` folder under the runner's temp directory did not pass inherited entries. The kept-entries test passed. The next commit resets its test folder with `icacls /reset` first.
 - Windows CI: run 42557576490 on `e320d6f` passed, with 176 tests run and 4 skipped (the POSIX-only tests). All three real-Windows tests passed. A file in a normally inheriting folder has exactly one entry, for the current user, and still has one after a rewrite. In `mkdtemp` and plain-mkdir folders, nothing but SYSTEM, Administrators, or Owner Rights sits beside the user. Ubuntu and the Windows launcher build also passed.
+- 2026-11-09: this chunk's start-up spent about 12 minutes reading before its first edit, because no Chunk Forty-Seven had been defined. The handover is now Chunk Forty-Eight (above), a ready section, and `CARRY_FORWARD.md` points to it in one line.
 
 ## Chunk Forty-Six - Documentation Scaffold Passes Its Own Compliance Check
 
@@ -513,6 +554,7 @@ Stop condition: stop before any risk-tier/governance-level decision, dependency 
 | Chunk Forty-Four - Frontier AI Engineering Research Record | complete | 2026-11-08T20:30:23-06:00 | Dated research record: AI Engineer talks, lab guidance, practitioner, evaluation, and security sources, and the Jev and Laya placement analysis. |
 | Chunk Forty-Five - Frontier-Model Rules Refresh | complete | 2026-11-08T20:31:59-06:00 | Fresh-session close-out here; frontier-model rules in AI_BOOTSTRAP, context hygiene, use-case standard, policy, and harness templates; knowledge-base change proposal for owner review. |
 | Chunk Forty-Six - Documentation Scaffold Passes Its Own Compliance Check | complete | 2026-11-08T21:01:34-06:00 | One table drives the documentation type's skipped docs and its `required_docs`; every type at every governance level now passes its own compliance report; audit backlog B-14 closed. |
+| Chunk Forty-Seven - Secret Env Files Restricted To The Owner On Windows | complete | 2026-11-08T21:24:23-06:00 | `write_private_text` restricts secret env files before writing (mode 0600 on POSIX, `icacls` on Windows) and fails closed; on Windows, explicit entries copied from some parent folders remain (Chunk Forty-Eight). |
 
 Full history: `docs/archive/pathway-history.md`
 
