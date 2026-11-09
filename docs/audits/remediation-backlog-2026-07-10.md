@@ -204,7 +204,9 @@ read the resulting access-control list back in the Windows CI job.
   keeps explicit entries. CI run 42556335162 showed that a file created in a
   `tempfile.mkdtemp` folder also gets explicit copies of SYSTEM,
   Administrators, and Owner Rights. Python 3.12.4+ creates those folders with
-  a protected list that is not auto-inherited. Those three are acceptable,
+  a protected list that is not auto-inherited. Run 42557263741 showed that
+  on the runner even a plain `os.mkdir` folder under the temp directory
+  passes explicit copies. Those entries are acceptable,
   as the Windows equivalent of root, but a parent folder like that with broad
   entries would pass them on too. Candidates: `SetNamedSecurityInfoW` with a
   protected one-entry list, or `icacls /reset` before `/inheritance:r` on

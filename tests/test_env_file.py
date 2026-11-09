@@ -371,18 +371,29 @@ class WindowsAccessControlTests(unittest.TestCase):
         assert match is not None
         return match.group(1), re.findall(r"\(([^)]*)\)", match.group(2))
 
-    def plain_folder(self):
-        # os.mkdir without a mode inherits normally. tempfile.mkdtemp folders do
-        # not: Python 3.12.4+ gives them a protected list without auto-inheritance.
+    def temp_folder(self):
         folder = Path(tempfile.gettempdir()) / f"nbga-acl-{uuid.uuid4().hex}"
         os.mkdir(folder)
         self.addCleanup(shutil.rmtree, folder, ignore_errors=True)
+        return folder
+
+    def inheriting_folder(self):
+        # A folder that passes its entries on as inherited entries. On the CI
+        # runner even a plain mkdir under the temp folder passes explicit copies
+        # instead (run 42557263741), so reset the folder to inherited entries
+        # and check that new files there really receive inherited entries.
+        folder = self.temp_folder()
+        subprocess.run(
+            [env_file._system_tool("icacls.exe"), str(folder), "/reset"],
+            check=True,
+            capture_output=True,
+        )
         probe = folder / "probe.txt"
         probe.write_text("probe\n", encoding="utf-8")
         _, entries = self.saved_dacl(probe)
         self.assertTrue(
             all("ID" in entry.split(";")[1] for entry in entries),
-            f"a plain temp folder should pass inherited entries to new files: {entries}",
+            f"the reset folder should pass inherited entries to new files: {entries}",
         )
         return folder
 
@@ -404,14 +415,14 @@ class WindowsAccessControlTests(unittest.TestCase):
         self.assertEqual(1, user_entries, entries)
 
     def test_new_secret_file_grants_only_the_current_user(self):
-        path = self.plain_folder() / ".env"
+        path = self.inheriting_folder() / ".env"
         env_file.write_private_text(path, "KEY=placeholder\n")
 
         self.assert_restricted(path)
         self.assertEqual("KEY=placeholder\n", path.read_text(encoding="utf-8"))
 
     def test_protection_survives_a_rewrite(self):
-        path = self.plain_folder() / ".env"
+        path = self.inheriting_folder() / ".env"
         env_file.write_private_text(path, "KEY=first\n")
         env_file.write_private_text(path, "KEY=second\n")
 
@@ -419,14 +430,16 @@ class WindowsAccessControlTests(unittest.TestCase):
         self.assertEqual("KEY=second\n", path.read_text(encoding="utf-8"))
 
     def test_entries_copied_from_a_folder_without_auto_inheritance_are_kept(self):
-        # CI run 42556335162: in a mkdtemp folder the file also kept explicit
-        # SYSTEM, Administrators and Owner Rights entries. That is the known
-        # limit in backlog B-13; no other principal may appear.
+        # CI runs 42556335162 and 42557263741: in these folders the file also
+        # kept explicit SYSTEM, Administrators and Owner Rights entries. That
+        # is the known limit in backlog B-13; no other principal may appear.
         with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp) / ".env"
-            env_file.write_private_text(path, "KEY=placeholder\n")
+            for name, folder in (("mkdtemp", Path(tmp)), ("plain mkdir", self.temp_folder())):
+                with self.subTest(name):
+                    path = folder / ".env"
+                    env_file.write_private_text(path, "KEY=placeholder\n")
 
-            self.assert_restricted(path, others_allowed={"SY", "BA", "OW"})
+                    self.assert_restricted(path, others_allowed={"SY", "BA", "OW"})
 
 
 if __name__ == "__main__":
