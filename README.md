@@ -4,7 +4,7 @@
 
 New Build Governance Agent is a starter framework for projects built with AI coding assistants such as Claude, Codex, Cursor, and local agents. It gives you a terminal launcher, a desktop GUI, reusable governance and guidance templates, validation scripts, context-budget guidance, and a staged release model so a new build starts with clear scope, clear ownership, durable engineering standards, and practical agent handoff habits.
 
-**New in v0.3.0 — Agentic Harness support.** Select "An agentic harness" at intake and the walkthrough guides you through your AI topology — Single LLM, Multi-LLM, Non-LLM (DiNO, JEPA, Phi-4, YOLO, Whisper, and similar), or a Combination — then generates topology-specific governance docs, AI registers, and a harness README that tells your coding agent exactly what governance profile applies and what open questions it must answer before writing the first AI call.
+**Agents are built as harnesses.** When people ask for an agent, what they are building is a harness: the model plus the loop, tools, context, permissions, and checks around it. Choose "An AI agent (harness)" at intake and the walkthrough asks for your AI topology — Single LLM, Multi-LLM, Non-LLM (DiNO, JEPA, Phi-4, YOLO, Whisper, and similar), or a Combination — then generates topology-specific governance docs, AI registers, and a harness README that tells your coding agent which governance profile applies and which open questions it must answer before writing the first AI call. The terminal launchers ask the same question; skip it and the topology is recorded as not chosen yet.
 
 **New on `main` — Plain-language complexity controls and periodic governance alignment.** New and upgraded builds now receive an advisory cyclomatic-complexity control that treats the score as a review signal, not a verdict: 1–10 gets ordinary review, 11–20 prompts a design and branch-test review, and 21+ calls for a coherent refactor or a documented exception. Builds also record when they last compared their local controls with this governance source and prompt for a bounded review every 90 days or before relevant release work. Local risk tiers, governance levels, exceptions, and owner decisions are never silently overwritten.
 
@@ -19,7 +19,7 @@ New Build Governance Agent is a starter framework for projects built with AI cod
 Use it when you want to:
 
 - create a new governed project from a short guided walkthrough
-- scaffold an **agentic harness** with topology-specific governance (single LLM, multi-LLM, non-LLM AI, or a combination)
+- scaffold an **AI agent as a harness**, with topology-specific governance (single LLM, multi-LLM, non-LLM AI, or a combination)
 - give AI agents consistent instructions and context-hygiene guidance before they write code
 - prompt agents to discuss branch-heavy code in plain language and pair complexity findings with focused tests
 - keep active builds aligned with relevant governance updates through a lightweight, review-before-apply check
@@ -30,7 +30,7 @@ Use it when you want to:
 
 ![New Build Governance Agent desktop GUI — Step 1 of 5, showing all project types including the new Agentic Harness option selected.](docs/assets/new-build-governance-agent-gui.png)
 
-The desktop GUI walks users through one decision at a time. Selecting **An agentic harness** unlocks a dedicated topology step that sets the governance profile for your AI product:
+The desktop GUI walks users through one decision at a time. Choosing **An AI agent (harness)** opens a topology step that sets the governance profile for your AI product:
 
 ![Step 2 of 6 — harness topology selection showing Single LLM, Multi-LLM, Non-LLM AI (with model suggestions), and Combination options, plus a free-text description field.](docs/assets/new-build-harness-topology.png)
 
@@ -182,7 +182,7 @@ my-app/
 └── archive/
 ```
 
-AI agent projects and agentic harnesses get additional scaffolding:
+AI agent projects, which are always harnesses, get additional scaffolding:
 
 ```
 docs/
@@ -266,7 +266,7 @@ The framework does more than bootstrap new projects. It can also detect existing
 Current capabilities:
 
 - create new governed projects from the terminal or desktop GUI
-- scaffold **agentic harnesses** with topology-specific governance profiles and AI registers (v0.3.0)
+- scaffold **AI agents as harnesses**, with topology-specific governance profiles and AI registers
 - scaffold compact context maps, budget classes, and token-friendly agent instructions
 - scaffold plain-language, advisory cyclomatic-complexity controls with anti-gaming and exception guidance
 - prompt active builds to review relevant governance-source updates every 90 days without adding a heavy startup check
@@ -280,7 +280,7 @@ Current capabilities:
 
 The desktop GUI includes three tabs:
 
-- **New Build** — guided intake for all project types including agentic harnesses
+- **New Build** — guided intake for all project types, including AI agents (harnesses)
 - **Governance & Release** — compliance previews, local updates, release planning, checks, and GitHub publish
 - **Document Control** — document lifecycle and supersession management
 
@@ -311,13 +311,13 @@ External execution is still intentionally blocked by default. The framework prep
 
 ## The intake questions
 
-The guided walkthrough adapts to your project type. An agentic harness gets an extra topology step; other project types skip it.
+The guided walkthrough adapts to your project type. An AI agent (harness) gets an extra topology step; other project types skip it.
 
 | Step | Question | Options |
 |------|----------|---------|
-| 1 | What are you trying to make? | website / app or portal / automation / AI helper / **agentic harness** / internal tool |
-| 2 (harness only) | What kind of AI will this use? | Single LLM / Multi-LLM / Non-LLM AI / Combination |
-| 2 (harness only) | Describe what your harness will do | free text — written to `docs/harness/README.md` for your coding agent |
+| 1 | What are you trying to make? | website / app or portal / automation / **AI agent (harness)** / internal tool |
+| 2 (agents only) | What kind of AI will this use? | Single LLM / Multi-LLM / Non-LLM AI / Combination |
+| 2 (agents only) | Describe what your harness will do | free text — written to `docs/harness/README.md` for your coding agent |
 | 3 | Who is the primary audience? | yourself / a team / external users / a mix |
 | 4 | What is the first result you want? | free text scope brief |
 | 5 | Risk level | `0` full autonomy through `4` critical controls |

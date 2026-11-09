@@ -132,6 +132,24 @@ class PlanModeTests(unittest.TestCase):
             self.assertEqual(0, code)
             self.assertEqual(str(Path(tmp) / "agents" / "harness-probe"), plan["project_path"])
 
+    def test_plan_reports_undecided_topology_for_agents(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            code, plan = self._plan(tmp, {"project_name": "Agent Probe", "build_type": "agent"})
+
+            self.assertEqual(0, code)
+            self.assertEqual("agent", plan["governance_type"])
+            self.assertEqual("undecided", plan["harness_topology"])
+
+    def test_plan_rejects_unknown_topology(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            code, plan = self._plan(
+                tmp,
+                {"project_name": "Agent Probe", "build_type": "agent", "harness_topology": "swarm"},
+            )
+
+            self.assertEqual(1, code)
+            self.assertIn("harness_topology", plan["error"])
+
     def test_plan_reports_validation_failure(self):
         with tempfile.TemporaryDirectory() as tmp:
             code, plan = self._plan(tmp, {"project_name": "!!!", "build_type": "app"})

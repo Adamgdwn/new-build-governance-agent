@@ -69,5 +69,20 @@ class SchemaValidationTests(unittest.TestCase):
         self.assertTrue(any("argv must be a non-empty string list" in error for error in errors))
 
 
+class LegacyHarnessProjectSchemaTests(unittest.TestCase):
+    def test_v030_harness_projects_pass_schema(self):
+        import scaffold_project
+
+        with tempfile.TemporaryDirectory() as tmp:
+            target = Path(tmp) / "legacy-harness"
+            scaffold_project.scaffold_project(
+                target, "agentic-harness", "2", harness_topology="single-llm"
+            )
+
+            errors = schema_validation.validate_project_control(target / "project-control.yaml")
+
+            self.assertEqual([], errors)
+
+
 if __name__ == "__main__":
     unittest.main()

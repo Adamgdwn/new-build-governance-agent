@@ -29,6 +29,7 @@ LOG_PATH = GOVERNANCE_HOME / "data" / "new-build-governance-agent" / "logs" / "g
 
 sys.path.insert(0, str(GOVERNANCE_HOME / "automation"))
 from project_naming import (  # noqa: E402
+    AGENT_PROJECT_TYPES,
     GOVERNANCE_TO_RISK,
     render_initial_scope,
     slug_error,
@@ -108,11 +109,16 @@ TYPE_MAP = {
     "app": ("application", APPS_ROOT),
     "website": ("website", APPS_ROOT),
     "agent": ("agent", AGENTS_ROOT),
-    "harness": ("agentic-harness", AGENTS_ROOT),
+    # Legacy intake value from v0.3.0, when "agentic harness" was its own choice.
+    "harness": ("agent", AGENTS_ROOT),
     "tool": ("internal-tool", APPS_ROOT),
     "automation": ("automation", APPS_ROOT),
     "other": ("automation", APPS_ROOT),
 }
+
+# Intake purposes that build an AI agent. An agent is a model plus its harness,
+# so these purposes always go through the AI-topology step.
+AGENT_PURPOSES = frozenset({"agent", "harness"})
 
 PURPOSE_OPTIONS = [
     (
@@ -132,13 +138,9 @@ PURPOSE_OPTIONS = [
     ),
     (
         "agent",
-        "An AI helper",
-        "An assistant that can answer, draft, inspect files, or use tools.",
-    ),
-    (
-        "harness",
-        "An agentic harness",
-        "A product that uses AI — single agent, multi-agent, non-LLM, or a combination. Adds governance guidance for your AI topology.",
+        "An AI agent (harness)",
+        "An AI model working in a loop with tools, context, and permissions. The loop and its "
+        "guardrails are the harness. Next you choose the AI topology.",
     ),
     (
         "tool",
@@ -663,7 +665,9 @@ class App(TkBase):
     def _build_intake_harness_step(self):
         card = self._new_intake_step(
             "What kind of AI will this use?",
-            "Choose the closest topology. This sets the governance profile for your harness.",
+            "An agent is a model plus a harness: the loop, tools, context, permissions, and "
+            "checks around it. Choose the closest topology; it sets your harness's governance "
+            "profile.",
         )
         for value, title, description in HARNESS_TOPOLOGY_OPTIONS:
             tk.Radiobutton(
@@ -1928,7 +1932,7 @@ class App(TkBase):
             "app": "app",
             "automation": "automation",
             "agent": "agent",
-            "harness": "harness",
+            "harness": "agent",
             "tool": "tool",
             "other": "other",
         }.get(purpose, "app")
@@ -1940,7 +1944,7 @@ class App(TkBase):
             risk_score += 2
         if purpose in {"app", "automation"}:
             risk_score += 1
-        if purpose in {"agent", "harness"}:
+        if purpose in AGENT_PURPOSES:
             risk_score += 2
         if self.v_has_private_data.get():
             risk_score += 2
@@ -1956,7 +1960,7 @@ class App(TkBase):
         critical_signal = (
             self.v_handles_money.get()
             or self.v_production_ops.get()
-            or (purpose in {"agent", "harness"} and self.v_external_actions.get())
+            or (purpose in AGENT_PURPOSES and self.v_external_actions.get())
         )
         if risk_score >= 7 and critical_signal:
             governance_level = "4"
@@ -1974,8 +1978,8 @@ class App(TkBase):
                 "website": "website",
                 "app": "web app",
                 "automation": "python / workflow automation",
-                "agent": "AI agent",
-                "harness": "AI / ML harness",
+                "agent": "AI agent (harness)",
+                "harness": "AI agent (harness)",
                 "tool": "local utility",
                 "other": "not specified yet",
             }.get(purpose, "not specified yet")
@@ -2044,7 +2048,7 @@ class App(TkBase):
             f"Project: {name}",
             f"Intent: {purpose_label}",
         ]
-        if self.v_plain_purpose.get() == "harness":
+        if self.v_plain_purpose.get() in AGENT_PURPOSES:
             topology_label = next(
                 (
                     title
@@ -2093,7 +2097,7 @@ class App(TkBase):
         return True
 
     def _visible_step_indices(self) -> list[int]:
-        is_harness = self.v_plain_purpose.get() == "harness"
+        is_harness = self.v_plain_purpose.get() in AGENT_PURPOSES
         harness_step = getattr(self, "_HARNESS_STEP_INDEX", 1)
         return [i for i in range(len(self._intake_steps)) if is_harness or i != harness_step]
 
@@ -2743,9 +2747,12 @@ class App(TkBase):
             ):
                 return
 
+        # Every agent project gets harness scaffolding. The topology is passed only
+        # when the person actually saw the topology step; otherwise the scaffold
+        # records it as not chosen yet rather than guessing.
         harness_topology = ""
         harness_description = ""
-        if profile["project_type"] == "harness":
+        if gov_type in AGENT_PROJECT_TYPES and self.v_plain_purpose.get() in AGENT_PURPOSES:
             harness_topology = self.v_harness_topology.get()
             if hasattr(self, "_harness_desc_text"):
                 harness_description = self._harness_desc_text.get("1.0", "end-1c").strip()

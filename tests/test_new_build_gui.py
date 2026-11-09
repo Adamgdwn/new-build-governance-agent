@@ -110,5 +110,22 @@ class SubprocessEnvTests(unittest.TestCase):
         self.assertTrue(env.get("GOVERNANCE_HOME"))
 
 
+class AgentHarnessIntakeTests(unittest.TestCase):
+    """An agent is a model plus its harness: the intake offers one agent choice."""
+
+    def test_intake_offers_one_agent_choice(self):
+        values = [value for value, _, _ in new_build_gui.PURPOSE_OPTIONS]
+
+        self.assertIn("agent", values)
+        self.assertNotIn("harness", values)
+        title = next(title for value, title, _ in new_build_gui.PURPOSE_OPTIONS if value == "agent")
+        self.assertIn("harness", title.lower())
+
+    def test_legacy_harness_value_maps_to_the_agent_type(self):
+        self.assertEqual("agent", new_build_gui.TYPE_MAP["harness"][0])
+        self.assertEqual(new_build_gui.AGENTS_ROOT, new_build_gui.TYPE_MAP["agent"][1])
+        self.assertEqual(frozenset({"agent", "harness"}), new_build_gui.AGENT_PURPOSES)
+
+
 if __name__ == "__main__":
     unittest.main()

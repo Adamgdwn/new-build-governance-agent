@@ -78,6 +78,13 @@ parameters:
     scope_mvp:
       type: string
       description: "What the MVP must do, in one sentence."
+    harness_topology:
+      type: string
+      description: "Agent builds only: the harness's AI topology. Recorded as undecided when omitted."
+      enum: [single-llm, multi-llm, non-llm, combination, undecided]
+    harness_description:
+      type: string
+      description: "Agent builds only: what the harness will do, written to docs/harness/README.md."
     build_lane_id:
       type: string
       description: "UUID of the approved freedom_programming_requests record (optional for now)."

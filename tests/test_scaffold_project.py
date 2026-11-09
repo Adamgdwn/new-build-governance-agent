@@ -203,5 +203,49 @@ class ScaffoldProjectTests(unittest.TestCase):
             self.assertIn("governance_level: 2", control)
 
 
+class AgentHarnessScaffoldTests(unittest.TestCase):
+    def test_agent_project_records_undecided_harness_when_topology_not_asked(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            target = Path(tmp) / "plain-agent"
+
+            scaffold_project.scaffold_project(target, "agent", "2")
+
+            readme = (target / "docs" / "harness" / "README.md").read_text(encoding="utf-8")
+            control = (target / "project-control.yaml").read_text(encoding="utf-8")
+            self.assertIn("Profile: undecided", readme)
+            self.assertIn("harness_profile: undecided", control)
+
+    def test_agent_project_records_chosen_topology(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            target = Path(tmp) / "router-agent"
+
+            scaffold_project.scaffold_project(
+                target,
+                "agent",
+                "2",
+                harness_topology="combination",
+                harness_description="Routes work.",
+            )
+
+            readme = (target / "docs" / "harness" / "README.md").read_text(encoding="utf-8")
+            self.assertIn("Profile: multi-model", readme)
+            self.assertIn("> Routes work.", readme)
+
+    def test_unknown_topology_is_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            with self.assertRaises(ValueError):
+                scaffold_project.scaffold_project(
+                    Path(tmp) / "bad", "agent", "2", harness_topology="swarm"
+                )
+
+    def test_non_agent_projects_get_no_harness_record(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            target = Path(tmp) / "plain-app"
+
+            scaffold_project.scaffold_project(target, "application", "2")
+
+            self.assertFalse((target / "docs" / "harness").exists())
+
+
 if __name__ == "__main__":
     unittest.main()

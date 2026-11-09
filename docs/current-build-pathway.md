@@ -69,10 +69,44 @@ Owner decisions, Adam Goodwin, 2026-11-08:
 |---|---|---|---|
 | Forty | Workspace paths and preview routing | Small | complete |
 | Forty-One | Freedom dispatcher resolves a relative `cwd` (the-freedom-engine-os) | Tiny | complete (draft PR #73 awaiting merge) |
-| Forty-Two | One "AI agent (harness)" intake choice | Medium | planned |
+| Forty-Two | One "AI agent (harness)" intake choice | Medium | complete |
 | Forty-Three | Frontier AI engineering research record, including Jev and Laya | Medium | planned |
 | Forty-Four | Build-type agent playbooks | Large | planned |
 | Forty-Five | Frontier-model rules refresh and knowledge-base change proposal | Large | planned |
+
+## Chunk Forty-Two - One AI Agent (Harness) Intake Choice
+
+Status: complete
+
+Completion target: Task complete
+
+Budget class: Medium
+
+Timestamp: 2026-11-08T20:11:35-06:00
+
+Objective: carry out the owner decision that an agent is a harness. The intake offers one "An AI agent (harness)" choice instead of separate "AI helper" and "agentic harness" choices, and every agent project gets the harness record, from every entry point.
+
+Finding: the v0.3.0 harness feature was only partly wired. A project the GUI created with type `agentic-harness` failed its own `project-control.yaml` schema check, `change_control.py` mapped it to the web-application use case, headless routed it to the applications folder (fixed in Chunk Forty), and the Freedom manifest could not request it.
+
+Acceptance criteria:
+
+- [x] GUI: one agent purpose, which always shows the AI-topology step. The old `harness` value is kept only as an alias for the canonical `agent` type.
+- [x] `agent` stays the one canonical project type, already wired through schema, compliance, change control, and Freedom. `agentic-harness` is accepted as a legacy v0.3.0 type and validates.
+- [x] Every agent project gets `docs/harness/README.md` and a `harness_profile`. When the topology was not asked (headless, terminal, or advanced settings), it is recorded as `undecided` with instructions to choose before the first model call, rather than guessed.
+- [x] Headless, `new_build.sh`, `new_build.ps1`, and `freedom.tool.yaml` accept an optional harness topology and description, and the terminal launchers ask the topology question for agent builds.
+- [x] README describes the single choice.
+
+Not done, deliberately:
+
+- The README screenshots still show the v0.3.0 choices. A carry-forward flag tracks retaking them.
+- The harness README template's content is refreshed in Chunk Forty-Five, not here.
+- The PowerShell prompt was not executed locally (no PowerShell on this machine).
+
+Validation:
+
+- `bash scripts/validate.sh` exit 0 (150 tests, coverage 36%); governance audit 0 blockers, 0 required gaps.
+- Focused suites for GUI, scaffold, schema, headless, and change control: 53 tests passed, with new tests for the single choice, the legacy alias, undecided and chosen topologies, topology rejection, and legacy harness schema validity.
+- A dry run of `bash automation/new_build.sh --build-type agent` asked the topology question, previewed `~/01. Code/03. Agents/topology-probe`, and created nothing.
 
 ## Chunk Forty-One - Freedom Dispatcher Relative Tool Working Directory
 
@@ -297,6 +331,8 @@ Stop condition: stop before any risk-tier/governance-level decision, dependency 
 | Chunk Thirty-Seven - Public Documentation And GitHub Metadata | complete | 2026-08-31T13:49:39-06:00 | Public and generated documentation now explain the controls; GitHub description and topics surface the addition without creating an unapproved version release. |
 | Chunk Thirty-Nine - Build-To-Sale Lifecycle Standard | complete | 2026-09-30T10:43:32-06:00 | STD-ENG-025 added as a single canonical copy with a workspace `CLAUDE.md` summary; scaffold and upgrade distribution deferred to a carry-forward flag. |
 | Chunk Forty - Workspace Paths And Preview Routing | complete | 2026-11-08T19:59:12-06:00 | Numbered workspace folders detected without hard-coding a layout; side-effect-free path resolution; launchers preview through `new_build_headless.py --plan`; harness routing matches the GUI; master env registry gating re-applied. |
+| Chunk Forty-One - Freedom Dispatcher Relative Tool Working Directory | complete | 2026-11-08T20:04:39-06:00 | Dispatcher resolves a relative tool `cwd` against the manifest folder; delivered as draft PR #73 in the-freedom-engine-os. |
+| Chunk Forty-Two - One AI Agent (Harness) Intake Choice | complete | 2026-11-08T20:11:35-06:00 | One agent choice that always asks the AI topology; every agent project gets a harness record; v0.3.0 harness projects now pass schema validation. |
 
 Full history: `docs/archive/pathway-history.md`
 

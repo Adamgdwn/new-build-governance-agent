@@ -32,6 +32,8 @@ Options:
   --scope-problem TEXT      Scope brief: problem statement
   --scope-user TEXT         Scope brief: primary user or consumer
   --scope-mvp TEXT          Scope brief: MVP description
+  --harness-topology NAME   single-llm | multi-llm | non-llm | combination | undecided
+                            (asked for agent builds; an agent is a model plus its harness)
   --version, -V             Print the agent version and exit
   --check-updates           Check for agent updates and exit
   --self-update             Fast-forward this checkout and exit
@@ -71,6 +73,7 @@ GOVERNANCE_LEVEL=""
 SCOPE_PROBLEM=""
 SCOPE_USER=""
 SCOPE_MVP=""
+HARNESS_TOPOLOGY=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -99,6 +102,7 @@ while [[ $# -gt 0 ]]; do
     --scope-problem)    SCOPE_PROBLEM="${2:?--scope-problem requires a value}"; shift 2 ;;
     --scope-user)       SCOPE_USER="${2:?--scope-user requires a value}"; shift 2 ;;
     --scope-mvp)        SCOPE_MVP="${2:?--scope-mvp requires a value}"; shift 2 ;;
+    --harness-topology) HARNESS_TOPOLOGY="${2:?--harness-topology requires a value}"; shift 2 ;;
     *)
       echo "Error: unknown option: $1" >&2
       usage >&2
@@ -150,6 +154,20 @@ if [[ "$BUILD_TYPE" == "other" && -z "$GOVERNANCE_TYPE" ]]; then
   GOVERNANCE_TYPE="$(read_required "Governance project type" "$GOVERNANCE_TYPE")"
 fi
 
+if [[ "$BUILD_TYPE" == "agent" || "$GOVERNANCE_TYPE" == "agent" ]]; then
+  if [[ -z "$HARNESS_TOPOLOGY" ]]; then
+    echo
+    echo "An agent is a model plus its harness: the loop, tools, context, permissions, and checks."
+    echo "AI topology:"
+    echo "  single-llm  = one language model handles the task"
+    echo "  multi-llm   = several language models with defined roles"
+    echo "  non-llm     = machine learning without a language model"
+    echo "  combination = language models plus other ML models"
+    echo "  undecided   = choose before the first model call"
+  fi
+  HARNESS_TOPOLOGY="$(read_choice "AI topology" "$HARNESS_TOPOLOGY" single-llm multi-llm non-llm combination undecided)"
+fi
+
 if [[ -z "$STACK" ]]; then
   read -rp "  Expected stack [not specified]: " STACK || { echo; exit 1; }
   STACK="${STACK:-not specified}"
@@ -193,6 +211,7 @@ PARAMS_JSON="$(
   NB_SCOPE_PROBLEM="$SCOPE_PROBLEM" \
   NB_SCOPE_USER="$SCOPE_USER" \
   NB_SCOPE_MVP="$SCOPE_MVP" \
+  NB_HARNESS_TOPOLOGY="$HARNESS_TOPOLOGY" \
   "${PYTHON[@]}" - <<'PYEOF'
 import json
 import os
@@ -210,6 +229,9 @@ params = {
 governance_type = os.environ.get("NB_GOVERNANCE_TYPE", "")
 if governance_type:
     params["governance_type"] = governance_type
+harness_topology = os.environ.get("NB_HARNESS_TOPOLOGY", "")
+if harness_topology:
+    params["harness_topology"] = harness_topology
 print(json.dumps(params))
 PYEOF
 )"

@@ -555,6 +555,7 @@ USE_CASE_BY_PROJECT_TYPE = {
     "infrastructure": "Infrastructure / deployment code",
     "documentation": "Static / marketing website",
     "agent": "AI agent with tools",
+    "agentic-harness": "AI agent with tools",
 }
 
 

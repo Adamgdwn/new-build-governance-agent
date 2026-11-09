@@ -36,7 +36,7 @@ from project_naming import (  # noqa: E402,F401
     slug_error,
     slugify,
 )
-from scaffold_project import scaffold_project  # noqa: E402
+from scaffold_project import HARNESS_TOPOLOGY_LABELS, scaffold_project  # noqa: E402
 from self_update import format_result as format_self_update_result
 from self_update import self_update  # noqa: E402
 from update_check import check_for_updates, format_result  # noqa: E402
@@ -136,6 +136,17 @@ def main() -> None:
 
     governance_level, risk_tier = resolve_governance_level(params)
 
+    # Agent projects are harnesses; the topology is optional and recorded as
+    # "undecided" by the scaffold when the caller does not supply one.
+    harness_topology = str(params.get("harness_topology", "")).strip()
+    harness_description = str(params.get("harness_description", "")).strip()
+    if harness_topology and harness_topology not in HARNESS_TOPOLOGY_LABELS:
+        fail(
+            f"harness_topology must be one of {sorted(HARNESS_TOPOLOGY_LABELS)}, "
+            f"got: {harness_topology!r}"
+        )
+        return
+
     primary_builder = params.get("primary_builder", "codex session").strip() or "codex session"
     stack = params.get("stack", "not specified").strip() or "not specified"
     scope_problem = params.get("scope_problem", "").strip()
@@ -166,6 +177,9 @@ def main() -> None:
                     "governance_type": governance_type,
                     "governance_level": governance_level,
                     "risk_tier": risk_tier,
+                    "harness_topology": (harness_topology or "undecided")
+                    if governance_type in AGENT_PROJECT_TYPES
+                    else "",
                     "already_exists": target_dir.exists(),
                 }
             ),
@@ -195,7 +209,13 @@ def main() -> None:
 
     progress("Scaffolding project...")
     try:
-        scaffold_result = scaffold_project(target_dir, governance_type, governance_level)
+        scaffold_result = scaffold_project(
+            target_dir,
+            governance_type,
+            governance_level,
+            harness_topology=harness_topology if governance_type in AGENT_PROJECT_TYPES else "",
+            harness_description=harness_description,
+        )
         for message in scaffold_result.messages:
             progress(message)
     except Exception as e:

@@ -17,6 +17,8 @@ PROJECT_TYPES = {
     "infrastructure",
     "documentation",
     "agent",
+    # Legacy v0.3.0 type for agent projects; new builds use "agent".
+    "agentic-harness",
 }
 RISK_TIERS = {"low", "medium", "high", "critical"}
 REPOSITORY_MODELS = {"single-repo", "monorepo"}
@@ -258,7 +260,9 @@ def validate_project_control_data(data: dict[str, Any]) -> list[str]:
         require_string_list(data, "agent_controls.model_registry", errors)
         require_string_list(data, "agent_controls.prompt_registry", errors)
 
-    if project_type == "agent" and get_path(data, "agent_controls.applicable") is not True:
+    if project_type in {"agent", "agentic-harness"} and (
+        get_path(data, "agent_controls.applicable") is not True
+    ):
         errors.append("agent projects must set agent_controls.applicable to true")
 
     return errors

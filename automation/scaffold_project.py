@@ -12,6 +12,7 @@ from datetime import datetime
 from pathlib import Path
 
 from project_naming import (  # noqa: F401
+    AGENT_PROJECT_TYPES,
     GOV_TYPES,
     GOVERNANCE_LEVELS,
     GOVERNANCE_TO_RISK,
@@ -33,14 +34,18 @@ USE_CASE_BY_TYPE = {
     "infrastructure": "Infrastructure / deployment code",
     "documentation": "Static / marketing website",
     "agent": "AI agent with tools",
-    "agentic-harness": "AI / ML harness",
+    # Legacy v0.3.0 type: an agent is a model plus its harness, so it shares the agent use case.
+    "agentic-harness": "AI agent with tools",
 }
 
+# The topology an agent project's harness uses. "undecided" is recorded when the
+# intake did not ask (headless, terminal, or advanced settings) instead of guessing.
 HARNESS_TOPOLOGY_LABELS = {
     "single-llm": "Single LLM",
     "multi-llm": "Multi-LLM",
     "non-llm": "Non-LLM AI",
     "combination": "Combination (LLM + Non-LLM)",
+    "undecided": "Not chosen yet",
 }
 
 HARNESS_PROFILE_BY_TOPOLOGY = {
@@ -48,6 +53,7 @@ HARNESS_PROFILE_BY_TOPOLOGY = {
     "multi-llm": "multi-agent",
     "non-llm": "non-llm-specialist",
     "combination": "multi-model",
+    "undecided": "undecided",
 }
 
 HARNESS_PROFILE_RULES = {
@@ -77,6 +83,13 @@ HARNESS_PROFILE_RULES = {
         "Governance requirements: every participant in `docs/agent-inventory.md`, "
         "model entries for each distinct inference call in `docs/model-registry.md`, "
         "and explicit boundary contracts between LLM and non-LLM subsystems."
+    ),
+    "undecided": (
+        "The AI topology has not been chosen yet. Before the first model call, choose "
+        "single LLM, multi-LLM, non-LLM AI, or a combination; record it as "
+        "`harness_profile` in `project-control.yaml`; and replace this paragraph with "
+        "that profile's governance requirements. Until then, treat the project as a "
+        "single-agent harness with a human review gate before any external action."
     ),
 }
 AUTONOMY_BY_GOVERNANCE = {
@@ -204,6 +217,8 @@ def scaffold_project(
     project_type = project_type.strip()
     if project_type not in GOV_TYPES:
         raise ValueError(f"Unsupported project type: {project_type}")
+    if harness_topology.strip() and harness_topology.strip() not in HARNESS_TOPOLOGY_LABELS:
+        raise ValueError(f"Unsupported harness topology: {harness_topology}")
 
     governance_level, risk_tier = resolve_governance(governance_input)
     result = ScaffoldResult(
@@ -299,13 +314,14 @@ def scaffold_project(
     else:
         result.messages.append(f"Keeping existing project-control metadata: {project_control}")
 
-    if project_type == "agentic-harness" and harness_topology:
-        harness_profile = HARNESS_PROFILE_BY_TOPOLOGY.get(harness_topology, "single-agent")
+    if project_type in AGENT_PROJECT_TYPES:
+        # Every agent project is a harness: write the harness record even when the
+        # topology was not asked, so the open choice is visible instead of absent.
+        topology = harness_topology.strip() or "undecided"
+        harness_profile = HARNESS_PROFILE_BY_TOPOLOGY[topology]
         generated_at = datetime.now().astimezone().isoformat(timespec="seconds")
-        _apply_harness_to_project_control(project_control, harness_profile, harness_topology)
-        _write_harness_readme(
-            target, harness_profile, harness_topology, harness_description, generated_at
-        )
+        _apply_harness_to_project_control(project_control, harness_profile, topology)
+        _write_harness_readme(target, harness_profile, topology, harness_description, generated_at)
         result.messages.append(f"Created: docs/harness/README.md (profile: {harness_profile})")
 
     _patch_generated_dates(target)

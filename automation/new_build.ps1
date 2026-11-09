@@ -10,7 +10,8 @@ param(
     [string]$GovernanceLevel = "",
     [string]$ScopeProblem = "",
     [string]$ScopeUser = "",
-    [string]$ScopeMvp = ""
+    [string]$ScopeMvp = "",
+    [string]$HarnessTopology = ""
 )
 
 $ErrorActionPreference = "Stop"
@@ -115,6 +116,20 @@ if ($BuildType -eq "other" -and [string]::IsNullOrWhiteSpace($GovernanceType)) {
     $GovernanceType = Read-Required "Governance project type" $GovernanceType
 }
 
+if ($BuildType -eq "agent" -or $GovernanceType -eq "agent") {
+    if ([string]::IsNullOrWhiteSpace($HarnessTopology)) {
+        Write-Host ""
+        Write-Host "An agent is a model plus its harness: the loop, tools, context, permissions, and checks."
+        Write-Host "AI topology:"
+        Write-Host "  single-llm  = one language model handles the task"
+        Write-Host "  multi-llm   = several language models with defined roles"
+        Write-Host "  non-llm     = machine learning without a language model"
+        Write-Host "  combination = language models plus other ML models"
+        Write-Host "  undecided   = choose before the first model call"
+    }
+    $HarnessTopology = Read-Choice "AI topology" @("single-llm", "multi-llm", "non-llm", "combination", "undecided") $HarnessTopology
+}
+
 if ([string]::IsNullOrWhiteSpace($Stack)) {
     $Stack = Read-Host "Expected stack [not specified]"
     if ([string]::IsNullOrWhiteSpace($Stack)) {
@@ -163,6 +178,9 @@ $params = @{
 }
 if (-not [string]::IsNullOrWhiteSpace($GovernanceType)) {
     $params["governance_type"] = $GovernanceType
+}
+if (-not [string]::IsNullOrWhiteSpace($HarnessTopology)) {
+    $params["harness_topology"] = $HarnessTopology
 }
 $json = $params | ConvertTo-Json -Depth 5 -Compress
 
