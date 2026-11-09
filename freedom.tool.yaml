@@ -32,7 +32,7 @@ invocation:
   command:
     - "python3"
     - "automation/new_build_headless.py"
-  cwd: "."
+  cwd: "."  # relative to this manifest's folder; the Freedom dispatcher resolves it there
   params_transport: stdin_json
   env_passthrough: []
   timeout_seconds: 120

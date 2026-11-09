@@ -68,11 +68,36 @@ Owner decisions, Adam Goodwin, 2026-11-08:
 | Chunk | Objective | Budget class | Status |
 |---|---|---|---|
 | Forty | Workspace paths and preview routing | Small | complete |
-| Forty-One | Freedom dispatcher resolves a relative `cwd` (the-freedom-engine-os) | Tiny | planned |
+| Forty-One | Freedom dispatcher resolves a relative `cwd` (the-freedom-engine-os) | Tiny | complete (draft PR #73 awaiting merge) |
 | Forty-Two | One "AI agent (harness)" intake choice | Medium | planned |
 | Forty-Three | Frontier AI engineering research record, including Jev and Laya | Medium | planned |
 | Forty-Four | Build-type agent playbooks | Large | planned |
 | Forty-Five | Frontier-model rules refresh and knowledge-base change proposal | Large | planned |
+
+## Chunk Forty-One - Freedom Dispatcher Relative Tool Working Directory
+
+Status: complete (delivered as a draft pull request; merging is the owner's decision)
+
+Completion target: Task complete
+
+Budget class: Tiny
+
+Timestamp: 2026-11-08T20:04:39-06:00
+
+Objective: let `freedom.tool.yaml` keep a portable `cwd: "."` by having the Freedom dispatcher resolve a relative `cwd` against the manifest's own folder, instead of restoring an absolute workstation path in this public repository.
+
+Acceptance criteria:
+
+- [x] `the-freedom-engine-os` dispatcher: `invoke_subprocess` takes an optional `manifest_dir`, filled by `main.py` from `registry.get_manifest_path()`. Absolute paths, a missing `cwd`, and tools without a recorded manifest path behave as before.
+- [x] Built in an isolated worktree from that repository's `origin/main`. Its active `agent/stage-c-overnight-turnover` checkout, which holds uncommitted 2026-09-05 path edits and three unpushed commits, was not touched.
+- [x] That repository's rules were followed: governance preflight passed, and a testing summary was added under `docs/live-tests/`.
+- [x] `freedom.tool.yaml` documents the relative `cwd` contract.
+
+Validation:
+
+- `test_dispatcher_cwd.py`: 5 tests passed, including a real subprocess.
+- The dispatcher engine ran New Build's real manifest with `--plan` appended and returned `status: planned`. Without the manifest folder it reproduced the original defect. Nothing was created.
+- Delivered as draft PR #73 (`fix/relative-tool-cwd`). The live FastAPI service run is held, because a real create would scaffold a project. A carry-forward flag tracks the merge.
 
 ## Chunk Forty - Workspace Paths And Preview Routing
 
