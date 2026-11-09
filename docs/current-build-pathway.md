@@ -71,8 +71,35 @@ Owner decisions, Adam Goodwin, 2026-11-08:
 | Forty-One | Freedom dispatcher resolves a relative `cwd` (the-freedom-engine-os) | Tiny | complete (draft PR #73 awaiting merge) |
 | Forty-Two | One "AI agent (harness)" intake choice | Medium | complete |
 | Forty-Three | Build-type agent playbooks | Large | complete |
-| Forty-Four | Frontier AI engineering research record, including Jev and Laya | Medium | planned |
+| Forty-Four | Frontier AI engineering research record, including Jev and Laya | Medium | complete |
 | Forty-Five | Frontier-model rules refresh and knowledge-base change proposal | Large | planned |
+
+## Chunk Forty-Four - Frontier AI Engineering Research Record
+
+Status: complete
+
+Completion target: Task complete
+
+Budget class: Medium
+
+Timestamp: 2026-11-08T20:30:23-06:00
+
+Objective: keep the evidence behind the 2026-11-08 rule changes in the repository, so later agents can check why a rule exists without the chat thread.
+
+Acceptance criteria:
+
+- [x] `docs/research/2026-11-08 - Frontier AI Engineering Practice Research.md` records method, limits, findings by theme, contested points, volatile facts with dates, what changed in the repository, and sources.
+- [x] The AI Engineer channel is covered from real transcripts: 24 of 30 shortlisted 2026 talks, each listed with its link.
+- [x] Jev and Laya are compared from TypeSafe's live documentation, Laya's published limits, and Adam's 2026-10-10 Laya qualification, with placement rules for harnesses, products, CI, and large data.
+
+Known gaps:
+
+- YouTube rate-limited caption downloads, so 20 of the 24 talks were summarised from the channel's own ai.engineer transcripts by reader agents without a second check. The AlixPartners and Ramp talks were not retrieved; McKinsey was retrieved but not analysed.
+- OpenAI's "Harness engineering" post returned HTTP 403; its claims come from secondary sources and the author's talk.
+
+Validation:
+
+- Every source link in the record came from the research notes; the one speaker attribution questioned during review was checked against the transcript notes.
 
 ## Chunk Forty-Three - Build-Type Agent Playbooks
 
@@ -363,6 +390,7 @@ Stop condition: stop before any risk-tier/governance-level decision, dependency 
 | Chunk Forty-One - Freedom Dispatcher Relative Tool Working Directory | complete | 2026-11-08T20:04:39-06:00 | Dispatcher resolves a relative tool `cwd` against the manifest folder; delivered as draft PR #73 in the-freedom-engine-os. |
 | Chunk Forty-Two - One AI Agent (Harness) Intake Choice | complete | 2026-11-08T20:11:35-06:00 | One agent choice that always asks the AI topology; every agent project gets a harness record; v0.3.0 harness projects now pass schema validation. |
 | Chunk Forty-Three - Build-Type Agent Playbooks | complete | 2026-11-08T20:18:42-06:00 | Eight agent-facing playbooks delivered as `docs/build-playbook.md` by project type and offered to existing projects through change control. |
+| Chunk Forty-Four - Frontier AI Engineering Research Record | complete | 2026-11-08T20:30:23-06:00 | Dated research record: AI Engineer talks, lab guidance, practitioner, evaluation, and security sources, and the Jev and Laya placement analysis. |
 
 Full history: `docs/archive/pathway-history.md`
 
