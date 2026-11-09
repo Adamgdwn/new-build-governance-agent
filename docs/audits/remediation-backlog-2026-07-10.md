@@ -1,7 +1,7 @@
 # Remediation Backlog — Repository Audit 2026-07-10
 
 Document ID: AUD-ENG-004
-Version: 1.1
+Version: 1.2
 Status: active
 Owner: Project Owner
 Approver: Project Owner
@@ -180,17 +180,28 @@ commits, and there is no downgrade path.
 - Longer term: evaluate Velopack or tufup for installer + delta updates
   instead of the zip-plus-git model.
 
-### B-13. Windows secret-file protection + tests (audit rec 13) — open
+### B-13. Windows secret-file protection + tests (audit rec 13) — partially addressed, open
 
 **What:** `os.chmod(path, 0o600)` on secret files (`master_env.py` ~119,
 `env_sync.py` ~324, `stripe_provision.py` ~101) is a no-op on NTFS.
 
+Done 2026-11-08 (Chunk Forty-Seven): secret env files are restricted to the
+current user on Windows too. The three sites above had already narrowed to
+two, because `master_env.py` and `stripe_provision.py` write through
+`env_file.update_env_values`. The two remaining writers,
+`env_file.write_env_lines` and `env_sync.apply_sync`, now both write through
+`env_file.write_private_text`. That helper restricts the file before any
+secret is written: mode 0600 on POSIX; on Windows, an `icacls` call removes
+inherited access and grants full control to the current user's SID only.
+When the restriction fails, the write is refused and the target is left as it
+was (the fail-closed decision is recorded in the build pathway). Two
+Windows-only tests read the resulting access-control list back; they run in
+the Windows CI job.
+
 **Work items:**
-- On Windows, replace/augment with an `icacls` ACL restriction
-  (`icacls <file> /inheritance:r /grant:r "%USERNAME%:F"`), or at minimum
-  emit an explicit warning that the file is not OS-protected.
-- Put the platform branch in ONE place — `automation/env_file.py` (created
-  2026-07-10) is the natural home for a `restrict_permissions(path)` helper.
+- Optional: also remove explicit access entries that another tool added to
+  an existing secret file. `icacls /inheritance:r` keeps them, and running
+  `icacls /reset` first would briefly re-open an already-protected file.
 - Add unit tests for `master_env.py` and `stripe_provision.py` (502 and 256
   untested lines of the two most secret-sensitive modules); also
   `governance_audit.py`, `project_registry.py`, `audit_projects.py`,

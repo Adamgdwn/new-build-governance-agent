@@ -1,11 +1,15 @@
+import os
+import stat
 import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_ROOT / "automation"))
 
+import env_file
 import env_sync
 
 
@@ -93,6 +97,63 @@ class EnvSyncPathContainmentTests(unittest.TestCase):
             master.write_text("KEY=value\n", encoding="utf-8")
             plan = env_sync.build_sync_plan(project, master, ".env.local", False, [])
             self.assertEqual(str(project.resolve()), plan["project_path"])
+
+
+class EnvSyncApplyTests(unittest.TestCase):
+    def make_plan(self, root: Path) -> tuple[Path, dict]:
+        project = root / "project"
+        project.mkdir()
+        (project / ".env.example").write_text(
+            "NEXT_PUBLIC_SUPABASE_URL=\nSUPABASE_SERVICE_ROLE_KEY=\n", encoding="utf-8"
+        )
+        master = root / ".env.master"
+        master.write_text(
+            "NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co\n"
+            "SUPABASE_SERVICE_ROLE_KEY=service-role-secret\n",
+            encoding="utf-8",
+        )
+        return project, env_sync.build_sync_plan(project, master, ".env.local", False, [])
+
+    def test_apply_sync_writes_planned_values_and_skips_privileged_keys(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            project, plan = self.make_plan(Path(tmp))
+
+            result = env_sync.apply_sync(plan, include_privileged=False, overwrite=False)
+
+            target = project / ".env.local"
+            self.assertEqual(
+                {"NEXT_PUBLIC_SUPABASE_URL": "https://example.supabase.co"},
+                env_sync.parse_env_file(target),
+            )
+            self.assertEqual(["NEXT_PUBLIC_SUPABASE_URL"], result["applied_keys"])
+            self.assertEqual(
+                [
+                    {
+                        "key": "SUPABASE_SERVICE_ROLE_KEY",
+                        "reason": "privileged_requires_include_privileged",
+                    }
+                ],
+                result["skipped"],
+            )
+
+    @unittest.skipIf(os.name == "nt", "POSIX file modes do not apply on Windows")
+    def test_apply_sync_target_is_owner_only(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            project, plan = self.make_plan(Path(tmp))
+
+            env_sync.apply_sync(plan, include_privileged=False, overwrite=False)
+
+            self.assertEqual(0o600, stat.S_IMODE((project / ".env.local").stat().st_mode))
+
+    def test_apply_sync_writes_nothing_when_protection_fails(self):
+        refused = env_file.SecretFileProtectionError("restriction refused")
+        with tempfile.TemporaryDirectory() as tmp:
+            project, plan = self.make_plan(Path(tmp))
+            with mock.patch.object(env_file, "restrict_to_owner", side_effect=refused):
+                with self.assertRaises(env_file.SecretFileProtectionError):
+                    env_sync.apply_sync(plan, include_privileged=False, overwrite=False)
+
+            self.assertFalse((project / ".env.local").exists())
 
 
 if __name__ == "__main__":

@@ -1,6 +1,6 @@
 # Runbook
 
-Last reviewed: 2026-08-31T12:16:25-06:00
+Last reviewed: 2026-11-08T21:24:23-06:00
 Status: active
 Owner: Technical Lead
 
@@ -19,6 +19,7 @@ New Build Governance Agent supports local governed project creation, existing-pr
 | Promotion checks skip tests | Inspect generated promotion plan checks. | Add repo-specific validation command or update `promotion_plan.py` detection. |
 | GitHub execution fails | Read execution report, `gh auth status`, `git status --short`. | Fix auth/branch/remote or use manual commit/PR; do not retry blindly. |
 | Env sync would copy privileged values | Review redacted plan entries. | Re-run without privileged flag or explicitly approve `--include-privileged`. |
+| Env write refused: could not restrict a secret file | Read the error. It names the file and the step that failed (`chmod`, `whoami`, or `icacls`). Check the drive type and who owns the folder. | Nothing was written. Keep secret files in a folder you own, on a local drive that supports permissions (NTFS on Windows), or run the `icacls` command from the error, then rerun. |
 | Stripe apply fails | Read redacted Stripe report and Stripe dashboard state. | Keep test mode first; restore/rotate webhook secrets or re-run with corrected manifest. |
 
 ## Operational Checks

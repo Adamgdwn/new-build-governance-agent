@@ -5,7 +5,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 import re
 import sys
 from datetime import datetime, timezone
@@ -14,7 +13,12 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parent.parent
 EXPORT_ROOT = REPO_ROOT / "data" / "new-build-governance-agent" / "exports"
 sys.path.insert(0, str(REPO_ROOT / "automation"))
-from env_file import format_env_value, parse_env_file, parse_env_value  # noqa: E402,F401
+from env_file import (  # noqa: E402,F401
+    format_env_value,
+    parse_env_file,
+    parse_env_value,
+    write_private_text,
+)
 from workspace_paths import default_code_root  # noqa: E402
 
 DEFAULT_MASTER = default_code_root(REPO_ROOT) / ".env.master"
@@ -287,8 +291,7 @@ def apply_sync(
         for key in missing_lines:
             lines.append(f"{key}={format_env_value(existing[key])}")
 
-    target.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
-    os.chmod(target, 0o600)
+    write_private_text(target, "\n".join(lines).rstrip() + "\n")
     return {
         "applied_count": len(applied),
         "applied_keys": applied,

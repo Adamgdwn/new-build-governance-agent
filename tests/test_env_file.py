@@ -1,12 +1,21 @@
+import os
+import re
+import stat
+import subprocess
 import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_ROOT / "automation"))
 
 import env_file
+
+POSIX_ONLY = unittest.skipIf(os.name == "nt", "POSIX file modes do not apply on Windows")
+WINDOWS_ONLY = unittest.skipUnless(os.name == "nt", "needs real Windows access-control lists")
+FAKE_SID = "S-1-5-21-1111-2222-3333-1001"
 
 
 class ParseEnvValueTests(unittest.TestCase):
@@ -148,6 +157,245 @@ class UpdateEnvValuesTests(unittest.TestCase):
             self.assertIn("# keep me", text)
             self.assertIn("export EXPORTED=kept", text)
             self.assertIn("UNTOUCHED=stays", text)
+
+    def test_writes_through_the_protected_path(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / ".env"
+            with mock.patch.object(env_file, "restrict_to_owner") as restrict:
+                env_file.update_env_values(path, {"KEY": "placeholder"}, overwrite=False)
+            restrict.assert_called_once_with(path)
+
+
+class WritePrivateTextTests(unittest.TestCase):
+    def test_restricts_before_any_content_is_written(self):
+        seen: list[str] = []
+        with tempfile.TemporaryDirectory() as tmp:
+            new = Path(tmp) / "sub" / ".env"
+            existing = Path(tmp) / ".env.master"
+            existing.write_text("OLD=kept-until-protected\n", encoding="utf-8")
+            with mock.patch.object(
+                env_file,
+                "restrict_to_owner",
+                side_effect=lambda path: seen.append(path.read_text(encoding="utf-8")),
+            ):
+                env_file.write_private_text(new, "KEY=placeholder\n")
+                env_file.write_private_text(existing, "KEY=placeholder\n")
+
+            self.assertEqual(["", "OLD=kept-until-protected\n"], seen)
+            self.assertEqual("KEY=placeholder\n", new.read_text(encoding="utf-8"))
+            self.assertEqual("KEY=placeholder\n", existing.read_text(encoding="utf-8"))
+
+    def test_failed_restriction_writes_nothing(self):
+        refused = env_file.SecretFileProtectionError("restriction refused")
+        with tempfile.TemporaryDirectory() as tmp:
+            new = Path(tmp) / ".env"
+            existing = Path(tmp) / ".env.master"
+            existing.write_text("OLD=unchanged\n", encoding="utf-8")
+            with mock.patch.object(env_file, "restrict_to_owner", side_effect=refused):
+                for path in (new, existing):
+                    with self.assertRaises(env_file.SecretFileProtectionError):
+                        env_file.write_private_text(path, "KEY=placeholder\n")
+
+            self.assertFalse(new.exists())
+            self.assertEqual("OLD=unchanged\n", existing.read_text(encoding="utf-8"))
+
+    def test_directory_target_is_refused_before_any_change(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            target = Path(tmp) / ".env"
+            target.mkdir()
+            with mock.patch.object(env_file, "restrict_to_owner") as restrict:
+                with self.assertRaises(IsADirectoryError):
+                    env_file.write_private_text(target, "KEY=placeholder\n")
+            restrict.assert_not_called()
+
+
+@POSIX_ONLY
+class PosixOwnerOnlyTests(unittest.TestCase):
+    def test_new_file_is_never_wider_than_owner_only(self):
+        modes: list[int] = []
+        old_umask = os.umask(0)
+        try:
+            with tempfile.TemporaryDirectory() as tmp:
+                path = Path(tmp) / ".env"
+                with mock.patch.object(
+                    env_file,
+                    "restrict_to_owner",
+                    side_effect=lambda p: modes.append(stat.S_IMODE(p.stat().st_mode)),
+                ):
+                    env_file.write_private_text(path, "KEY=placeholder\n")
+                path.unlink()
+                env_file.write_private_text(path, "KEY=placeholder\n")
+                final_mode = stat.S_IMODE(path.stat().st_mode)
+        finally:
+            os.umask(old_umask)
+
+        # Created owner-only before the chmod runs, and owner-only afterwards.
+        self.assertEqual([0o600], modes)
+        self.assertEqual(0o600, final_mode)
+
+    def test_existing_readable_file_becomes_owner_only(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / ".env"
+            path.write_text("OLD=1\n", encoding="utf-8")
+            path.chmod(0o644)
+
+            env_file.write_private_text(path, "KEY=placeholder\n")
+
+            self.assertEqual(0o600, stat.S_IMODE(path.stat().st_mode))
+            self.assertEqual("KEY=placeholder\n", path.read_text(encoding="utf-8"))
+
+    def test_chmod_failure_raises_protection_error(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / ".env"
+            path.write_text("OLD=1\n", encoding="utf-8")
+            with mock.patch.object(env_file.os, "chmod", side_effect=PermissionError("not owner")):
+                with self.assertRaises(env_file.SecretFileProtectionError) as caught:
+                    env_file.restrict_to_owner(path)
+
+        message = str(caught.exception)
+        self.assertIn(str(path), message)
+        self.assertIn("chmod 0600 failed", message)
+        self.assertNotIn("icacls", message)
+
+
+class WindowsBranchTests(unittest.TestCase):
+    """The Windows branch with whoami and icacls replaced, so it runs on every OS."""
+
+    def setUp(self):
+        for patcher in (
+            mock.patch.object(env_file, "_is_windows", return_value=True),
+            mock.patch.dict(os.environ, {"SystemRoot": r"D:\Win", "USERNAME": "builder"}),
+        ):
+            patcher.start()
+            self.addCleanup(patcher.stop)
+        self.calls: list[list[str]] = []
+        self.path = Path("project") / ".env.local"
+
+    def fake_tools(self, whoami=None, icacls_exit=0, icacls_output=b""):
+        if whoami is None:
+            # Console code-page output: the user name is not valid UTF-8.
+            whoami = b'"pc\\caf\x82","' + FAKE_SID.encode() + b'"\r\n'
+
+        def run(command, **kwargs):
+            self.calls.append(command)
+            self.assertFalse(kwargs.get("shell", False))
+            if command[0].endswith("whoami.exe"):
+                return subprocess.CompletedProcess(command, 0, stdout=whoami, stderr=b"")
+            return subprocess.CompletedProcess(
+                command, icacls_exit, stdout=icacls_output, stderr=b""
+            )
+
+        return mock.patch.object(env_file.subprocess, "run", side_effect=run)
+
+    def test_grants_full_control_to_the_current_user_only(self):
+        with self.fake_tools():
+            env_file.restrict_to_owner(self.path)
+
+        self.assertEqual(
+            [
+                [r"D:\Win\System32\whoami.exe", "/user", "/fo", "csv", "/nh"],
+                [
+                    r"D:\Win\System32\icacls.exe",
+                    str(self.path),
+                    "/inheritance:r",
+                    "/grant:r",
+                    f"*{FAKE_SID}:F",
+                ],
+            ],
+            self.calls,
+        )
+
+    def test_icacls_failure_raises_with_a_fix_naming_the_user(self):
+        output = b"x: This function is not supported on this system.\r\nFailed processing 1 files"
+        with self.fake_tools(icacls_exit=1, icacls_output=output):
+            with self.assertRaises(env_file.SecretFileProtectionError) as caught:
+                env_file.restrict_to_owner(self.path)
+
+        message = str(caught.exception)
+        self.assertIn(str(self.path), message)
+        self.assertIn("icacls exit 1", message)
+        self.assertIn("not supported", message)
+        self.assertIn('/grant:r "builder:F"', message)
+
+    def test_missing_sid_raises_before_icacls_runs(self):
+        with self.fake_tools(whoami=b"ERROR: no user information\r\n"):
+            with self.assertRaises(env_file.SecretFileProtectionError):
+                env_file.restrict_to_owner(self.path)
+
+        self.assertEqual(1, len(self.calls))
+
+    def test_tool_that_cannot_run_raises_protection_error(self):
+        whoami_ok = subprocess.CompletedProcess([], 0, stdout=FAKE_SID.encode(), stderr=b"")
+        cases = {
+            "whoami missing": [FileNotFoundError("whoami.exe")],
+            "icacls timed out": [whoami_ok, subprocess.TimeoutExpired("icacls.exe", 30)],
+        }
+        for name, effects in cases.items():
+            with self.subTest(name):
+                with mock.patch.object(env_file.subprocess, "run", side_effect=effects):
+                    with self.assertRaises(env_file.SecretFileProtectionError):
+                        env_file.restrict_to_owner(self.path)
+
+    def test_failed_restriction_leaves_no_new_file(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / ".env.local"
+            with self.fake_tools(icacls_exit=5, icacls_output=b"Access is denied."):
+                with self.assertRaises(env_file.SecretFileProtectionError):
+                    env_file.write_private_text(path, "KEY=placeholder\n")
+
+            self.assertFalse(path.exists())
+
+
+@WINDOWS_ONLY
+class WindowsAccessControlTests(unittest.TestCase):
+    """Reads the real access-control list back with icacls /save (SDDL text)."""
+
+    def saved_dacl(self, path):
+        saved = path.with_name(path.name + ".acl")
+        subprocess.run(
+            [env_file._system_tool("icacls.exe"), str(path), "/save", str(saved)],
+            check=True,
+            capture_output=True,
+        )
+        text = saved.read_bytes().decode("utf-16-le", errors="replace").lstrip("\ufeff")
+        saved.unlink()
+        # At least one "(...)" entry, so a "D:\..." path in the file cannot match.
+        match = re.search(r"D:([A-Z]*)((?:\([^)]*\))+)", text)
+        self.assertIsNotNone(match, text)
+        assert match is not None
+        return match.group(1), re.findall(r"\(([^)]*)\)", match.group(2))
+
+    def assert_only_current_user(self, path):
+        # A file this helper created has no explicit entries from other tools,
+        # so exactly one entry must remain.
+        flags, entries = self.saved_dacl(path)
+        self.assertIn("P", flags, "inherited entries should be blocked")
+        self.assertEqual(1, len(entries), entries)
+        fields = entries[0].split(";")
+        self.assertEqual("A", fields[0])
+        self.assertNotIn("ID", fields[1])
+        sid = env_file._current_user_sid(path)
+        expected = {sid}
+        if sid.endswith("-500"):
+            expected.add("LA")  # SDDL's name for the built-in Administrator account
+        self.assertIn(fields[5], expected)
+
+    def test_new_secret_file_grants_only_the_current_user(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / ".env"
+            env_file.write_private_text(path, "KEY=placeholder\n")
+
+            self.assert_only_current_user(path)
+            self.assertEqual("KEY=placeholder\n", path.read_text(encoding="utf-8"))
+
+    def test_protection_survives_a_rewrite(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / ".env"
+            env_file.write_private_text(path, "KEY=first\n")
+            env_file.write_private_text(path, "KEY=second\n")
+
+            self.assert_only_current_user(path)
+            self.assertEqual("KEY=second\n", path.read_text(encoding="utf-8"))
 
 
 if __name__ == "__main__":
