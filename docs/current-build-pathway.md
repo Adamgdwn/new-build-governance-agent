@@ -54,46 +54,71 @@ Use second-level Markdown headings for active and planned chunks:
 ## Chunk Two - Short Objective
 ```
 
-## Chunk Fifty-One - Tests For The Master Env Commands
+## Chunk Fifty-Two - The Env Writer Finds Keys The Way The Reader Does
 
-Status: ready · Completion target: Task complete · Budget class: Medium
+Status: ready · Completion target: Task complete · Budget class: Small
 
-Source: the default set at the Chunk Forty-Nine close-out: AUD-ENG-004 B-13's next open work item, tests for the secret-sensitive modules. `master_env.py` is the last of the two it names. If the owner names another item, do that instead (alternates at the end).
+Source: found by Chunk Fifty-One and recorded in AUD-ENG-004 B-13. It is the default next item. If the owner names another item, do that instead (alternates at the end).
 
-Objective: `automation/master_env.py` gets tests for its four commands, with no real env file. It has 115 statements and 36% coverage. It reads and writes the master env file and must never print a value.
+Objective: `env_file.update_env_values` finds a key's existing line the way `parse_env_file` reads it. Then `set` and `merge` without `--overwrite` keep a value written as `export KEY=v`, on an indented line or as `KEY = v`, instead of appending a second line that wins.
 
 Read first:
 
-- `automation/master_env.py:74-173` (`update_values`, `registered_master_keys`, the `status`, `missing`, `set` and `merge` commands, `read_prompted_value`) and `:175-225` (the parser and `main`).
-- `tests/test_master_env.py:1-67`: the three existing tests and the house layout (`Namespace` calls, `redirect_stdout`, `redirect_stderr`).
+- `automation/env_file.py:25-26` (`_ASSIGNMENT_RE`), `:62-79` (`parse_env_file`) and `:274-316` (`update_env_values`).
+- `tests/test_env_file.py:100-169` (`UpdateEnvValuesTests`; the test at `:150-161` keeps an untouched `export` line verbatim).
+- `tests/test_master_env.py:282-300`: the keep and overwrite tests to copy for the user-level check.
 
 Facts:
 
-- The commands print key names, `set` or `missing`, and counts, never values. Capture stdout and stderr and assert no fake value appears.
-- `set` takes `--value`, or prompts for each key through `getpass.getpass`, or through `input` with `--visible` (`:111-115`). Patch `master_env.getpass.getpass` and `builtins.input`. A blank answer skips that key; without `--overwrite`, an existing value is kept and printed as `skipped`.
-- `set` and `merge --key` reject, with exit 2 and before any prompt, a key the master file does not already list. The `set` rejection is already tested.
-- `--master` is a top-level option, so it goes before the command. Its default, `DEFAULT_MASTER` (`:16`), is the real master file: always pass a temporary one. `main` (`:220-225`) refuses `set --value` with more than one key through `parser.error` (SystemExit 2); patch `sys.argv` to call it.
-- Writes go through `env_file.update_env_values`, which is tested; a missing file gets `MASTER_FILE_HEADER`. Assert the file's content and its 0600 mode (POSIX).
-- Untested today: `:90-96`, `:100-108`, `:112-115`, `:130-142`, `:151-159`, `:176-217` and `:221-225`. Floor: `fail_under = 41` (`pyproject.toml:31`).
+- Repro, run on scratch files at Chunk Fifty-One: with a master holding `export SHARED_KEY=old`, `master_env.py --master <file> set SHARED_KEY --value new` printed `added` and appended `SHARED_KEY=new` under `# ===== Added by master_env.py =====`. `parse_env_file` then returned `new`, because the last line wins. `  INDENTED_KEY=keep` and `SPACED_KEY = keep2` behaved the same.
+- `parse_env_file` strips the line, splits it at the first `=`, removes an `export ` prefix and strips the key. `_ASSIGNMENT_RE` (`^([A-Za-z_][A-Za-z0-9_]*)=(.*)$`) matches only a bare `KEY=` at the start of the line.
+- Only `master_env.py` and `stripe_provision.py` call `update_env_values`; `env_sync.py` has its own writer.
+- When rewriting a matched line, keep the text before `=` (the `export ` prefix and any indentation), so a file that a shell sources keeps working.
 
 Acceptance criteria:
 
-- [ ] `tests/test_master_env.py` covers: `status` for named keys and `--control-plane`; `missing` with `--priority` and `--control-plane`; `set` with `--value`, a hidden prompt, `--visible`, a blank answer and `--overwrite`; `merge --key`, including its refusal; and `main` refusing `set --value` with two keys.
-- [ ] No test prints a value or reads a real env file.
-- [ ] `fail_under` rises to the ubuntu-latest total, rounded down; `master_env.py`'s coverage is recorded.
+- [ ] An `env_file` test that fails first: an `export` line, an indented line and a `KEY = v` line are each filled when blank, kept without `overwrite`, and rewritten in place with it. Each keeps its prefix, and no key gains a second line.
+- [ ] A `master_env` test: `set` without `--overwrite` on `export SHARED_KEY=<fake>` prints `skipped`, keeps the value, and leaves one line for the key.
 - [ ] The local gate passes; Validate passes on both OSes.
 
-Validation:
+Validation: as for Chunk Fifty-One. Run `PYTHON=$V/bin/python3 bash scripts/validate.sh`, where `V` is a venv with `requirements-dev.txt` installed (reuse a matching `/tmp/claude-1000/*New-Build-Agent/*/scratchpad/devvenv`). Then push to `main`, take the run id from `gh run list --commit <sha>`, and run `timeout 15m gh run watch <id> --exit-status`. If the ubuntu-latest total, rounded down, is above 43, raise `fail_under` to it.
 
-- Gate: `PYTHON=$V/bin/python3 bash scripts/validate.sh`, where `V` is a venv with `requirements-dev.txt` installed. Reuse an existing `/tmp/claude-1000/*New-Build-Agent/*/scratchpad/devvenv` if its versions match.
-- Windows: push to `main`, take the run id from `gh run list --commit <sha>`, then `timeout 15m gh run watch <id> --exit-status`.
-- Exact total: CI prints whole percents. Run `coverage report --precision=2` locally and compare the per-file columns with the ubuntu-latest log (`gh run view <id> --log`). At Chunk Forty-Nine they differed by one line, in `workspace_paths.py`.
+Stop condition: stop when the criteria pass. Change only how `update_env_values` matches and rewrites an existing line, not how `parse_env_file` reads values or the file format. If the fix needs more than that, record it in B-13 and stop. Do not start the `validate.ps1` coverage step or the test anti-pattern fixes. Do not edit standards or templates.
 
-Stop condition: stop when the criteria pass. If a test exposes a bug, fix it here only when the fix is small and local, with a test that failed first; otherwise record it in B-13 and stop. Do not start the `validate.ps1` coverage step or the test anti-pattern fixes. Do not edit standards or templates.
+Close-out: mark this section complete with findings and validation. Add its row to Recent Completed Work, and update B-13 (`docs/audits/remediation-backlog-2026-07-10.md:183-263`), `docs/CHANGELOG.md` and `CARRY_FORWARD.md`. If no chunk is ready, define the next one here in this same compact form, then point `CARRY_FORWARD.md` at it.
 
-Close-out: mark this section complete with findings and validation. Add its row to Recent Completed Work, and update B-13 (`docs/audits/remediation-backlog-2026-07-10.md:183-238`), `docs/CHANGELOG.md` and `CARRY_FORWARD.md`. If no chunk is ready, define the next one here in this same compact form, then point `CARRY_FORWARD.md` at it.
+Alternates, only if the owner names one: tests for `governance_audit.py`, `project_registry.py`, `audit_projects.py` or `promotion_remediate.py` (the rest of B-13's test item); the `validate.ps1` coverage step (B-13), so the Windows gate enforces the same floor; or the B-13 test anti-pattern fixes.
 
-Alternates, only if the owner names one: the `validate.ps1` coverage step (B-13), so the Windows gate enforces the same floor; or the B-13 test anti-pattern fixes.
+## Chunk Fifty-One - Tests For The Master Env Commands
+
+Status: complete · Completion target: Task complete · Budget class: Medium
+
+Timestamp: 2026-11-09T21:41:21-06:00
+
+Source: chunk 51, the default set at the Chunk Forty-Nine close-out: AUD-ENG-004 B-13's next open work item, tests for the secret-sensitive modules. `master_env.py` was the last of the two it names.
+
+Objective: `automation/master_env.py` gets tests for its four commands, with no real env file. It had 115 statements and 36% coverage. It reads and writes the master env file and must never print a value.
+
+Acceptance criteria:
+
+- [x] `tests/test_master_env.py` (22 tests, 19 of them new) covers `status` for named keys, `--control-plane` and the default list; `missing` with no flag, `--priority` and `--control-plane`; `set` with `--value`, a hidden prompt, `--visible`, a blank answer, a value kept without `--overwrite`, and `--overwrite`; `merge --key`, including its refusal; and `main` refusing `set --value` with two keys and running a command.
+- [x] No test prints a value or reads a real env file. Every test checks stdout and stderr for each fake value, and every master is a temporary file. A module guard points the parser's `--master` default at a temporary path, so a test that forgets `--master` cannot reach the real file.
+- [x] `fail_under` rose from 41 to 43. `master_env.py` is 99% covered (118 statements, one missed: the `__main__` call) locally and on ubuntu-latest.
+- [x] The local gate passes; Validate passes on both OSes.
+
+Findings:
+
+- One bug, fixed with tests that failed first. `set` wrote a value containing a line break across several lines. The value read back cut short, and a continuation line such as `QmFzZTY0ZmFrZTE=` read back as a key with a blank value, which a plain `missing` printed: part of the secret, on stdout. The way in was `--value`, for example with a PEM key for `GITHUB_APP_PRIVATE_KEY`. Before the fix, the four line-break checks (three `--value` cases and one prompted case) failed with `2 != 0`. `set` now refuses any value that `splitlines()` would split, with exit 2 and before anything is written, and names only the key. A prompt reads one line, but `splitlines()` also splits at characters such as a carriage return, so prompted values are checked too.
+- Found, not fixed, and recorded in B-13: `env_file.update_env_values` finds a key's line with a regex that matches only a bare `KEY=` at the start of a line, while `parse_env_file` also reads `export KEY=`, indented lines and `KEY = v`. For such a line, `set` or `merge` without `--overwrite` appends a second line, prints `added`, and the new value wins on read. The fix belongs in the shared writer, which `stripe_provision.py` also uses, so it is Chunk Fifty-Two rather than a fix here.
+- Also recorded in B-13: `merge` with a missing `--source` merges nothing and exits 0, and with a missing `--master` creates a master holding only the header. The env writer has no line-break guard of its own.
+- The commands are tested through the real parser (`build_parser().parse_args`), so the flag names are covered too.
+- Local and ubuntu-latest per-file counts match except for one line and one branch in `workspace_paths.py`, as at Chunk Forty-Nine, so the exact local total (43.25%) stands in for CI's.
+
+Known gaps:
+
+- `scripts/validate.ps1` still has no coverage step, so the floor is enforced only on ubuntu-latest (B-13).
+
+Validation: the fail-first run showed only the four line-break checks failing. The local gate then passed (216 tests, 2 skipped; total 43.25%). Validate run 42750867354 passed on ubuntu-latest (218 tests, 2 skipped; total 43%: 4,616 statements, 2,532 missed) and windows-latest (218 tests, 6 skipped). Build Windows Launcher run 42750867646 passed. `graphify update . --no-cluster` exit 0.
 
 ## Chunk Forty-Nine - First Tests For The Stripe Provisioning Module
 
@@ -664,6 +689,7 @@ Stop condition: stop before any risk-tier/governance-level decision, dependency 
 | Chunk Forty-Eight - Exact Single-Entry Windows Access List For Secret Files | complete | 2026-11-09T18:05:57-06:00 | One `SetNamedSecurityInfoW` call (ctypes) replaces a secret file's whole Windows access list with one protected entry for the current user. Explicit entries from parent folders or other tools are removed; writes still fail closed. |
 | Chunk Fifty - Token-Efficient Handover And Agent Writing Guidance | complete | 2026-11-09T20:29:23-06:00 | The context hygiene standard and project templates now carry the next-chunk handover and compact agent-writing guidance as guidance, not rules. Another agent's compression notes were compared; the compression tool and the Jev or Laya checking layer are deferred. |
 | Chunk Forty-Nine - First Tests For The Stripe Provisioning Module | complete | 2026-11-09T21:23:40-06:00 | 23 tests take `stripe_provision.py` from 0% to 86% covered, with no network or real key. Two fixes: a mode such as `Live` no longer skips the `--allow-live` check, and apply no longer drops a new webhook secret when the manifest names no `secret_env`. Coverage floor 25 to 41. |
+| Chunk Fifty-One - Tests For The Master Env Commands | complete | 2026-11-09T21:41:21-06:00 | 19 new tests take `master_env.py` from 36% to 99% covered, with temporary files only. Fix: `set` refuses a value with a line break, which used to read back as a blank key that `missing` printed. An env writer bug found here is ready as Chunk Fifty-Two. Coverage floor 41 to 43. |
 
 Full history: `docs/archive/pathway-history.md`
 

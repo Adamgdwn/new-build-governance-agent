@@ -214,13 +214,39 @@ mode such as `Live` skipped the `--allow-live` check, and apply dropped a
 new webhook's secret when the manifest named no `secret_env`. `fail_under`
 rose from 25 to 41, the ubuntu-latest total (41.7%) rounded down.
 
+Done 2026-11-09 (Chunk Fifty-One): `tests/test_master_env.py` takes
+`master_env.py` from 36% to 99% covered (118 statements; only the
+`__main__` call is missed), with temporary files only. A module guard
+points the parser's `--master` default away from the real file. The tests
+exposed one bug, fixed with tests that failed first. `set` wrote a value
+containing a line break across several lines, so the value read back cut
+short, and a continuation line such as `QmFzZTY0ZmFrZTE=` read back as a
+blank key, which `missing` printed. `set` now refuses such a value before
+anything is written. `fail_under` rose from 41 to 43.
+
+Found by Chunk Fifty-One, not fixed:
+- `env_file.update_env_values` finds a key's line with `_ASSIGNMENT_RE`,
+  which matches only a bare `KEY=` at the start of a line. But
+  `parse_env_file` also reads `export KEY=`, indented lines and `KEY = v`.
+  For such a line, `set` or `merge` without `--overwrite` appends a second
+  `KEY=new` line, reports `added`, and the new value wins on read. Repro: a
+  master holding `export SHARED_KEY=old`, then `master_env.py --master
+  <file> set SHARED_KEY --value new`. `stripe_provision.py` writes through
+  the same function. Ready as Chunk Fifty-Two.
+- The env writer has no line-break guard of its own: `format_env_value`
+  writes a line break raw. `master_env` now refuses such values, and
+  `stripe_provision`'s values (ids and a webhook secret) cannot carry one.
+- `merge` treats a missing file as empty. A missing `--source` merges
+  nothing and exits 0. A missing `--master` is created holding only the
+  header.
+
 **Work items:**
-- Add unit tests for `master_env.py` (36% covered, 68 of 115 statements
-  untested; `stripe_provision.py` is done); also
-  `governance_audit.py`, `project_registry.py`, `audit_projects.py`,
-  `promotion_remediate.py` (~2,050 untested lines total).
+- Add unit tests for `governance_audit.py`, `project_registry.py`,
+  `audit_projects.py` and `promotion_remediate.py` (376 statements
+  untested on 2026-11-09; `stripe_provision.py` and `master_env.py` are
+  done).
 - Ratchet the coverage floor: it is real (CI installs coverage as of
-  2026-07-10) and stands at 41% since Chunk Forty-Nine; the old 60%
+  2026-07-10) and stands at 43% since Chunk Fifty-One; the old 60%
   floor had never actually executed (nor had the per-file 40% targets for
   promotion_execute/promotion_checks, now set at their measured 25%/15%).
   Raise `fail_under` in pyproject.toml and the per-file targets in
