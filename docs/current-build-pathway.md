@@ -54,45 +54,83 @@ Use second-level Markdown headings for active and planned chunks:
 ## Chunk Two - Short Objective
 ```
 
-## Chunk Forty-Eight - Exact Single-Entry Windows Access List For Secret Files
+## Chunk Forty-Nine - First Tests For The Stripe Provisioning Module
 
 Status: ready · Completion target: Task complete · Budget class: Medium
 
-Source: chunk 48, the default set at the Chunk Forty-Seven close-out: AUD-ENG-004 B-13's first open work item. If the owner names another item, do that instead (alternate at the end).
+Source: chunk 49, the default set at the Chunk Forty-Eight close-out: AUD-ENG-004 B-13's next open work item (tests for the secret-sensitive modules), starting with the one that has none. If the owner names another item, do that instead (alternates at the end).
 
-Objective: on Windows, every secret file written by `write_private_text` ends with exactly one access entry, the current user's. Today `_restrict_windows` runs `icacls <file> /inheritance:r /grant:r *<SID>:F`. That keeps the explicit entries a folder without auto-inheritance copies into new files, such as SYSTEM, Administrators and Owner Rights (CI runs 42556335162 and 42557263741). Writes must still fail closed.
+Objective: `automation/stripe_provision.py` gets its first tests, with no network access and no real key. It has 477 lines, 235 statements and 0% coverage. It writes Stripe price ids and a new webhook signing secret into the master env file.
 
 Read only:
 
-- `automation/env_file.py:89-197`, the protection helpers.
-- `tests/test_env_file.py:263-446`. `WindowsBranchTests` runs on every OS and pins the exact tool argv. `WindowsAccessControlTests` runs only on Windows; its `..._are_kept` test (line 432) must become a check that those entries are removed.
-- Background, only if needed: the next section, Chunk Forty-Seven (its decision and known limit).
+- `automation/stripe_provision.py:24-45` (constants, `update_env_file`), `:101-166` (`flatten_params`, `StripeClient`, `stripe_key_for_mode`), `:180-243` (`build_plan`) and `:258-405` (the `find_*` and `ensure_*` helpers, `apply_plan`).
+- `tests/test_env_file.py:1-20`, the house test layout (`sys.path` insert, `unittest`, `mock`).
 
-Not needed: the rest of the backlog, the validate scripts, the workflow files. CI's Validate workflow runs `validate.sh` on ubuntu-latest and `validate.ps1` (the full unittest suite) on windows-latest. Only that Windows job can prove Windows code.
+Facts that save reads:
 
-Candidate fixes (untested; pick one and record why):
-
-- `SetNamedSecurityInfoW` through `ctypes`, with a protected list holding one entry.
-- `icacls <folder> /restore <aclfile>` with a crafted `D:P(A;;FA;;;<SID>)` entry, which stays pure icacls.
-- `icacls /reset` before `/inheritance:r`. It briefly widens access, so only on a file that is still empty.
+- All Stripe traffic goes through `StripeClient.request` (`:123-149`), which calls `urllib.request.urlopen` once (`:143`). Mock that, or give the `find_*` and `ensure_*` helpers a fake client. No test may reach the network.
+- `apply_plan` builds its own client from the master env (`:365-367`), so patch `stripe_provision.StripeClient` there.
+- `stripe_key_for_mode` (`:152-165`) prefers `STRIPE_RESTRICTED_KEY`, skips a key from the other mode by its `_live_` or `_test_` marker, and raises `ValueError` naming the variables, not their values.
+- Secret writes go through `env_file.update_env_values`, which is already tested. Assert the master file's content and its 0600 mode (POSIX), not the helper's internals.
+- Coverage floor: `fail_under = 25` (`pyproject.toml:31`); the measured total was 37% at Chunk Forty-Eight. Per-file targets: `scripts/validate.sh:78`.
 
 Acceptance criteria:
 
-- [ ] On windows-latest, a new file and a rewritten file that already holds explicit entries each end with exactly one entry, the current user's. This holds in a normally inheriting folder and in folders without auto-inheritance (`tempfile.mkdtemp`, plain `os.mkdir`).
-- [ ] A failed restriction still raises `SecretFileProtectionError` and writes nothing; POSIX behaviour is unchanged.
+- [ ] A new `tests/test_stripe_provision.py` covers: `flatten_params` nesting; key selection by mode, including the refusal; `build_plan` naming the key variable but never its value; create-versus-reuse in `ensure_product`, `ensure_price` and `ensure_webhook`; and `apply_plan`. For `apply_plan`, price ids and a newly created webhook secret land in a temporary master env, an existing webhook leaves the env value alone and returns the secret note, and the result reports `secret_values_printed: False`.
+- [ ] `StripeClient.request` is tested for GET query versus POST body encoding. An HTTP error becomes a `RuntimeError` whose message does not contain the key.
+- [ ] No test reaches the network or reads a real env file.
+- [ ] `fail_under` rises to the new measured total, rounded down; `stripe_provision.py`'s coverage is recorded.
 - [ ] The local gate passes; Validate passes on both OSes.
 
 Validation:
 
-- Preflight: `bash scripts/governance-preflight.sh`. Standards review: `docs/standards/security-and-secrets-standard.md:59` and `:88`.
 - Gate: `PYTHON=$V/bin/python3 bash scripts/validate.sh`. `V` is an existing `/tmp/claude-1000/*New-Build-Agent/*/scratchpad/devvenv` whose ruff, mypy and coverage match `requirements-dev.txt`; otherwise build one (memory `validation-gate-tools`).
 - Windows: push to `main`, take the run id from `gh run list --commit <sha>`, then `timeout 15m gh run watch <id> --exit-status`.
 
-Stop condition: stop when the criteria pass. Do not start the other B-13 items (tests for untested modules, the coverage ratchet, the `validate.ps1` coverage step, test anti-patterns). Do not edit standards or templates.
+Stop condition: stop when the criteria pass. If a test exposes a bug, fix it here only when the fix is small and local, with a test that failed first; otherwise record it in B-13 and stop. Do not start the `master_env.py` tests, the `validate.ps1` coverage step, or the test anti-pattern fixes. Do not edit standards or templates.
 
-Close-out: mark this section complete with findings and validation. Add its row to Recent Completed Work, and update B-13 (`docs/audits/remediation-backlog-2026-07-10.md:183-235`), `docs/CHANGELOG.md` and `CARRY_FORWARD.md`. Then define Chunk Forty-Nine here in this same compact form.
+Close-out: mark this section complete with findings and validation. Add its row to Recent Completed Work, and update B-13 (`docs/audits/remediation-backlog-2026-07-10.md:183-231`), `docs/CHANGELOG.md` and `CARRY_FORWARD.md`. Then define Chunk Fifty here in this same compact form.
 
-Alternate, only if the owner names it: tests for `automation/stripe_provision.py` (477 lines, no tests; it writes secrets through `update_env_file` at line 37 and `apply_plan` at line 364), then raise `fail_under = 25` in `pyproject.toml:31`.
+Alternates, only if the owner names one: the `validate.ps1` coverage step (B-13), so the Windows gate enforces the same floor; or `master_env.py` tests (36% covered today; `tests/test_master_env.py` exists).
+
+## Chunk Forty-Eight - Exact Single-Entry Windows Access List For Secret Files
+
+Status: complete · Completion target: Task complete · Budget class: Medium
+
+Timestamp: 2026-11-09T18:05:57-06:00
+
+Source: AUD-ENG-004 item B-13, its first open work item, as defined at the Chunk Forty-Seven close-out. The owner started the chunk on 2026-11-09.
+
+Objective: on Windows, every secret file written by `write_private_text` ends with exactly one access entry, the current user's, and writes still fail closed. The old `icacls <file> /inheritance:r /grant:r *<SID>:F` kept explicit entries, such as the SYSTEM, Administrators and Owner Rights copies a file receives in a folder without auto-inheritance (CI runs 42556335162 and 42557263741).
+
+Acceptance criteria:
+
+- [x] On windows-latest, a new file and a rewritten file that already holds an explicit entry each end with exactly one entry: the current user's, allow, no flags, `FA`. This holds in a normally inheriting folder, a `tempfile.mkdtemp` folder, and a plain `os.mkdir` folder. The rewrite test first adds a BUILTIN\Users entry and confirms it is there.
+- [x] A failed restriction still raises `SecretFileProtectionError` and writes nothing; POSIX behaviour is unchanged.
+- [x] The local gate passes; Validate passes on both OSes.
+
+Decision: candidate 1, `SetNamedSecurityInfoW` through `ctypes`. One call replaces the whole list with a protected one-entry list built from the SDDL `D:P(A;;FA;;;<SID>)`, and no step in between widens access. Not chosen:
+
+- `icacls /restore` needs a crafted ACL file whose integrity then matters, in a UTF-16 format with names relative to the folder.
+- `icacls /reset` first would expose a rewritten file that already holds secrets, and the existing-file rule forbids emptying it first.
+
+Findings:
+
+- `SetNamedSecurityInfoW` receives the list without its descriptor, so the `P` in the SDDL text does not reach the file. `PROTECTED_DACL_SECURITY_INFORMATION` blocks inheritance; the branch tests pin it (`0x80000004`, with `DACL_SECURITY_INFORMATION`).
+- A NULL list would grant everyone full control, so the helper refuses to apply one (tested).
+- `ctypes` defines `WinDLL`, `get_last_error` and `FormatError` only on Windows. They sit in one `sys.platform`-guarded loader, `_load_security_api`, which the branch tests replace with a fake on every OS. Linux mypy skips the loader's body. `mypy --platform win32` checks it (a probe confirmed it catches a deliberate type error), and `validate.ps1` runs mypy on Windows.
+- `env_file.py` coverage on Linux fell from 100% to 90%. The uncovered lines (153-172) are that loader, which only the windows-latest job runs, without measuring coverage.
+- Unchanged: the `whoami` step, the fail-closed contract, and the error's manual `icacls` hint. That hint leaves explicit entries in place; the next successful write removes them.
+- Mutation check: five regressions each failed the every-OS tests. They were dropping the protected flag, passing a NULL list on, skipping the free, ignoring the error code, and granting read instead of full control.
+- Standards: `security-and-secrets-standard.md:59` (real env files permissioned for the local owner only) now holds exactly on Windows. `:88` (periodic permission review) applies at critical risk; this repository is high tier.
+
+Validation:
+
+- Preflight: 0 required gaps, 1 existing design warning. `python3 automation/governance_audit.py .`: 0 blockers, 0 required gaps, 0 warnings (AUD-ENG-014).
+- Gate with the pinned tools: exit 0; ruff and mypy passed; 174 tests run, 2 skipped (the real-Windows tests); total coverage 37%. `mypy --platform win32 automation`: no issues.
+- Windows CI: Validate run 42727149869 on `e3c17b0` passed on ubuntu-latest and windows-latest. On Windows, ruff and mypy passed and 176 tests ran with 4 skipped. Those 4 are exactly the POSIX-only tests, so both real-Windows tests ran and passed. The Windows launcher build (run 42727149861) passed.
+- `graphify update . --no-cluster`: exit 0.
 
 ## Chunk Forty-Seven - Secret Env Files Restricted To The Owner On Windows
 
@@ -555,6 +593,7 @@ Stop condition: stop before any risk-tier/governance-level decision, dependency 
 | Chunk Forty-Five - Frontier-Model Rules Refresh | complete | 2026-11-08T20:31:59-06:00 | Fresh-session close-out here; frontier-model rules in AI_BOOTSTRAP, context hygiene, use-case standard, policy, and harness templates; knowledge-base change proposal for owner review. |
 | Chunk Forty-Six - Documentation Scaffold Passes Its Own Compliance Check | complete | 2026-11-08T21:01:34-06:00 | One table drives the documentation type's skipped docs and its `required_docs`; every type at every governance level now passes its own compliance report; audit backlog B-14 closed. |
 | Chunk Forty-Seven - Secret Env Files Restricted To The Owner On Windows | complete | 2026-11-08T21:24:23-06:00 | `write_private_text` restricts secret env files before writing (mode 0600 on POSIX, `icacls` on Windows) and fails closed; on Windows, explicit entries copied from some parent folders remain (Chunk Forty-Eight). |
+| Chunk Forty-Eight - Exact Single-Entry Windows Access List For Secret Files | complete | 2026-11-09T18:05:57-06:00 | One `SetNamedSecurityInfoW` call (ctypes) replaces a secret file's whole Windows access list with one protected entry for the current user. Explicit entries from parent folders or other tools are removed; writes still fail closed. |
 
 Full history: `docs/archive/pathway-history.md`
 

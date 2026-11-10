@@ -6,7 +6,7 @@ Status: active
 Owner: Project Owner
 Approver: Project Owner
 Effective Date: 2026-07-10
-Last Reviewed: 2026-11-08
+Last Reviewed: 2026-11-09
 Next Review: 2026-12-08
 
 Source: `docs/audits/repository-audit-2026-07-10.md` (AUD-ENG-003).
@@ -191,27 +191,23 @@ two, because `master_env.py` and `stripe_provision.py` write through
 `env_file.update_env_values`. The two remaining writers,
 `env_file.write_env_lines` and `env_sync.apply_sync`, now both write through
 `env_file.write_private_text`. That helper restricts the file before any
-secret is written: mode 0600 on POSIX; on Windows, an `icacls` call removes
-all inherited access and grants the current user's SID full control.
-Explicit entries are kept (see the first work item). When the restriction
+secret is written: mode 0600 on POSIX; on Windows, an `icacls` call removed
+all inherited access and granted the current user's SID full control, but
+kept explicit entries. When the restriction
 fails, the write is refused and the target is left as it was (the
 fail-closed decision is recorded in the build pathway). Windows-only tests
 read the resulting access-control list back in the Windows CI job.
 
+Done 2026-11-09 (Chunk Forty-Eight): the Windows step now replaces the whole
+access list in one `SetNamedSecurityInfoW` call with a protected list that
+holds one entry, full control for the current user. Explicit entries go
+too. These include the SYSTEM, Administrators and Owner Rights copies a file
+receives in a folder without auto-inheritance (CI runs 42556335162 and
+42557263741), and entries another tool added. Validate run 42727149869
+confirmed one entry for new and rewritten files in normally inheriting,
+`mkdtemp` and plain-`mkdir` folders.
+
 **Work items:**
-- Replace the whole Windows access list in one step, so a secret file ends
-  with exactly one entry, for the current user. `icacls /inheritance:r`
-  keeps explicit entries. CI run 42556335162 showed that a file created in a
-  `tempfile.mkdtemp` folder also gets explicit copies of SYSTEM,
-  Administrators, and Owner Rights. Python 3.12.4+ creates those folders with
-  a protected list that is not auto-inherited. Run 42557263741 showed that
-  on the runner even a plain `os.mkdir` folder under the temp directory
-  passes explicit copies. Those entries are acceptable,
-  as the Windows equivalent of root, but a parent folder like that with broad
-  entries would pass them on too. Candidates: `SetNamedSecurityInfoW` with a
-  protected one-entry list, or `icacls /reset` before `/inheritance:r` on
-  files the helper has just created (safe only while they are still empty).
-  Running `/reset` on an existing file would briefly re-open it.
 - Add unit tests for `master_env.py` and `stripe_provision.py` (502 and 256
   untested lines of the two most secret-sensitive modules); also
   `governance_audit.py`, `project_registry.py`, `audit_projects.py`,
