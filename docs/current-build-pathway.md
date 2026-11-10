@@ -90,9 +90,52 @@ Validation:
 
 Stop condition: stop when the criteria pass. If a test exposes a bug, fix it here only when the fix is small and local, with a test that failed first; otherwise record it in B-13 and stop. Do not start the `master_env.py` tests, the `validate.ps1` coverage step, or the test anti-pattern fixes. Do not edit standards or templates.
 
-Close-out: mark this section complete with findings and validation. Add its row to Recent Completed Work, and update B-13 (`docs/audits/remediation-backlog-2026-07-10.md:183-231`), `docs/CHANGELOG.md` and `CARRY_FORWARD.md`. Then define Chunk Fifty here in this same compact form.
+Close-out: mark this section complete with findings and validation. Add its row to Recent Completed Work, and update B-13 (`docs/audits/remediation-backlog-2026-07-10.md:183-231`), `docs/CHANGELOG.md` and `CARRY_FORWARD.md`. Then point `CARRY_FORWARD.md` at the next ready chunk (Fifty, if it has not run), after checking its line ranges still hold; if none is ready, define the next chunk here in this same compact form.
 
 Alternates, only if the owner names one: the `validate.ps1` coverage step (B-13), so the Windows gate enforces the same floor; or `master_env.py` tests (36% covered today; `tests/test_master_env.py` exists).
+
+## Chunk Fifty - Token-Efficient Handover And Agent Writing Guidance
+
+Status: ready · Completion target: Task complete · Budget class: Medium
+
+Source: owner request 2026-11-09. Part A codifies the token-efficient handover as guidance, not a rule. Part B adds the compact writing guidance from the research note; drop Part B if the owner declines it. This chunk does not depend on Forty-Nine; it runs after Forty-Nine unless the owner starts it first.
+
+Objective: new projects, and coding agents from any vendor, receive both parts as guidance through the context hygiene standard (recommended, not required) and the project templates. No rule file changes.
+
+Read only:
+
+- `docs/research/2026-11-09 - Token-Efficient Agent Writing Research.md:16-26` (the answer) and `:123-157` (the criteria and the guidance to encode).
+- `docs/standards/context-hygiene-standard.md:115-120` (Keep Ambient Context Lean), `:142-151` (Work In Phases), `:234-275` (Handoff Summary Template, Token-Friendly Done) and `:305-317` (Review Checklist).
+- `templates/project/docs/current-build-pathway.template.md:45-68` (Chunking Standard), `:80-111` (the P-01 skeleton) and `:128-130` (Next Handoff).
+- `templates/project/CARRY_FORWARD.template.md` (14 lines) and `templates/project/AGENTS.template.md:44-49` (Finish a chunk).
+- `tests/test_scaffold_project.py:150-180` and `tests/test_change_control.py:171-196`, which assert on these files.
+- Examples to follow: Chunk Forty-Nine above, and `CARRY_FORWARD.md:6-8`.
+
+Facts that save reads:
+
+- `templates/project/docs/standards/context-hygiene-standard.template.md` matches the standard except in two places: the template has no Document ID, Last Reviewed or Next Review lines, and it words the two integration notes at standard `:138` and `:140` differently. Its line numbers run 3 lower. Edit both files.
+- Tests pin `Handoff Summary Template`, `Stop condition`, `Known gaps`, `### P-01 - `, `Status: Ready`, `Files:` and `Plan once`. Keep these strings, and add assertions for the new fields.
+- The chunk runner is external and machine-reads only `Status:` and `Files:` (template `:68`). Put the new `Read first:` and `Facts:` fields after `Objective:`, never directly under the `Files:` list.
+- The templates plan every chunk up front ("Plan once", template `:35`), so the guidance should say to refresh the next ready chunk's line ranges at close-out. This repository writes each chunk at close-out instead. Word the guidance to fit both. `AGENTS.template.md:47` limits close-out edits to the finished chunk, so refreshing those references must be stated as an exception.
+- `automation/governance_audit.py:112-143` reads only table rows that start with `|`, so a `Next chunk:` line above the carry-forward table is safe.
+- Change control copies only missing files (`automation/change_control.py:674`) and appends only missing managed blocks (`:688-706`). Existing projects will therefore pick this guidance up at their alignment review. Leave the managed blocks and their `fragments` alone: a new fragment would make change control append the block again to projects that already have it.
+- `CARRY_FORWARD.template.md:10` says open items are surfaced "before suggesting /compact". Close-outs have suggested `/clear` since Chunk Forty-Five, so fix that line while editing the file.
+
+Acceptance criteria:
+
+- [ ] Part A, in the standard and its template copy: a short subsection saying that the next ready chunk is the handover. That chunk names the files to read, with line ranges, plus the facts that save reads, the criteria, the validation and a stop condition. `CARRY_FORWARD.md` opens with a one-line pointer to it, and each flag takes one or two lines that point to the detail. Line ranges are refreshed at close-out. A compact next-chunk template sits beside the Handoff Summary Template.
+- [ ] Part B, in the same two files: a subsection on writing for agents that encodes the research note's seven guidance points and its criteria, including which text stays readable prose and what to avoid.
+- [ ] The pathway template gains optional `Read first:` and `Facts:` fields in the P-01 skeleton and the Chunking Standard list, and this repository's Chunking Standard (`docs/current-build-pathway.md:41-48`) lists the same two fields.
+- [ ] The `CARRY_FORWARD` template gains a `Next chunk:` line and the one-or-two-lines note, and its `/compact` reference becomes `/clear`.
+- [ ] Step 4 of the `AGENTS` template's "Finish a chunk" list points to the new subsection, without adding a mandatory step.
+- [ ] `AI_BOOTSTRAP.md`, `CLAUDE.md`, the playbooks and the managed blocks are unchanged.
+- [ ] Tests cover the new fields, the local gate passes, and Validate passes on both OSes.
+
+Validation: `PYTHON=$V/bin/python3 bash scripts/validate.sh`, with `V` chosen as in Chunk Forty-Nine's Validation. For Windows, run `gh run watch <id> --exit-status` on the pushed commit's Validate run.
+
+Stop condition: stop when the criteria pass. Do not edit rule files, playbooks, managed blocks, other repositories or workspace instruction files, and do not rewrite existing documents into the compact style.
+
+Close-out: mark this section complete with findings and validation, add its Recent Completed Work row, and update `docs/CHANGELOG.md` and `CARRY_FORWARD.md`. Then point `CARRY_FORWARD.md` at the next ready chunk (Forty-Nine, if it has not run), after checking its line ranges still hold; if none is ready, define the next chunk here in this same compact form.
 
 ## Chunk Forty-Eight - Exact Single-Entry Windows Access List For Secret Files
 

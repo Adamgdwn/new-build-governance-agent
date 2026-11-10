@@ -1,7 +1,7 @@
 # Context Map
 
 Document type: project context routing map
-Last Updated: 2026-11-08
+Last Updated: 2026-11-09
 Status: active
 Owner: Technical Lead
 Audience: coding agents, human coders, reviewers, and project owners
@@ -44,6 +44,7 @@ Keep these files compact. They should route to durable docs, not duplicate them.
 | Agent autonomy, tools, prompts, models, or permissions | `docs/agent-inventory.md`, `docs/model-registry.md`, `docs/prompt-register.md`, and `docs/tool-permission-matrix.md` |
 | Instructions coding agents get for each build type, or the generated `docs/build-playbook.md` | `templates/project/docs/playbooks/` |
 | Why an AI-engineering rule exists, current frontier-model practice, or where Jev and Laya fit | `docs/research/2026-11-08 - Frontier AI Engineering Practice Research.md` |
+| Token cost of shorthand, abbreviations or formats, or why handovers and agent-facing text are written as they are | `docs/research/2026-11-09 - Token-Efficient Agent Writing Research.md` |
 
 ## Search Before Loading
 
