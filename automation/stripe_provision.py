@@ -32,6 +32,8 @@ DEFAULT_WEBHOOK_EVENTS = [
     "invoice.paid",
     "invoice.payment_failed",
 ]
+DEFAULT_WEBHOOK_SECRET_ENV = "STRIPE_WEBHOOK_SECRET"
+STRIPE_MODES = ("test", "live")
 
 
 def update_env_file(path: Path, updates: dict[str, str], overwrite: bool) -> dict[str, str]:
@@ -79,7 +81,7 @@ def default_manifest(project: Path) -> dict[str, Any]:
         ],
         "webhook": {
             "url": "https://example.com/api/stripe/webhook",
-            "secret_env": "STRIPE_WEBHOOK_SECRET",
+            "secret_env": DEFAULT_WEBHOOK_SECRET_ENV,
             "events": DEFAULT_WEBHOOK_EVENTS,
         },
         "notes": [
@@ -149,7 +151,16 @@ class StripeClient:
             ) from error
 
 
+def check_mode(mode: str) -> str:
+    # Any other spelling, such as "Live", would skip both the key filter below and
+    # the --allow-live check in cmd_apply.
+    if mode not in STRIPE_MODES:
+        raise ValueError(f"Stripe mode must be 'test' or 'live', not {mode!r}.")
+    return mode
+
+
 def stripe_key_for_mode(values: dict[str, str], mode: str) -> tuple[str, str]:
+    check_mode(mode)
     candidates = ["STRIPE_RESTRICTED_KEY", "STRIPE_SECRET_KEY"]
     for key in candidates:
         value = values.get(key, "")
@@ -183,7 +194,7 @@ def build_plan(
     project = project.expanduser().resolve()
     master = master.expanduser().resolve()
     manifest = load_manifest(project, manifest_path)
-    selected_mode = mode or manifest.get("mode", "test")
+    selected_mode = check_mode(mode or manifest.get("mode", "test"))
     master_values = parse_env_file(master)
     key_name = None
     key_available = False
@@ -228,7 +239,7 @@ def build_plan(
             "webhook": {
                 "url": webhook.get("url"),
                 "events": webhook.get("events", DEFAULT_WEBHOOK_EVENTS),
-                "secret_env": webhook.get("secret_env", "STRIPE_WEBHOOK_SECRET"),
+                "secret_env": webhook.get("secret_env", DEFAULT_WEBHOOK_SECRET_ENV),
             }
             if webhook
             else None,
@@ -386,9 +397,11 @@ def apply_plan(plan: dict[str, Any], master: Path, overwrite_env: bool) -> dict[
     if webhook:
         endpoint, created = ensure_webhook(client, webhook)
         webhook_result = {"id": endpoint["id"], "created": created, "url": endpoint.get("url")}
-        if created and endpoint.get("secret") and webhook.get("secret_env"):
-            generated[webhook.get("secret_env", "STRIPE_WEBHOOK_SECRET")] = endpoint["secret"]
-        elif webhook.get("secret_env"):
+        # Same default as build_plan: Stripe returns a new endpoint's secret only once.
+        secret_env = webhook.get("secret_env", DEFAULT_WEBHOOK_SECRET_ENV)
+        if created and endpoint.get("secret") and secret_env:
+            generated[secret_env] = endpoint["secret"]
+        elif secret_env:
             webhook_result["secret_note"] = (
                 "Existing Stripe webhook secrets are not retrievable; keep the current env value or rotate the endpoint secret manually."
             )
