@@ -260,88 +260,163 @@ class PosixOwnerOnlyTests(unittest.TestCase):
         self.assertNotIn("icacls", message)
 
 
+class FakeSecurityApi:
+    """Stands in for the Windows security calls and records what they receive."""
+
+    DESCRIPTOR = 0x1000
+    DACL = 0x1010
+
+    def __init__(self):
+        self.calls = []
+        self.builds = True
+        self.dacl = self.DACL
+        self.set_result = 0
+
+    def api(self):
+        return env_file._SecurityApi(
+            self.string_to_descriptor,
+            self.get_dacl,
+            self.set_named_security_info,
+            self.local_free,
+            lambda: 87,
+            lambda code: f"Windows message {code}.\r\n",
+        )
+
+    def string_to_descriptor(self, sddl, revision, descriptor, size):
+        self.calls.append(("build", sddl, revision, size))
+        if self.builds:
+            descriptor.contents.value = self.DESCRIPTOR
+        return int(self.builds)
+
+    def get_dacl(self, descriptor, present, dacl, defaulted):
+        self.calls.append(("get_dacl", descriptor.value))
+        present.contents.value = 1
+        dacl.contents.value = self.dacl
+        return 1
+
+    def set_named_security_info(self, name, object_type, information, owner, group, dacl, sacl):
+        self.calls.append(("set", name, object_type, information, owner, group, dacl.value, sacl))
+        return self.set_result
+
+    def local_free(self, memory):
+        self.calls.append(("free", memory.value))
+
+
 class WindowsBranchTests(unittest.TestCase):
-    """The Windows branch with whoami and icacls replaced, so it runs on every OS."""
+    """The Windows branch with whoami and the security calls replaced, so it runs on every OS."""
 
     def setUp(self):
+        self.fake = FakeSecurityApi()
         for patcher in (
             mock.patch.object(env_file, "_is_windows", return_value=True),
             mock.patch.dict(os.environ, {"SystemRoot": r"D:\Win", "USERNAME": "builder"}),
+            mock.patch.object(env_file, "_load_security_api", side_effect=lambda: self.fake.api()),
         ):
             patcher.start()
             self.addCleanup(patcher.stop)
-        self.calls: list[list[str]] = []
+        self.commands: list[list[str]] = []
         self.path = Path("project") / ".env.local"
+        self.build = ("build", f"D:P(A;;FA;;;{FAKE_SID})", 1, None)
 
-    def fake_tools(self, whoami=None, icacls_exit=0, icacls_output=b""):
-        if whoami is None:
+    def fake_whoami(self, output=None):
+        if output is None:
             # Console code-page output: the user name is not valid UTF-8.
-            whoami = b'"pc\\caf\x82","' + FAKE_SID.encode() + b'"\r\n'
+            output = b'"pc\\caf\x82","' + FAKE_SID.encode() + b'"\r\n'
 
         def run(command, **kwargs):
-            self.calls.append(command)
+            self.commands.append(command)
             self.assertFalse(kwargs.get("shell", False))
-            if command[0].endswith("whoami.exe"):
-                return subprocess.CompletedProcess(command, 0, stdout=whoami, stderr=b"")
-            return subprocess.CompletedProcess(
-                command, icacls_exit, stdout=icacls_output, stderr=b""
-            )
+            self.assertTrue(command[0].endswith("whoami.exe"), command)
+            return subprocess.CompletedProcess(command, 0, stdout=output, stderr=b"")
 
         return mock.patch.object(env_file.subprocess, "run", side_effect=run)
 
-    def test_grants_full_control_to_the_current_user_only(self):
-        with self.fake_tools():
+    def restrict(self):
+        with self.fake_whoami():
             env_file.restrict_to_owner(self.path)
 
+    def test_replaces_the_list_with_one_protected_entry_for_the_current_user(self):
+        self.restrict()
+
+        self.assertEqual(
+            [[r"D:\Win\System32\whoami.exe", "/user", "/fo", "csv", "/nh"]], self.commands
+        )
+        descriptor, dacl = FakeSecurityApi.DESCRIPTOR, FakeSecurityApi.DACL
         self.assertEqual(
             [
-                [r"D:\Win\System32\whoami.exe", "/user", "/fo", "csv", "/nh"],
-                [
-                    r"D:\Win\System32\icacls.exe",
-                    str(self.path),
-                    "/inheritance:r",
-                    "/grant:r",
-                    f"*{FAKE_SID}:F",
-                ],
+                self.build,
+                ("get_dacl", descriptor),
+                # SE_FILE_OBJECT, then DACL_SECURITY_INFORMATION together with
+                # PROTECTED_DACL_SECURITY_INFORMATION, which blocks inheritance.
+                ("set", os.path.abspath(self.path), 1, 0x80000004, None, None, dacl, None),
+                ("free", descriptor),
             ],
-            self.calls,
+            self.fake.calls,
         )
 
-    def test_icacls_failure_raises_with_a_fix_naming_the_user(self):
-        output = b"x: This function is not supported on this system.\r\nFailed processing 1 files"
-        with self.fake_tools(icacls_exit=1, icacls_output=output):
-            with self.assertRaises(env_file.SecretFileProtectionError) as caught:
-                env_file.restrict_to_owner(self.path)
+    def test_refused_change_raises_with_a_fix_naming_the_user(self):
+        self.fake.set_result = 50
+        with self.assertRaises(env_file.SecretFileProtectionError) as caught:
+            self.restrict()
 
         message = str(caught.exception)
         self.assertIn(str(self.path), message)
-        self.assertIn("icacls exit 1", message)
-        self.assertIn("not supported", message)
+        self.assertIn("SetNamedSecurityInfoW error 50: Windows message 50.", message)
         self.assertIn('/grant:r "builder:F"', message)
+        self.assertEqual(("free", FakeSecurityApi.DESCRIPTOR), self.fake.calls[-1])
 
-    def test_missing_sid_raises_before_icacls_runs(self):
-        with self.fake_tools(whoami=b"ERROR: no user information\r\n"):
+    def test_missing_sid_raises_before_the_access_list_is_touched(self):
+        with self.fake_whoami(b"ERROR: no user information\r\n"):
             with self.assertRaises(env_file.SecretFileProtectionError):
                 env_file.restrict_to_owner(self.path)
 
-        self.assertEqual(1, len(self.calls))
+        self.assertEqual(1, len(self.commands))
+        self.assertEqual([], self.fake.calls)
 
-    def test_tool_that_cannot_run_raises_protection_error(self):
-        whoami_ok = subprocess.CompletedProcess([], 0, stdout=FAKE_SID.encode(), stderr=b"")
+    def test_tool_or_library_that_cannot_run_raises_protection_error(self):
         cases = {
-            "whoami missing": [FileNotFoundError("whoami.exe")],
-            "icacls timed out": [whoami_ok, subprocess.TimeoutExpired("icacls.exe", 30)],
+            "whoami missing": mock.patch.object(
+                env_file.subprocess, "run", side_effect=FileNotFoundError("whoami.exe")
+            ),
+            "security functions missing": mock.patch.object(
+                env_file, "_load_security_api", side_effect=OSError("advapi32 not found")
+            ),
         }
-        for name, effects in cases.items():
+        for name, patcher in cases.items():
             with self.subTest(name):
-                with mock.patch.object(env_file.subprocess, "run", side_effect=effects):
+                with self.fake_whoami(), patcher:
                     with self.assertRaises(env_file.SecretFileProtectionError):
                         env_file.restrict_to_owner(self.path)
 
+        self.assertEqual([], self.fake.calls)
+
+    def test_list_that_cannot_be_built_is_never_applied(self):
+        descriptor = FakeSecurityApi.DESCRIPTOR
+        cases = {
+            # Nothing was allocated, so nothing is freed.
+            "descriptor not built": ("builds", False, [self.build]),
+            # A NULL list would grant everyone full control.
+            "descriptor without a list": (
+                "dacl",
+                None,
+                [self.build, ("get_dacl", descriptor), ("free", descriptor)],
+            ),
+        }
+        for name, (attribute, value, expected_calls) in cases.items():
+            with self.subTest(name):
+                self.fake = FakeSecurityApi()
+                setattr(self.fake, attribute, value)
+                with self.assertRaises(env_file.SecretFileProtectionError) as caught:
+                    self.restrict()
+
+                self.assertIn("Windows error 87", str(caught.exception))
+                self.assertEqual(expected_calls, self.fake.calls)
+
     def test_failed_restriction_leaves_no_new_file(self):
+        self.fake.set_result = 5
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / ".env.local"
-            with self.fake_tools(icacls_exit=5, icacls_output=b"Access is denied."):
+            with self.fake_whoami():
                 with self.assertRaises(env_file.SecretFileProtectionError):
                     env_file.write_private_text(path, "KEY=placeholder\n")
 
@@ -397,49 +472,48 @@ class WindowsAccessControlTests(unittest.TestCase):
         )
         return folder
 
-    def assert_restricted(self, path, others_allowed=frozenset()):
+    def assert_restricted(self, path):
         flags, entries = self.saved_dacl(path)
         self.assertIn("P", flags, "inherited entries should be blocked")
         sid = env_file._current_user_sid(path)
         # SDDL writes the built-in Administrator account (RID 500) as "LA".
         user = {sid, "LA"} if sid.endswith("-500") else {sid}
-        user_entries = 0
-        for entry in entries:
-            ace_type, ace_flags, _, _, _, ace_sid = entry.split(";")[:6]
-            self.assertEqual("A", ace_type, entries)
-            self.assertNotIn("ID", ace_flags, entries)
-            if ace_sid in user:
-                user_entries += 1
-            else:
-                self.assertIn(ace_sid, others_allowed, entries)
-        self.assertEqual(1, user_entries, entries)
+        self.assertEqual(1, len(entries), entries)
+        ace_type, ace_flags, rights, _, _, ace_sid = entries[0].split(";")[:6]
+        self.assertEqual(("A", "", "FA"), (ace_type, ace_flags, rights), entries)
+        self.assertIn(ace_sid, user, entries)
 
-    def test_new_secret_file_grants_only_the_current_user(self):
-        path = self.inheriting_folder() / ".env"
-        env_file.write_private_text(path, "KEY=placeholder\n")
-
-        self.assert_restricted(path)
-        self.assertEqual("KEY=placeholder\n", path.read_text(encoding="utf-8"))
-
-    def test_protection_survives_a_rewrite(self):
-        path = self.inheriting_folder() / ".env"
+    def assert_new_and_rewritten_files_are_restricted(self, folder):
+        path = folder / ".env"
         env_file.write_private_text(path, "KEY=first\n")
-        env_file.write_private_text(path, "KEY=second\n")
+        self.assert_restricted(path)
 
+        # Another tool adds an explicit entry: BUILTIN\Users, by SID so a
+        # translated group name cannot break the test (SDDL writes it as "BU").
+        # Confirm it is there, so the rewrite has something to remove.
+        subprocess.run(
+            [env_file._system_tool("icacls.exe"), str(path), "/grant", "*S-1-5-32-545:R"],
+            check=True,
+            capture_output=True,
+        )
+        _, entries = self.saved_dacl(path)
+        self.assertIn("BU", [entry.split(";")[5] for entry in entries], entries)
+
+        env_file.write_private_text(path, "KEY=second\n")
         self.assert_restricted(path)
         self.assertEqual("KEY=second\n", path.read_text(encoding="utf-8"))
 
-    def test_entries_copied_from_a_folder_without_auto_inheritance_are_kept(self):
-        # CI runs 42556335162 and 42557263741: in these folders the file also
-        # kept explicit SYSTEM, Administrators and Owner Rights entries. That
-        # is the known limit in backlog B-13; no other principal may appear.
+    def test_inheriting_folder_new_and_rewritten_files_keep_one_entry(self):
+        self.assert_new_and_rewritten_files_are_restricted(self.inheriting_folder())
+
+    def test_entries_copied_from_a_folder_without_auto_inheritance_are_removed(self):
+        # CI runs 42556335162 and 42557263741: files created in these folders
+        # receive explicit SYSTEM, Administrators and Owner Rights entries,
+        # which icacls /inheritance:r used to keep.
         with tempfile.TemporaryDirectory() as tmp:
             for name, folder in (("mkdtemp", Path(tmp)), ("plain mkdir", self.temp_folder())):
                 with self.subTest(name):
-                    path = folder / ".env"
-                    env_file.write_private_text(path, "KEY=placeholder\n")
-
-                    self.assert_restricted(path, others_allowed={"SY", "BA", "OW"})
+                    self.assert_new_and_rewritten_files_are_restricted(folder)
 
 
 if __name__ == "__main__":

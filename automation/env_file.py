@@ -11,17 +11,26 @@ restricts them to the current user on every platform.
 
 from __future__ import annotations
 
+import ctypes
 import ntpath
 import os
 import re
 import shlex
 import subprocess
+import sys
+from collections.abc import Callable
 from pathlib import Path
+from typing import NamedTuple
 
 ENV_KEY_RE = re.compile(r"[A-Za-z_][A-Za-z0-9_]*")
 _ASSIGNMENT_RE = re.compile(r"^([A-Za-z_][A-Za-z0-9_]*)=(.*)$")
 _SID_RE = re.compile(r"S-1-\d+(?:-\d+)+")
 _TOOL_TIMEOUT_SECONDS = 30
+# Windows SDK values: SDDL_REVISION_1 (sddl.h), SE_FILE_OBJECT (accctrl.h), and
+# DACL_SECURITY_INFORMATION | PROTECTED_DACL_SECURITY_INFORMATION (winnt.h).
+_SDDL_REVISION_1 = 1
+_SE_FILE_OBJECT = 1
+_PROTECTED_DACL_INFORMATION = 0x00000004 | 0x80000000
 
 
 class SecretFileProtectionError(OSError):
@@ -125,32 +134,98 @@ def _current_user_sid(path: Path) -> str:
     return sids[-1]
 
 
+class _SecurityApi(NamedTuple):
+    """The Windows calls _restrict_windows makes. Tests substitute fakes."""
+
+    string_to_descriptor: Callable[..., int]  # ConvertStringSecurityDescriptorToSecurityDescriptorW
+    get_dacl: Callable[..., int]  # GetSecurityDescriptorDacl
+    set_named_security_info: Callable[..., int]  # SetNamedSecurityInfoW
+    local_free: Callable[..., object]  # LocalFree
+    last_error: Callable[[], int]
+    format_error: Callable[[int], str]
+
+
+def _load_security_api() -> _SecurityApi:
+    # ctypes defines WinDLL, get_last_error and FormatError only on Windows,
+    # so this is the one sys.platform check: mypy checks the body when it runs
+    # on Windows (validate.ps1). Private WinDLL objects keep these signatures
+    # out of the shared ctypes.windll cache.
+    if sys.platform != "win32":
+        raise OSError("the Windows security functions exist only on Windows")
+    advapi32 = ctypes.WinDLL("advapi32", use_last_error=True)
+    kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+    pointer = ctypes.c_void_p
+    out_pointer = ctypes.POINTER(ctypes.c_void_p)
+    out_bool = ctypes.POINTER(ctypes.c_int)
+    build = advapi32.ConvertStringSecurityDescriptorToSecurityDescriptorW
+    build.argtypes = (ctypes.c_wchar_p, ctypes.c_uint32, out_pointer, pointer)
+    build.restype = ctypes.c_int
+    get_dacl = advapi32.GetSecurityDescriptorDacl
+    get_dacl.argtypes = (pointer, out_bool, out_pointer, out_bool)
+    get_dacl.restype = ctypes.c_int
+    set_info = advapi32.SetNamedSecurityInfoW
+    set_info.argtypes = (ctypes.c_wchar_p, ctypes.c_int, ctypes.c_uint32) + (pointer,) * 4
+    set_info.restype = ctypes.c_uint32
+    local_free = kernel32.LocalFree
+    local_free.argtypes = (pointer,)
+    local_free.restype = pointer
+    return _SecurityApi(
+        build, get_dacl, set_info, local_free, ctypes.get_last_error, ctypes.FormatError
+    )
+
+
 def _restrict_windows(path: Path) -> None:
-    # /inheritance:r removes every inherited entry and /grant:r gives the
-    # current user full control. Explicit entries stay: ones another tool
-    # added, and copies a new file receives from a parent folder whose list is
-    # not auto-inherited (Python's temp folders pass on SYSTEM, Administrators
-    # and Owner Rights this way).
+    # One call replaces the whole access-control list with a protected list
+    # that holds one entry: full control for the current user. Inherited and
+    # explicit entries both go, including ones another tool added and the
+    # copies a new file receives from a parent folder whose list is not
+    # auto-inherited (Python's temp folders pass on SYSTEM, Administrators
+    # and Owner Rights this way). No step in between widens access.
     sid = _current_user_sid(path)
-    command = [_system_tool("icacls.exe"), str(path), "/inheritance:r", "/grant:r", f"*{sid}:F"]
     try:
-        result = subprocess.run(
-            command, capture_output=True, timeout=_TOOL_TIMEOUT_SECONDS, check=False
+        api = _load_security_api()
+    except OSError as exc:
+        raise _protection_error(path, f"Windows security functions unavailable: {exc}") from exc
+    descriptor = ctypes.c_void_p()
+    sddl = f"D:P(A;;FA;;;{sid})"
+    if not api.string_to_descriptor(sddl, _SDDL_REVISION_1, ctypes.pointer(descriptor), None):
+        raise _protection_error(
+            path, f"could not build the access list, Windows error {api.last_error()}"
         )
-    except (OSError, subprocess.SubprocessError) as exc:
-        raise _protection_error(path, f"icacls failed: {exc}") from exc
-    if result.returncode != 0:
-        output = (result.stderr + result.stdout).decode("utf-8", errors="replace")
-        detail = " ".join(output.split())
-        raise _protection_error(path, f"icacls exit {result.returncode}: {detail}")
+    try:
+        present, defaulted, dacl = ctypes.c_int(), ctypes.c_int(), ctypes.c_void_p()
+        found = api.get_dacl(
+            descriptor, ctypes.pointer(present), ctypes.pointer(dacl), ctypes.pointer(defaulted)
+        )
+        # A NULL list would grant everyone full control, so never pass one on.
+        if not (found and present.value and dacl.value):
+            raise _protection_error(
+                path, f"could not read the new access list, Windows error {api.last_error()}"
+            )
+        # SetNamedSecurityInfoW takes the list without its descriptor, so the
+        # "P" above does not reach the file: the protected flag blocks inheritance.
+        code = api.set_named_security_info(
+            os.path.abspath(path),
+            _SE_FILE_OBJECT,
+            _PROTECTED_DACL_INFORMATION,
+            None,
+            None,
+            dacl,
+            None,
+        )
+        if code:
+            detail = " ".join(api.format_error(code).split())
+            raise _protection_error(path, f"SetNamedSecurityInfoW error {code}: {detail}")
+    finally:
+        api.local_free(descriptor)
 
 
 def restrict_to_owner(path: Path) -> None:
     """Restrict an existing file to the current user.
 
-    POSIX sets mode 0600. On Windows, where chmod cannot do this, icacls
-    removes every inherited access-control entry and grants the current user
-    full control; explicit entries are kept (see _restrict_windows). Raises
+    POSIX sets mode 0600. On Windows, where chmod cannot do this, the file's
+    access-control list is replaced with one protected entry: full control
+    for the current user (see _restrict_windows). Raises
     SecretFileProtectionError when the restriction cannot be applied, for
     example on a FAT or exFAT drive.
     """
