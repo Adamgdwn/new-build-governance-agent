@@ -54,45 +54,79 @@ Use second-level Markdown headings for active and planned chunks:
 ## Chunk Two - Short Objective
 ```
 
-## Chunk Forty-Nine - First Tests For The Stripe Provisioning Module
+## Chunk Fifty-One - Tests For The Master Env Commands
 
 Status: ready · Completion target: Task complete · Budget class: Medium
 
-Source: chunk 49, the default set at the Chunk Forty-Eight close-out: AUD-ENG-004 B-13's next open work item (tests for the secret-sensitive modules), starting with the one that has none. If the owner names another item, do that instead (alternates at the end).
+Source: the default set at the Chunk Forty-Nine close-out: AUD-ENG-004 B-13's next open work item, tests for the secret-sensitive modules. `master_env.py` is the last of the two it names. If the owner names another item, do that instead (alternates at the end).
 
-Objective: `automation/stripe_provision.py` gets its first tests, with no network access and no real key. It has 477 lines, 235 statements and 0% coverage. It writes Stripe price ids and a new webhook signing secret into the master env file.
+Objective: `automation/master_env.py` gets tests for its four commands, with no real env file. It has 115 statements and 36% coverage. It reads and writes the master env file and must never print a value.
 
-Read only:
+Read first:
 
-- `automation/stripe_provision.py:24-45` (constants, `update_env_file`), `:101-166` (`flatten_params`, `StripeClient`, `stripe_key_for_mode`), `:180-243` (`build_plan`) and `:258-405` (the `find_*` and `ensure_*` helpers, `apply_plan`).
-- `tests/test_env_file.py:1-20`, the house test layout (`sys.path` insert, `unittest`, `mock`).
+- `automation/master_env.py:74-173` (`update_values`, `registered_master_keys`, the `status`, `missing`, `set` and `merge` commands, `read_prompted_value`) and `:175-225` (the parser and `main`).
+- `tests/test_master_env.py:1-67`: the three existing tests and the house layout (`Namespace` calls, `redirect_stdout`, `redirect_stderr`).
 
-Facts that save reads:
+Facts:
 
-- All Stripe traffic goes through `StripeClient.request` (`:123-149`), which calls `urllib.request.urlopen` once (`:143`). Mock that, or give the `find_*` and `ensure_*` helpers a fake client. No test may reach the network.
-- `apply_plan` builds its own client from the master env (`:365-367`), so patch `stripe_provision.StripeClient` there.
-- `stripe_key_for_mode` (`:152-165`) prefers `STRIPE_RESTRICTED_KEY`, skips a key from the other mode by its `_live_` or `_test_` marker, and raises `ValueError` naming the variables, not their values.
-- Secret writes go through `env_file.update_env_values`, which is already tested. Assert the master file's content and its 0600 mode (POSIX), not the helper's internals.
-- Coverage floor: `fail_under = 25` (`pyproject.toml:31`); the measured total was 37% at Chunk Forty-Eight. Per-file targets: `scripts/validate.sh:78`.
+- The commands print key names, `set` or `missing`, and counts, never values. Capture stdout and stderr and assert no fake value appears.
+- `set` takes `--value`, or prompts for each key through `getpass.getpass`, or through `input` with `--visible` (`:111-115`). Patch `master_env.getpass.getpass` and `builtins.input`. A blank answer skips that key; without `--overwrite`, an existing value is kept and printed as `skipped`.
+- `set` and `merge --key` reject, with exit 2 and before any prompt, a key the master file does not already list. The `set` rejection is already tested.
+- `--master` is a top-level option, so it goes before the command. Its default, `DEFAULT_MASTER` (`:16`), is the real master file: always pass a temporary one. `main` (`:220-225`) refuses `set --value` with more than one key through `parser.error` (SystemExit 2); patch `sys.argv` to call it.
+- Writes go through `env_file.update_env_values`, which is tested; a missing file gets `MASTER_FILE_HEADER`. Assert the file's content and its 0600 mode (POSIX).
+- Untested today: `:90-96`, `:100-108`, `:112-115`, `:130-142`, `:151-159`, `:176-217` and `:221-225`. Floor: `fail_under = 41` (`pyproject.toml:31`).
 
 Acceptance criteria:
 
-- [ ] A new `tests/test_stripe_provision.py` covers: `flatten_params` nesting; key selection by mode, including the refusal; `build_plan` naming the key variable but never its value; create-versus-reuse in `ensure_product`, `ensure_price` and `ensure_webhook`; and `apply_plan`. For `apply_plan`, price ids and a newly created webhook secret land in a temporary master env, an existing webhook leaves the env value alone and returns the secret note, and the result reports `secret_values_printed: False`.
-- [ ] `StripeClient.request` is tested for GET query versus POST body encoding. An HTTP error becomes a `RuntimeError` whose message does not contain the key.
-- [ ] No test reaches the network or reads a real env file.
-- [ ] `fail_under` rises to the total ubuntu-latest measures, rounded down, not the local total: a run without tkinter measures about 3 points lower (`pyproject.toml:28-29`). `stripe_provision.py`'s coverage is recorded.
+- [ ] `tests/test_master_env.py` covers: `status` for named keys and `--control-plane`; `missing` with `--priority` and `--control-plane`; `set` with `--value`, a hidden prompt, `--visible`, a blank answer and `--overwrite`; `merge --key`, including its refusal; and `main` refusing `set --value` with two keys.
+- [ ] No test prints a value or reads a real env file.
+- [ ] `fail_under` rises to the ubuntu-latest total, rounded down; `master_env.py`'s coverage is recorded.
 - [ ] The local gate passes; Validate passes on both OSes.
 
 Validation:
 
-- Gate: `PYTHON=$V/bin/python3 bash scripts/validate.sh`. `V` is an existing `/tmp/claude-1000/*New-Build-Agent/*/scratchpad/devvenv` whose ruff, mypy and coverage match `requirements-dev.txt`; otherwise build one (memory `validation-gate-tools`).
+- Gate: `PYTHON=$V/bin/python3 bash scripts/validate.sh`, where `V` is a venv with `requirements-dev.txt` installed. Reuse an existing `/tmp/claude-1000/*New-Build-Agent/*/scratchpad/devvenv` if its versions match.
 - Windows: push to `main`, take the run id from `gh run list --commit <sha>`, then `timeout 15m gh run watch <id> --exit-status`.
+- Exact total: CI prints whole percents. Run `coverage report --precision=2` locally and compare the per-file columns with the ubuntu-latest log (`gh run view <id> --log`). At Chunk Forty-Nine they differed by one line, in `workspace_paths.py`.
 
-Stop condition: stop when the criteria pass. If a test exposes a bug, fix it here only when the fix is small and local, with a test that failed first; otherwise record it in B-13 and stop. Do not start the `master_env.py` tests, the `validate.ps1` coverage step, or the test anti-pattern fixes. Do not edit standards or templates.
+Stop condition: stop when the criteria pass. If a test exposes a bug, fix it here only when the fix is small and local, with a test that failed first; otherwise record it in B-13 and stop. Do not start the `validate.ps1` coverage step or the test anti-pattern fixes. Do not edit standards or templates.
 
-Close-out: mark this section complete with findings and validation. Add its row to Recent Completed Work, and update B-13 (`docs/audits/remediation-backlog-2026-07-10.md:183-231`), `docs/CHANGELOG.md` and `CARRY_FORWARD.md`. Then point `CARRY_FORWARD.md` at the next ready chunk (Fifty, if it has not run), after checking its line ranges still hold; if none is ready, define the next chunk here in this same compact form.
+Close-out: mark this section complete with findings and validation. Add its row to Recent Completed Work, and update B-13 (`docs/audits/remediation-backlog-2026-07-10.md:183-238`), `docs/CHANGELOG.md` and `CARRY_FORWARD.md`. If no chunk is ready, define the next one here in this same compact form, then point `CARRY_FORWARD.md` at it.
 
-Alternates, only if the owner names one: the `validate.ps1` coverage step (B-13), so the Windows gate enforces the same floor; or `master_env.py` tests (36% covered today; `tests/test_master_env.py` exists).
+Alternates, only if the owner names one: the `validate.ps1` coverage step (B-13), so the Windows gate enforces the same floor; or the B-13 test anti-pattern fixes.
+
+## Chunk Forty-Nine - First Tests For The Stripe Provisioning Module
+
+Status: complete · Completion target: Task complete · Budget class: Medium
+
+Timestamp: 2026-11-09T21:23:40-06:00
+
+Source: chunk 49, the default set at the Chunk Forty-Eight close-out: AUD-ENG-004 B-13's next open work item (tests for the secret-sensitive modules), starting with the one that had none.
+
+Objective: `automation/stripe_provision.py` gets its first tests, with no network access and no real key. It had 235 statements and 0% coverage. It writes Stripe price ids and a new webhook signing secret into the master env file.
+
+Acceptance criteria:
+
+- [x] `tests/test_stripe_provision.py` (23 tests) covers `flatten_params` nesting; key selection by mode, including the refusal; `build_plan` naming the key variable but never its value; create-versus-reuse in `ensure_product`, `ensure_price` and `ensure_webhook`; and `apply_plan`. Price ids and a new webhook secret land in a temporary master env, an existing webhook leaves the env value alone and returns the secret note, and the result reports `secret_values_printed: False`.
+- [x] `StripeClient.request` is tested for GET query versus POST body encoding. An HTTP error becomes a `RuntimeError` whose message does not contain the key.
+- [x] No test reaches the network or reads a real env file: a module-level guard makes `urlopen` fail, and every master env is a temporary file.
+- [x] `fail_under` rose from 25 to 41, the ubuntu-latest total rounded down. `stripe_provision.py` is 86% covered (243 statements, 30 missed) locally and on ubuntu-latest.
+- [x] The local gate passes; Validate passes on both OSes.
+
+Findings:
+
+- Two bugs, each fixed with a test that failed first:
+  - A mode other than exactly `test` or `live` skipped both the key filter and the `--allow-live` check. A manifest or plan with `"mode": "Live"` used the first key set, live or not, without `--allow-live`. The apply-time test failed with "a Stripe client was built" and the plan-time test with "ValueError not raised". `check_mode` now refuses any other mode in `build_plan` and `stripe_key_for_mode`.
+  - Without `secret_env` in the manifest, the plan said a new webhook's secret would go to `STRIPE_WEBHOOK_SECRET`, but apply dropped it. The API returns that secret only when it creates the endpoint. The test failed with `None != 'whsec_fake5'`. Plan and apply now share one default, `DEFAULT_WEBHOOK_SECRET_ENV`.
+- Still untested in the module: the `init` and `plan` commands, `write_plan`, `write_manifest_template`, and `load_manifest`'s error paths.
+- The criteria's tkinter note no longer holds. Local and ubuntu-latest per-file counts match except for one line in `workspace_paths.py`, so the exact local total (41.70%) stands in for CI's.
+- Fake keys are short (`sk_test_fake1`). The module checks only the `_test_` or `_live_` marker, and short values stay clear of the hygiene test and GitHub secret scanning.
+
+Known gaps:
+
+- `scripts/validate.ps1` has no coverage step, so the floor is enforced only on ubuntu-latest (B-13).
+
+Validation: the local gate passed (197 tests, 2 skipped; total 41.70%). Validate run 42748834389 passed on ubuntu-latest (199 tests, 2 skipped; total 42%: 4,613 statements, 2,599 missed) and windows-latest (199 tests, 5 skipped). Build Windows Launcher run 42748834120 passed.
 
 ## Chunk Fifty - Token-Efficient Handover And Agent Writing Guidance
 
@@ -629,6 +663,7 @@ Stop condition: stop before any risk-tier/governance-level decision, dependency 
 | Chunk Forty-Seven - Secret Env Files Restricted To The Owner On Windows | complete | 2026-11-08T21:24:23-06:00 | `write_private_text` restricts secret env files before writing (mode 0600 on POSIX, `icacls` on Windows) and fails closed; on Windows, explicit entries copied from some parent folders remain (Chunk Forty-Eight). |
 | Chunk Forty-Eight - Exact Single-Entry Windows Access List For Secret Files | complete | 2026-11-09T18:05:57-06:00 | One `SetNamedSecurityInfoW` call (ctypes) replaces a secret file's whole Windows access list with one protected entry for the current user. Explicit entries from parent folders or other tools are removed; writes still fail closed. |
 | Chunk Fifty - Token-Efficient Handover And Agent Writing Guidance | complete | 2026-11-09T20:29:23-06:00 | The context hygiene standard and project templates now carry the next-chunk handover and compact agent-writing guidance as guidance, not rules. Another agent's compression notes were compared; the compression tool and the Jev or Laya checking layer are deferred. |
+| Chunk Forty-Nine - First Tests For The Stripe Provisioning Module | complete | 2026-11-09T21:23:40-06:00 | 23 tests take `stripe_provision.py` from 0% to 86% covered, with no network or real key. Two fixes: a mode such as `Live` no longer skips the `--allow-live` check, and apply no longer drops a new webhook secret when the manifest names no `secret_env`. Coverage floor 25 to 41. |
 
 Full history: `docs/archive/pathway-history.md`
 

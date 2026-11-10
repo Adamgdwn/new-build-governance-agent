@@ -207,13 +207,20 @@ receives in a folder without auto-inheritance (CI runs 42556335162 and
 confirmed one entry for new and rewritten files in normally inheriting,
 `mkdtemp` and plain-`mkdir` folders.
 
+Done 2026-11-09 (Chunk Forty-Nine): `tests/test_stripe_provision.py` takes
+`stripe_provision.py` from 0% to 86% covered (243 statements), with no
+network access and no real key. The tests exposed two bugs, both fixed: a
+mode such as `Live` skipped the `--allow-live` check, and apply dropped a
+new webhook's secret when the manifest named no `secret_env`. `fail_under`
+rose from 25 to 41, the ubuntu-latest total (41.7%) rounded down.
+
 **Work items:**
-- Add unit tests for `master_env.py` and `stripe_provision.py` (502 and 256
-  untested lines of the two most secret-sensitive modules); also
+- Add unit tests for `master_env.py` (36% covered, 68 of 115 statements
+  untested; `stripe_provision.py` is done); also
   `governance_audit.py`, `project_registry.py`, `audit_projects.py`,
   `promotion_remediate.py` (~2,050 untested lines total).
-- Ratchet the coverage floor: it is now REAL (CI installs coverage as of
-  2026-07-10) but set at 25% — the honest measured baseline; the old 60%
+- Ratchet the coverage floor: it is real (CI installs coverage as of
+  2026-07-10) and stands at 41% since Chunk Forty-Nine; the old 60%
   floor had never actually executed (nor had the per-file 40% targets for
   promotion_execute/promotion_checks, now set at their measured 25%/15%).
   Raise `fail_under` in pyproject.toml and the per-file targets in
