@@ -80,7 +80,7 @@ Acceptance criteria:
 - [ ] A new `tests/test_stripe_provision.py` covers: `flatten_params` nesting; key selection by mode, including the refusal; `build_plan` naming the key variable but never its value; create-versus-reuse in `ensure_product`, `ensure_price` and `ensure_webhook`; and `apply_plan`. For `apply_plan`, price ids and a newly created webhook secret land in a temporary master env, an existing webhook leaves the env value alone and returns the secret note, and the result reports `secret_values_printed: False`.
 - [ ] `StripeClient.request` is tested for GET query versus POST body encoding. An HTTP error becomes a `RuntimeError` whose message does not contain the key.
 - [ ] No test reaches the network or reads a real env file.
-- [ ] `fail_under` rises to the new measured total, rounded down; `stripe_provision.py`'s coverage is recorded.
+- [ ] `fail_under` rises to the total ubuntu-latest measures, rounded down, not the local total: a run without tkinter measures about 3 points lower (`pyproject.toml:28-29`). `stripe_provision.py`'s coverage is recorded.
 - [ ] The local gate passes; Validate passes on both OSes.
 
 Validation:
