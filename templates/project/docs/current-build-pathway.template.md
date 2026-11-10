@@ -55,6 +55,7 @@ A good chunk has:
 - a `Files:` allow-list of the paths the chunk may change; hooks block writes outside it when the runner is installed
 - acceptance criteria an independent reviewer can check against evidence, not against the worker's claim
 - explicit validation commands
+- optional `Read first:` and `Facts:` fields: what to read, with line ranges, and the facts that save the next session reads
 - an explicit stop condition or escalation trigger
 - a timestamped status note
 
@@ -93,6 +94,14 @@ Files:
 
 Objective:
 
+Read first:
+
+- Optional: `path/to/file:10-40` and what that range holds.
+
+Facts:
+
+- Optional: facts that save the next session reads, such as decisions made, seams, and how validation runs.
+
 Acceptance criteria:
 
 - [ ] Criterion one, checkable from evidence
@@ -127,4 +136,4 @@ date -Iseconds
 
 ## Next Handoff
 
-The next session starts fresh: check `git status --short`, read `AGENTS.md`, take the first `Status: Ready` chunk above, and open only the files it names. After compaction or a context clear, resume from this document and `CARRY_FORWARD.md` before loading anything else.
+The next session starts fresh: check `git status --short`, read `AGENTS.md`, take the first `Status: Ready` chunk above, and open only the files it names, starting with its `Read first:` ranges. At close-out, fix the next ready chunk's line ranges if this chunk moved them. After compaction or a context clear, resume from this document and `CARRY_FORWARD.md` before loading anything else.

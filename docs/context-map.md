@@ -28,7 +28,7 @@ Keep these files compact. They should route to durable docs, not duplicate them.
 |---|---|
 | Current plan, chunking, validation, or handoff | Active plan named by `START_HERE.md`; default `docs/current-build-pathway.md` |
 | Engineering standards map | `docs/standards/README.md` |
-| Context windows, token budgets, compaction, scoped reads, or handoffs | `docs/standards/context-hygiene-standard.md` |
+| Context windows, token budgets, compaction, scoped reads, handoffs, or writing text that agents read | `docs/standards/context-hygiene-standard.md` |
 | Durable implementation, design quality, testing discipline, or AI coding fundamentals | `docs/policy/durable-development-engineering-policy.md` |
 | Product lifecycle for a project intended for sale: market validation, pre-sale, feature priority, commercial readiness, or funding, credits and partners | `docs/standards/build-to-sale-lifecycle-standard.md` (Part A first; open Part B sections as needed) |
 | Cyclomatic complexity, branch-heavy code, complexity thresholds, or related exceptions | `docs/standards/code-complexity-control-standard.md` |

@@ -185,6 +185,8 @@ class ChangeControlTests(unittest.TestCase):
             self.assertIn("Do Not Expand Scope By Momentum", context_hygiene)
             self.assertIn("Completion status", context_hygiene)
             self.assertIn("Handoff Summary Template", context_hygiene)
+            self.assertIn("Hand Over Through The Next Ready Chunk", context_hygiene)
+            self.assertIn("Write Compactly For Agents", context_hygiene)
             pathway = (project / "docs" / "current-build-pathway.md").read_text(encoding="utf-8")
             self.assertIn("lean startup", pathway)
             self.assertIn("Risk-triggering work includes", pathway)
@@ -194,6 +196,7 @@ class ChangeControlTests(unittest.TestCase):
             self.assertIn("Stop condition", pathway)
             self.assertIn("Known gaps", pathway)
             self.assertIn("After compaction or a context clear", pathway)
+            self.assertIn("Read first:", pathway)
 
             second_manifest = change_control.build_manifest(project)
             self.assertEqual([], second_manifest["actions"])

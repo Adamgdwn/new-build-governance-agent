@@ -46,7 +46,7 @@ A rule that a hook enforces names the hook. Hooks live in `scripts/agent/hooks/`
 1. Validation green: the chunk's Validation commands, or `node scripts/agent/validate.mjs` when the runner is installed.
 2. In the pathway, inside that chunk only: tick met criteria, record Known gaps, set `Status: Review`. The runner or the owner sets `Done`.
 3. Update `CARRY_FORWARD.md` only if an open item changed. Commit, then push per the rule above.
-4. Start the next chunk in a fresh session (`/clear`), not `/compact`. The pathway and `CARRY_FORWARD.md` are the handoff. Compact only mid-chunk when context is degrading.
+4. Start the next chunk in a fresh session (`/clear`), not `/compact`. The pathway and `CARRY_FORWARD.md` are the handoff: fix the next ready chunk's line ranges if this chunk moved them (context hygiene standard, Hand Over Through The Next Ready Chunk). Compact only mid-chunk when context is degrading.
 
 ## Read when relevant
 

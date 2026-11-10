@@ -3,7 +3,7 @@
 Last Updated: 2026-11-09
 Status: open items present
 
-Next chunk: Chunk Forty-Nine (49), ready at `docs/current-build-pathway.md:57-95`. Chunk Fifty (50), the handover and agent writing guidance, is ready at `:97-138` and follows; the two are independent. Each lists the files to read, the gate and the stop condition.
+Next chunk: Chunk Forty-Nine (49), ready at `docs/current-build-pathway.md:57-95`. Start there. It lists the files to read, the gate and the stop condition.
 
 Keep this file short: one or two lines per flag, pointing to where the detail lives. Refresh the next-chunk line at every close-out. Clear a flag when it is resolved or handed off.
 

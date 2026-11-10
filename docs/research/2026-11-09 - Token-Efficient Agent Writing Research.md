@@ -24,6 +24,8 @@ and sources behind Chunk Fifty. It is not a startup read.
 - The large savings are elsewhere. A written next-chunk handover cut start-up
   reading by at least 81%, and instruction files loaded into every session can
   cost more than any handover.
+- Compression pays only for text that is loaded repeatedly. A handover read
+  once costs more to compress than it saves, so write it compactly instead.
 
 ## Method And Limits
 
@@ -136,25 +138,67 @@ for "at least".
 - Exactness. Names, paths, numbers, line ranges and negations must survive
   intact. A shorthand that drops "not" reverses a rule.
 
-## Guidance For Agent-Facing Text
+## Where Compression Pays
 
-1. Point instead of restating: name the file and line range, and say each fact
-   once.
-2. Write terse plain English. Fragments are fine. Put one fact per line, and use
-   `Label:` lines such as `Read first:`, `Facts:` and `Stop:`. Leave out filler,
-   hedging and restated context.
-3. Use ordinary words. Abbreviations already standard in code (`env`, `config`,
-   `repo`, CI, PR) are fine. Avoid invented abbreviations, legends, logic
-   symbols and emoji.
-4. Keep exact strings exact. Backticks cost about 1.7 tokens per name, but they
-   keep names and commands exact and make them render correctly. Use them for
-   names and commands, not for emphasis.
-5. Keep owner-facing text in readable prose: reports, plan objectives and
-   carry-forward flags.
-6. Keep always-loaded instruction files to standing rules. Dated status and
-   change history belong in dated documents, with a one-line pointer where
-   needed.
-7. When unsure, measure with an open tokenizer instead of guessing.
+Loading a compression procedure costs tokens too. The Semantic Compression
+skill (see Sources) is 3,397 tokens (o200k). Against that cost:
+
+| Document type | Examples | Does compressing pay? |
+|---|---|---|
+| Loaded every session | Instruction files, skill bodies, tool descriptions | Yes. One pass over a 3,643-token rules block costs about 10,700 tokens and is repaid in 12 to 24 sessions. |
+| Loaded when relevant | Standards, reference documents | Slowly. Loading only the relevant section pays off sooner. |
+| Read once or twice | Handovers, status notes, decision records | No. Repaying one skill load takes 28 to 59 reads, so write these compactly from the start. |
+
+Stale content in an always-loaded file should be moved out, not compressed.
+Backticks cost about 1.7 tokens per name, but they keep names and commands
+exact and make them render correctly, so they stay.
+
+## External Notes Compared
+
+On 2026-11-09 Adam shared another agent's notes, "Portable Agent Document
+Compression: Build Notes". They proposed a portable compression skill, a
+cross-agent evaluation set and an optional Jev or Laya checking layer. The
+notes contain no measurements; this record contains no comprehension test.
+
+- Verified:
+  - The Semantic Compression skill is MIT licensed, and its rules match these
+    measurements: symbols do not save tokens, structure does, and a document
+    that is already dense (under about 10% gain) should be left alone.
+  - SkillReducer reports skill descriptions 48% shorter and skill bodies 39%
+    shorter, with task results 2.8% better. The gains came from removing
+    non-actionable text and loading detail only when needed, and they held
+    across five models.
+  - Laya's repository and the `app2610/laya` model card are both Apache 2.0.
+- Agreed:
+  - concise ordinary English, with no invented vocabulary and no decoder;
+  - measuring tokens, not characters;
+  - LLMLingua only as a point of comparison;
+  - TOON only for uniform records;
+  - a short core document, with detail loaded only when a stated condition
+    applies.
+- Adopted into the context hygiene standard:
+  - the full list of what must survive compression;
+  - keeping facts, assumptions, proposals, open questions and verified results
+    apart;
+  - one authoritative statement per rule, with explicit cross-references;
+  - the stop rule;
+  - compressing only text that is loaded repeatedly.
+- Deferred:
+  - A compression tool, until a test shows agents still meet each requirement,
+    and then only for always-loaded text.
+  - The Jev or Laya checking layer. Exact-match checks are a cheap first
+    filter, but they cannot judge a changed exception or scope.
+  - Separate compressed copies of documents, because a second copy is a second
+    source of truth.
+- Open: the notes cite the Laya checkpoint `app2610/laya`, the 2026-11-08
+  record cites `convaiinnovations/laya`, and the owner's local copy came from a
+  2026-10-10 qualification. Settle which checkpoint to use before any test.
+
+## Guidance
+
+The guidance now lives in one place: `docs/standards/context-hygiene-standard.md`,
+in the sections Hand Over Through The Next Ready Chunk and Write Compactly For
+Agents (Chunk Fifty, 2026-11-09). This record keeps the evidence behind it.
 
 ## Sources
 
@@ -168,3 +212,9 @@ for "at least".
   <https://huggingface.co/LiquidAI/LFM2-1.2B>
 - `docs/research/2026-11-08 - Frontier AI Engineering Practice Research.md`
   for the AGENTS.md and instruction-file findings
+- Semantic Compression skill, oh-my-pi (MIT):
+  <https://github.com/can1357/oh-my-pi/blob/main/.omp/skills/semantic-compression/SKILL.md>
+- "SkillReducer: Optimizing LLM Agent Skills for Token Efficiency", 2026:
+  <https://arxiv.org/abs/2603.29919>
+- Laya: <https://github.com/NandhaKishorM/laya>, model card
+  <https://huggingface.co/app2610/laya>

@@ -42,7 +42,7 @@ A good chunk has:
 
 - one objective
 - a budget class: Tiny, Small, Medium, Large, or Strategic
-- clear input files or documents
+- clear input files or documents: a `Read first:` list with line ranges, plus `Facts:` that save reads
 - clear output files or behavior
 - explicit validation steps
 - a timestamped status note
@@ -96,46 +96,37 @@ Alternates, only if the owner names one: the `validate.ps1` coverage step (B-13)
 
 ## Chunk Fifty - Token-Efficient Handover And Agent Writing Guidance
 
-Status: ready · Completion target: Task complete · Budget class: Medium
+Status: complete · Completion target: Task complete · Budget class: Medium
 
-Source: owner request 2026-11-09. Part A codifies the token-efficient handover as guidance, not a rule. Part B adds the compact writing guidance from the research note; drop Part B if the owner declines it. This chunk does not depend on Forty-Nine; it runs after Forty-Nine unless the owner starts it first.
+Timestamp: 2026-11-09T20:29:23-06:00
+
+Source: owner request 2026-11-09. Part A writes the token-efficient handover down as guidance, not a rule. Part B adds compact agent-writing guidance. After reviewing another agent's compression notes, the owner approved Part B with their useful points folded in, deferred the rest, and had the chunk run straight away.
 
 Objective: new projects, and coding agents from any vendor, receive both parts as guidance through the context hygiene standard (recommended, not required) and the project templates. No rule file changes.
 
-Read only:
-
-- `docs/research/2026-11-09 - Token-Efficient Agent Writing Research.md:16-27` (the answer) and `:124-158` (the criteria and the guidance to encode).
-- `docs/standards/context-hygiene-standard.md:115-120` (Keep Ambient Context Lean), `:142-151` (Work In Phases), `:234-275` (Handoff Summary Template, Token-Friendly Done) and `:305-317` (Review Checklist).
-- `templates/project/docs/current-build-pathway.template.md:45-68` (Chunking Standard), `:80-111` (the P-01 skeleton) and `:128-130` (Next Handoff).
-- `templates/project/CARRY_FORWARD.template.md` (14 lines) and `templates/project/AGENTS.template.md:44-49` (Finish a chunk).
-- `tests/test_scaffold_project.py:150-180` and `tests/test_change_control.py:171-196`, which assert on these files.
-- Examples to follow: Chunk Forty-Nine above, and `CARRY_FORWARD.md:6-8`.
-
-Facts that save reads:
-
-- `templates/project/docs/standards/context-hygiene-standard.template.md` matches the standard except in two places: the template has no Document ID, Last Reviewed or Next Review lines, and it words the two integration notes at standard `:138` and `:140` differently. Its line numbers run 3 lower. Edit both files, and update the standard's overdue `Last Reviewed` and `Next Review` lines.
-- Tests pin `Handoff Summary Template`, `Stop condition`, `Known gaps`, `### P-01 - `, `Status: Ready`, `Files:` and `Plan once`. Keep these strings, and add assertions for the new fields.
-- The chunk runner is external and machine-reads only `Status:` and `Files:` (template `:68`). Put the new `Read first:` and `Facts:` fields after `Objective:`, never directly under the `Files:` list. Use the same two labels in this repository's Chunking Standard. This repository's chunk sections say `Read only:` and `Facts that save reads:`, and `Read only` can be misread as a permission.
-- The templates plan every chunk up front ("Plan once", template `:35`), so the guidance should say to refresh the next ready chunk's line ranges at close-out. This repository writes each chunk at close-out instead. Word the guidance to fit both. `AGENTS.template.md:47` limits close-out edits to the finished chunk, so refreshing those references must be stated as an exception.
-- `automation/governance_audit.py:112-143` reads only table rows that start with `|`, so a `Next chunk:` line above the carry-forward table is safe.
-- Change control copies only missing files (`automation/change_control.py:674`) and appends only missing managed blocks (`:688-706`). Existing projects will therefore pick this guidance up at their alignment review. Leave the managed blocks and their `fragments` alone: a new fragment would make change control append the block again to projects that already have it.
-- `CARRY_FORWARD.template.md:10` says open items are surfaced "before suggesting /compact". Close-outs have suggested `/clear` since Chunk Forty-Five, so fix that line while editing the file.
-
 Acceptance criteria:
 
-- [ ] Part A, in the standard and its template copy: a short subsection saying that the next ready chunk is the handover. That chunk names the files to read, with line ranges, plus the facts that save reads, the criteria, the validation and a stop condition. `CARRY_FORWARD.md` opens with a one-line pointer to it, and each flag takes one or two lines that point to the detail. Line ranges are refreshed at close-out. A compact next-chunk template sits beside the Handoff Summary Template.
-- [ ] Part B, in the same two files: a subsection on writing for agents that encodes the research note's seven guidance points and its criteria, including which text stays readable prose and what to avoid.
-- [ ] The pathway template gains optional `Read first:` and `Facts:` fields in the P-01 skeleton and the Chunking Standard list, and this repository's Chunking Standard (`docs/current-build-pathway.md:41-48`) lists the same two fields.
-- [ ] The `CARRY_FORWARD` template gains a `Next chunk:` line and the one-or-two-lines note, and its `/compact` reference becomes `/clear`.
-- [ ] Step 4 of the `AGENTS` template's "Finish a chunk" list points to the new subsection, without adding a mandatory step.
-- [ ] `AI_BOOTSTRAP.md`, `CLAUDE.md`, the playbooks and the managed blocks are unchanged.
-- [ ] Tests cover the new fields, the local gate passes, and Validate passes on both OSes.
+- [x] Part A: the standard and its template copy gain Hand Over Through The Next Ready Chunk, and a Next-Chunk Handover Template beside the Handoff Summary Template.
+- [x] Part B: both gain Write Compactly For Agents. It includes the external notes' list of what must survive, the uncertainty labels, one statement per rule, and compressing only text that is loaded repeatedly. Its evidence sentence is generic, so the template copy reads correctly in any project.
+- [x] The pathway template gains optional `Read first:` and `Facts:` fields in the P-01 skeleton and the Chunking Standard list, and this pathway's Chunking Standard names them.
+- [x] The `CARRY_FORWARD` template gains a `Next chunk:` line and the one-or-two-lines note, and its `/compact` reference is now `/clear`.
+- [x] Step 4 of the `AGENTS` template's "Finish a chunk" list points to the new section, without adding a mandatory step.
+- [x] The standards index and both context maps route "writing text that agents read" to the standard.
+- [x] `AI_BOOTSTRAP.md`, `CLAUDE.md`, the playbooks and the managed blocks are unchanged.
+- [x] Tests cover the new headings, the fields and the carry-forward line, and the local gate passes. Validate on both OSes is checked on the pushed commit.
 
-Validation: `PYTHON=$V/bin/python3 bash scripts/validate.sh`, with `V` chosen as in Chunk Forty-Nine's Validation. For Windows, run `gh run watch <id> --exit-status` on the pushed commit's Validate run.
+Findings:
 
-Stop condition: stop when the criteria pass. Do not edit rule files, playbooks, managed blocks, other repositories or workspace instruction files, and do not rewrite existing documents into the compact style.
+- The research record (`docs/research/2026-11-09 - Token-Efficient Agent Writing Research.md`) now compares the external notes and keeps the evidence. Its own guidance list became a pointer to the standard, so each rule is stated once.
+- Compression pays only for text that is loaded every session. A one-time pass over a 3,600-token rules block repays itself in 12 to 24 sessions; a handover would need 28 to 59 reads to repay one load of a compression skill.
+- Deferred by the owner: a compression tool, the Jev or Laya checking layer, and separate compressed copies of documents.
 
-Close-out: mark this section complete with findings and validation, add its Recent Completed Work row, and update `docs/CHANGELOG.md` and `CARRY_FORWARD.md`. Then point `CARRY_FORWARD.md` at the next ready chunk (Forty-Nine, if it has not run), after checking its line ranges still hold; if none is ready, define the next chunk here in this same compact form.
+Known gaps:
+
+- The `AGENTS` template is 7.3 KB, against the 6 KB `agents_md_target_kb`. It was already over before this chunk.
+- Existing projects receive the guidance only at their alignment review, because change control adds only missing files and blocks.
+
+Validation: the local gate passed (174 tests, 2 skipped; total coverage 37%). Validate runs on the pushed commit.
 
 ## Chunk Forty-Eight - Exact Single-Entry Windows Access List For Secret Files
 
@@ -637,6 +628,7 @@ Stop condition: stop before any risk-tier/governance-level decision, dependency 
 | Chunk Forty-Six - Documentation Scaffold Passes Its Own Compliance Check | complete | 2026-11-08T21:01:34-06:00 | One table drives the documentation type's skipped docs and its `required_docs`; every type at every governance level now passes its own compliance report; audit backlog B-14 closed. |
 | Chunk Forty-Seven - Secret Env Files Restricted To The Owner On Windows | complete | 2026-11-08T21:24:23-06:00 | `write_private_text` restricts secret env files before writing (mode 0600 on POSIX, `icacls` on Windows) and fails closed; on Windows, explicit entries copied from some parent folders remain (Chunk Forty-Eight). |
 | Chunk Forty-Eight - Exact Single-Entry Windows Access List For Secret Files | complete | 2026-11-09T18:05:57-06:00 | One `SetNamedSecurityInfoW` call (ctypes) replaces a secret file's whole Windows access list with one protected entry for the current user. Explicit entries from parent folders or other tools are removed; writes still fail closed. |
+| Chunk Fifty - Token-Efficient Handover And Agent Writing Guidance | complete | 2026-11-09T20:29:23-06:00 | The context hygiene standard and project templates now carry the next-chunk handover and compact agent-writing guidance as guidance, not rules. Another agent's compression notes were compared; the compression tool and the Jev or Laya checking layer are deferred. |
 
 Full history: `docs/archive/pathway-history.md`
 

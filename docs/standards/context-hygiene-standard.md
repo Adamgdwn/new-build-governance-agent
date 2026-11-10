@@ -4,8 +4,8 @@ Document ID: STD-ENG-011
 Document type: supporting engineering standard
 Status: active
 Owner: Project owner or human technical lead
-Last Reviewed: 2026-08-31
-Next Review: 2026-10-10
+Last Reviewed: 2026-11-09
+Next Review: 2027-02-07
 Audience: coding agents, human coders, reviewers, and project owners
 Applies to: coding sessions, agent workflows, long-running implementation threads, reviews, handoffs, and governed build upgrades.
 
@@ -118,6 +118,8 @@ Root instructions should stay compact. Place detailed guidance near the relevant
 
 Disable or avoid unused tools, connectors, MCP servers, and background integrations when they are not helping the current task. Tool metadata and unused integration context can crowd out useful working memory.
 
+Keep always-loaded instruction files to standing rules. Dated status, change history and finished-work notes belong in dated documents, linked from the instruction file with the condition for reading them.
+
 ### Lean Startup And Preflight
 
 Start every repo session with the smallest safe orientation:
@@ -148,6 +150,34 @@ At phase boundaries, write or update a short durable summary instead of relying 
 For meaningful tasks, separate discovery from implementation from review when
 the cost or risk justifies it. Tiny tasks may combine phases, but the agent
 should still avoid reading unrelated files.
+
+### Hand Over Through The Next Ready Chunk
+
+At a chunk close-out, the handover is the next ready chunk in the active plan, so the next session starts working instead of rebuilding context. On one governed build this cut start-up reading by at least 80%. The ready chunk gives:
+
+- the objective and completion target
+- the files to read first, with line ranges and what each range holds
+- facts that save reads: decisions already made, where the seams are, how validation runs
+- acceptance criteria, validation commands and a stop condition
+
+`CARRY_FORWARD.md` opens with one line naming the next chunk and where it is. Keep each flag to one or two lines that point to the detail.
+
+Line ranges drift as files change. Before closing a chunk, check the next ready chunk's references against what this chunk changed and fix them; that is the one edit outside the finished chunk. If the plan was written up front, refresh the next chunk; if chunks are written one at a time, write it now.
+
+### Write Compactly For Agents
+
+Write text that agents read in compact plain English, not shorthand. Common words are already one token each, so abbreviations, symbols and emoji rarely save tokens, and an unusual format that suits one model can mislead another. The savings come from structure: loading less, pointing instead of restating, and dropping filler.
+
+- Point to the file and line range instead of restating it. State each rule once, in one place, and make cross-references explicit.
+- Write short assertions with explicit conditions. Fragments and `Label:` lines are fine; filler and context the reader already has are not.
+- Use ordinary words and abbreviations already standard in code. Do not invent abbreviations, legends, private symbols or encodings.
+- Never cut the payload: obligations, prohibitions and permissions; negations and exceptions; scope, conditions, order and dependencies; defaults, numbers, units and bounds; acceptance criteria; exact names, paths, commands and literal values; examples that define behavior; warnings left by past mistakes.
+- Keep uncertainty visible: say what is fact, assumption, proposal, open question or verified result.
+- Stop cutting when the next cut would make a reader guess. Leave text that is already dense alone.
+- Keep text people review in readable prose: plans, carry-forward flags and reports. Text a person cannot read cannot be checked for drift, mistakes or injected instructions.
+- Use portable Markdown that any agent can read in shared files. Vendor-specific syntax belongs in that vendor's own files.
+- Compress only text that is loaded repeatedly, such as always-loaded instructions, skill bodies and tool descriptions. A handover read once or twice costs more to compress than it saves.
+- When the saving matters, measure tokens with an open tokenizer; characters and word counts mislead.
 
 ### Compact Or Reset Before Drift
 
@@ -259,6 +289,22 @@ Exact next step:
 
 Keep handoffs short enough to be read at the start of the next session.
 
+## Next-Chunk Handover Template
+
+At a chunk close-out, the handover is the next ready chunk itself, in the active plan's chunk format (see Hand Over Through The Next Ready Chunk):
+
+```md
+Next chunk: <name>, ready at docs/current-build-pathway.md:<start>-<end>
+  (the first line of CARRY_FORWARD.md)
+
+Objective:
+Read first: `path/to/file:10-40` (what the range holds)
+Facts: one fact per line that saves a read
+Acceptance criteria:
+Validation:
+Stop condition:
+```
+
 ## Token-Friendly Done
 
 A task is token-friendly done when:
@@ -271,6 +317,7 @@ A task is token-friendly done when:
 - tests or checks were run, or the reason they were not run is documented
 - decisions were captured in a pathway note, handoff, ADR, or controlled doc
 - the next agent can continue without reading the chat thread
+- the next session can start from a ready chunk that names its reads with line ranges
 - stale context was compacted, cleared, or summarized before it polluted the next phase
 
 ## Reusable Agent Prompt Block
@@ -315,3 +362,4 @@ Before declaring substantial agent work complete, check:
 - the completion status is honest and evidence-backed
 - low-yield loops stopped with a clear blocker or next decision
 - handoff notes are short enough for another agent to use
+- the next ready chunk names its files with line ranges, the facts that save reads, criteria, validation and a stop condition

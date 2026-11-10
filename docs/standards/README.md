@@ -4,7 +4,7 @@ Document ID: STD-ENG-016
 Document type: standards index
 Status: active
 Owner: Project owner or human technical lead
-Last Updated: 2026-11-08
+Last Updated: 2026-11-09
 Audience: coding agents, human coders, reviewers, project owners, and release reviewers
 
 ## Purpose
@@ -36,7 +36,7 @@ Use these when the work touches the matching area:
 |---|---|
 | [Build-To-Sale Lifecycle Standard](build-to-sale-lifecycle-standard.md) | Planning a product intended for external customers or sale: lifecycle phase status, market validation, offer and pre-sale, P0-P3 feature priority, the four definitions of done, commercial readiness, and the funding, credits and partners search. |
 | [Code Complexity Control Standard](code-complexity-control-standard.md) | Reviewing branch-heavy code, choosing cyclomatic-complexity thresholds, adding focused test evidence, or recording a complexity exception. |
-| [Context Hygiene Standard](context-hygiene-standard.md) | Managing long agent sessions, context windows, token budgets, compaction, scoped repo reads, or handoffs. |
+| [Context Hygiene Standard](context-hygiene-standard.md) | Managing long agent sessions, context windows, token budgets, compaction, scoped repo reads, handoffs, or writing text that agents read. |
 | [Document Control Standard](document-control-standard.md) | Creating or maintaining durable docs, handoffs, records, standards, pathway logs, ADRs, audits, or runbooks. Also owns the required project document set. |
 | [GitHub Resource Efficiency Standard](github-resource-efficiency-standard.md) | Changing repository storage, `.gitignore`, Git LFS, Actions workflows, artifacts, caches, Packages, releases, runners, or GitHub billing. Guardrails only; the short summary lives in the workspace-level `CLAUDE.md`. |
 | [Governance Source Alignment Standard](governance-source-alignment-standard.md) | Checking whether an active project is due to compare its local controls with this governance source. |

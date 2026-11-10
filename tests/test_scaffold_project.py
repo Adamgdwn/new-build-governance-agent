@@ -164,6 +164,9 @@ class ScaffoldProjectTests(unittest.TestCase):
             self.assertIn("Do Not Expand Scope By Momentum", context_hygiene)
             self.assertIn("Completion status", context_hygiene)
             self.assertIn("Handoff Summary Template", context_hygiene)
+            self.assertIn("Hand Over Through The Next Ready Chunk", context_hygiene)
+            self.assertIn("Write Compactly For Agents", context_hygiene)
+            self.assertIn("Next-Chunk Handover Template", context_hygiene)
             pathway = (target / "docs" / "current-build-pathway.md").read_text(encoding="utf-8")
             self.assertIn("lean startup", pathway)
             self.assertIn("Risk-triggering work includes", pathway)
@@ -178,6 +181,12 @@ class ScaffoldProjectTests(unittest.TestCase):
             self.assertIn("Runner:", pathway)
             self.assertIn("Files:", pathway)
             self.assertIn("Plan once", pathway)
+            self.assertIn("Read first:", pathway)
+            self.assertIn("Facts:", pathway)
+            carry_forward = (target / "CARRY_FORWARD.md").read_text(encoding="utf-8")
+            self.assertIn("Next chunk:", carry_forward)
+            self.assertIn("/clear", carry_forward)
+            self.assertNotIn("/compact", carry_forward)
 
     def test_scaffold_is_copy_if_missing(self):
         with tempfile.TemporaryDirectory() as tmp:

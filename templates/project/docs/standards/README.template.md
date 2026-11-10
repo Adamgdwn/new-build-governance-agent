@@ -36,7 +36,7 @@ Use these when the work touches the matching area. Some governed projects may st
 | Agent Instruction File Standard (STD-AIC-001) | Writing or trimming `AGENTS.md`, `CLAUDE.md`, `AI_BOOTSTRAP.md`, `START_HERE.md`, or `CARRY_FORWARD.md`. Canonical copy stays in the AI Coding Best Practices knowledge base beside the governance source; this project does not carry a local copy. |
 | Chunk Specification Standard (STD-AIC-002) | Writing a build pathway, sizing chunks, or writing acceptance criteria, `Files:` allow-lists, and stop conditions. Canonical copy stays in the AI Coding Best Practices knowledge base beside the governance source; this project does not carry a local copy. |
 | [Code Complexity Control Standard](code-complexity-control-standard.md) | Reviewing branch-heavy code, choosing thresholds, adding focused tests, or recording a complexity exception. |
-| Context Hygiene Standard | Managing long agent sessions, context windows, token budgets, compaction, scoped repo reads, or handoffs. |
+| Context Hygiene Standard | Managing long agent sessions, context windows, token budgets, compaction, scoped repo reads, handoffs, or writing text that agents read. |
 | Deployment And Release Standard | Changing deployment, release, rollback, environments, external providers, or production promotion. |
 | Document Control Standard | Creating or maintaining durable docs, handoffs, records, standards, pathway logs, ADRs, audits, or runbooks. |
 | Documentation Standard | Writing user, operator, architecture, setup, process, or support documentation. |
