@@ -104,7 +104,7 @@ Objective: new projects, and coding agents from any vendor, receive both parts a
 
 Read only:
 
-- `docs/research/2026-11-09 - Token-Efficient Agent Writing Research.md:16-26` (the answer) and `:123-157` (the criteria and the guidance to encode).
+- `docs/research/2026-11-09 - Token-Efficient Agent Writing Research.md:16-27` (the answer) and `:124-158` (the criteria and the guidance to encode).
 - `docs/standards/context-hygiene-standard.md:115-120` (Keep Ambient Context Lean), `:142-151` (Work In Phases), `:234-275` (Handoff Summary Template, Token-Friendly Done) and `:305-317` (Review Checklist).
 - `templates/project/docs/current-build-pathway.template.md:45-68` (Chunking Standard), `:80-111` (the P-01 skeleton) and `:128-130` (Next Handoff).
 - `templates/project/CARRY_FORWARD.template.md` (14 lines) and `templates/project/AGENTS.template.md:44-49` (Finish a chunk).
@@ -113,9 +113,9 @@ Read only:
 
 Facts that save reads:
 
-- `templates/project/docs/standards/context-hygiene-standard.template.md` matches the standard except in two places: the template has no Document ID, Last Reviewed or Next Review lines, and it words the two integration notes at standard `:138` and `:140` differently. Its line numbers run 3 lower. Edit both files.
+- `templates/project/docs/standards/context-hygiene-standard.template.md` matches the standard except in two places: the template has no Document ID, Last Reviewed or Next Review lines, and it words the two integration notes at standard `:138` and `:140` differently. Its line numbers run 3 lower. Edit both files, and update the standard's overdue `Last Reviewed` and `Next Review` lines.
 - Tests pin `Handoff Summary Template`, `Stop condition`, `Known gaps`, `### P-01 - `, `Status: Ready`, `Files:` and `Plan once`. Keep these strings, and add assertions for the new fields.
-- The chunk runner is external and machine-reads only `Status:` and `Files:` (template `:68`). Put the new `Read first:` and `Facts:` fields after `Objective:`, never directly under the `Files:` list.
+- The chunk runner is external and machine-reads only `Status:` and `Files:` (template `:68`). Put the new `Read first:` and `Facts:` fields after `Objective:`, never directly under the `Files:` list. Use the same two labels in this repository's Chunking Standard. This repository's chunk sections say `Read only:` and `Facts that save reads:`, and `Read only` can be misread as a permission.
 - The templates plan every chunk up front ("Plan once", template `:35`), so the guidance should say to refresh the next ready chunk's line ranges at close-out. This repository writes each chunk at close-out instead. Word the guidance to fit both. `AGENTS.template.md:47` limits close-out edits to the finished chunk, so refreshing those references must be stated as an exception.
 - `automation/governance_audit.py:112-143` reads only table rows that start with `|`, so a `Next chunk:` line above the carry-forward table is safe.
 - Change control copies only missing files (`automation/change_control.py:674`) and appends only missing managed blocks (`:688-706`). Existing projects will therefore pick this guidance up at their alignment review. Leave the managed blocks and their `fragments` alone: a new fragment would make change control append the block again to projects that already have it.

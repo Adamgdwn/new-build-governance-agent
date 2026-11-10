@@ -15,9 +15,10 @@ and sources behind Chunk Fifty. It is not a startup read.
 
 ## Answer
 
-- Invented shorthand does not pay. On a real handover it saved 6 to 9% more
-  than terse plain English, and it costs readability, review and reliability
-  across models.
+- Invented shorthand does not pay. On a real handover it cut 30% of the
+  tokens, but terse plain English without backticks cut 25% on its own. The
+  symbols and invented abbreviations added only 6 to 9% beyond that, and they
+  cost readability, review and reliability across models.
 - Compact plain English does pay: 12% fewer tokens than this repository's
   already lean style, and 25% when backticks are dropped too.
 - The large savings are elsewhere. A written next-chunk handover cut start-up
