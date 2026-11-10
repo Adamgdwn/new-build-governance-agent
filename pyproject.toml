@@ -27,8 +27,8 @@ branch = true
 [tool.coverage.report]
 # Real, enforced floor (CI installs coverage as of 2026-07-10; the previous 60
 # was never actually run). Set from the ubuntu-latest total, rounded down:
-# 41.7% on 2026-11-09. Ratchet upward as untested modules gain tests (B-13).
-fail_under = 41
+# 43.25% on 2026-11-09. Ratchet upward as untested modules gain tests (B-13).
+fail_under = 43
 show_missing = true
 
 [tool.ruff]

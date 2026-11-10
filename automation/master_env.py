@@ -135,6 +135,12 @@ def cmd_set(args: argparse.Namespace) -> int:
         if not value:
             print(f"Skipped {key}: blank value", file=sys.stderr)
             continue
+        if value.splitlines() != [value]:
+            # The file holds one line per key. A value written across lines is cut
+            # short, and a continuation line can read back as a key name, which
+            # `missing` would print. Refuse before anything is written.
+            print(f"Rejected {key}: the value spans more than one line", file=sys.stderr)
+            return 2
         updates[key] = value
     applied = update_values(master, updates, args.overwrite)
     for key in updates:
