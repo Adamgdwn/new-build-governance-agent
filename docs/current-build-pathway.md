@@ -90,6 +90,21 @@ Close-out: mark this section complete with findings and validation. Add its row 
 
 Alternates, only if the owner names one: tests for `governance_audit.py`, `project_registry.py`, `audit_projects.py` or `promotion_remediate.py` (the rest of B-13's test item); the `validate.ps1` coverage step (B-13), so the Windows gate enforces the same floor; the B-13 test anti-pattern fixes; or `merge` refusing a missing `--source` or `--master` (B-13).
 
+## Chunk Fifty-Four - Best-Practice Repository Audit
+
+Status: complete · Completion target: Task complete · Budget class: Medium
+
+Timestamp: 2026-11-10T22:16:51-06:00
+
+Source: owner request, 2026-11-10: check that the 2026-11-08 research improvements were captured properly, and that this is genuinely a repository of best practices for building.
+
+Result: AUD-ENG-015, `docs/audits/2026-11-10 - Best-Practice Repository Audit.md`.
+- Capture: mostly yes, in this repository and in new projects; not for existing projects.
+- Best practice for building: not yet. The advice is good, but new projects get no working machinery, and the repository still breaks several of its own rules.
+- Ten recommendations await the owner's decision; none is a chunk.
+
+Validation: the audit generated all nine project types and ran each one's own check. Three read-only reviewers then worked through the research, the guidance and the repository's own record. Every finding in the report was verified against the files, and the claims that did not hold are listed in it. No standards or templates were changed.
+
 ## Chunk Fifty-Two - The Env Writer Finds Keys The Way The Reader Does
 
 Status: complete · Completion target: Task complete · Budget class: Small
@@ -357,11 +372,13 @@ Owner decisions, Adam Goodwin, 2026-11-08:
 | Chunk | Objective | Budget class | Status |
 |---|---|---|---|
 | Forty | Workspace paths and preview routing | Small | complete |
-| Forty-One | Freedom dispatcher resolves a relative `cwd` (the-freedom-engine-os) | Tiny | complete (draft PR #73 awaiting merge) |
+| Forty-One | Freedom dispatcher resolves a relative `cwd` (the-freedom-engine-os) | Tiny | complete (the fix is draft PR #73, tracked in that repository) |
 | Forty-Two | One "AI agent (harness)" intake choice | Medium | complete |
 | Forty-Three | Build-type agent playbooks | Large | complete |
 | Forty-Four | Frontier AI engineering research record, including Jev and Laya | Medium | complete |
 | Forty-Five | Frontier-model rules refresh and knowledge-base change proposal | Large | complete |
+
+Status, 2026-11-10: implemented. Chunk Fifty (2026-11-09) added the outside compression notes the owner brought in. The only item left is the owner's decision on knowledge-base proposals P1 to P7. Chunks Forty-Six to Fifty-Three are audit backlog work (AUD-ENG-004), not part of this plan. Evidence and the gaps that remain: AUD-ENG-015 (`docs/audits/2026-11-10 - Best-Practice Repository Audit.md`).
 
 ## Chunk Forty-Five - Frontier-Model Rules Refresh
 
@@ -718,6 +735,7 @@ Stop condition: stop before any risk-tier/governance-level decision, dependency 
 | Chunk Forty-Nine - First Tests For The Stripe Provisioning Module | complete | 2026-11-09T21:23:40-06:00 | 23 tests take `stripe_provision.py` from 0% to 86% covered, with no network or real key. Two fixes: a mode such as `Live` no longer skips the `--allow-live` check, and apply no longer drops a new webhook secret when the manifest names no `secret_env`. Coverage floor 25 to 41. |
 | Chunk Fifty-One - Tests For The Master Env Commands | complete | 2026-11-09T21:41:21-06:00 | 19 new tests take `master_env.py` from 36% to 99% covered, with temporary files only. Fix: `set` refuses a value with a line break, which used to read back as a blank key that `missing` printed. An env writer bug found here is ready as Chunk Fifty-Two. Coverage floor 41 to 43. |
 | Chunk Fifty-Two - The Env Writer Finds Keys The Way The Reader Does | complete | 2026-11-10T18:26:14-06:00 | `update_env_values` finds a key's line the way `parse_env_file` reads it (`export`, indented, `KEY = v`) and keeps the text before `=`, so `set` and `merge` without `--overwrite` no longer append a second line that wins. Four tests failed first. `env_sync`'s own writer has the same mismatch with `--overwrite`; ready as Chunk Fifty-Three. Floor stays 43. |
+| Chunk Fifty-Four - Best-Practice Repository Audit | complete | 2026-11-10T22:16:51-06:00 | AUD-ENG-015: the 2026-11-08 improvements are captured in this repository and new projects, not existing ones. Not yet a best-practice repository for building: good advice, but new projects get no tests, CI or lint, and a gate that only checks files exist. Ten recommendations for the owner; none is a chunk. |
 
 Full history: `docs/archive/pathway-history.md`
 
