@@ -1,6 +1,6 @@
 # Current Build Pathway
 
-Last Updated: 2026-11-09
+Last Updated: 2026-11-10
 Status: active
 Owner: Technical Lead
 
@@ -54,40 +54,67 @@ Use second-level Markdown headings for active and planned chunks:
 ## Chunk Two - Short Objective
 ```
 
-## Chunk Fifty-Two - The Env Writer Finds Keys The Way The Reader Does
+## Chunk Fifty-Three - The Env Sync Writer Finds Keys The Way The Reader Does
 
 Status: ready · Completion target: Task complete · Budget class: Small
 
-Source: found by Chunk Fifty-One and recorded in AUD-ENG-004 B-13. It is the default next item. If the owner names another item, do that instead (alternates at the end).
+Source: found by Chunk Fifty-Two and recorded in AUD-ENG-004 B-13. It is the default next item. If the owner names another item, do that instead (alternates at the end).
 
-Objective: `env_file.update_env_values` finds a key's existing line the way `parse_env_file` reads it. Then `set` and `merge` without `--overwrite` keep a value written as `export KEY=v`, on an indented line or as `KEY = v`, instead of appending a second line that wins.
+Objective: `env_sync.apply_sync` finds a key's existing line in the target the way `parse_env_file` reads it, and rewrites only the lines of the keys it applies. Then `apply --overwrite`, or filling a blank `export KEY=`, rewrites that line in place instead of keeping it and appending a second line, so a rotated-out value no longer stays in the project env file.
 
 Read first:
 
-- `automation/env_file.py:25-26` (`_ASSIGNMENT_RE`), `:62-79` (`parse_env_file`) and `:274-316` (`update_env_values`).
-- `tests/test_env_file.py:100-169` (`UpdateEnvValuesTests`; the test at `:150-161` keeps an untouched `export` line verbatim).
-- `tests/test_master_env.py:282-300`: the keep and overwrite tests to copy for the user-level check.
+- `automation/env_sync.py:233-300` (`apply_sync`; the line loop is `:268-278`, the append `:287-292`).
+- `automation/env_file.py:81-92` (`_assignment_key`) and `:287-332` (`update_env_values`, whose Chunk Fifty-Two rewrite to follow).
+- `tests/test_env_sync.py:102-157` (`EnvSyncApplyTests`; `make_plan` is `:103-115`).
+- `tests/test_env_file.py:163-217`: the Chunk Fifty-Two table and agreement tests to mirror.
 
 Facts:
 
-- Repro, run on scratch files at Chunk Fifty-One: with a master holding `export SHARED_KEY=old`, `master_env.py --master <file> set SHARED_KEY --value new` printed `added` and appended `SHARED_KEY=new` under `# ===== Added by master_env.py =====`. `parse_env_file` then returned `new`, because the last line wins. `  INDENTED_KEY=keep` and `SPACED_KEY = keep2` behaved the same.
-- `parse_env_file` strips the line, splits it at the first `=`, removes an `export ` prefix and strips the key. `_ASSIGNMENT_RE` (`^([A-Za-z_][A-Za-z0-9_]*)=(.*)$`) matches only a bare `KEY=` at the start of the line.
-- Only `master_env.py` and `stripe_provision.py` call `update_env_values`; `env_sync.py` has its own writer.
-- When rewriting a matched line, keep the text before `=` (the `export ` prefix and any indentation), so a file that a shell sources keeps working.
+- Repro, run on scratch files at Chunk Fifty-Two: with a target holding `export SHARED_KEY=old_fake` and a master holding `SHARED_KEY=rotated_fake`, `apply_sync(plan, include_privileged=False, overwrite=True)` kept `export SHARED_KEY=old_fake` and appended `# Synced from governed master env` and `SHARED_KEY=rotated_fake`. Without `overwrite` it skipped the key as `already_set` and left the file alone, because the skip check reads `parse_env_file(target)`.
+- The loop matches with `re.match(r"^([A-Za-z_][A-Za-z0-9_]*)=", line)` (`:271`), so only a bare `KEY=` at the start of a line.
+- The loop rewrites every matched line whose key is in `existing`, and `existing` holds every key parsed from the target, not only the applied ones. Each is re-rendered from its parsed value. On a scratch run, `UNRELATED=value # note` lost its comment and `QUOTED='a b'` became `QUOTED="a b"`, while `export KEPT=x # note` survived only because the regex missed it. A wider matcher alone would do the same to `export` and indented lines, so rewrite only the applied keys' lines and keep the rest byte for byte.
+- `_assignment_key` is private to `env_file`. Rename it `assignment_key` there and import it in `env_sync`, so there is one copy. When rewriting, keep the text before `=`, as `update_env_values` does.
 
 Acceptance criteria:
 
-- [ ] An `env_file` test that fails first: an `export` line, an indented line and a `KEY = v` line are each filled when blank, kept without `overwrite`, and rewritten in place with it. Each keeps its prefix, and no key gains a second line.
-- [ ] A `master_env` test: `set` without `--overwrite` on `export SHARED_KEY=<fake>` prints `skipped`, keeps the value, and leaves one line for the key.
+- [ ] An `env_sync` test that fails first: for a planned key on an `export` line, an indented line and a `KEY = v` line, `overwrite=True` rewrites the line in place and keeps its prefix, `overwrite=False` skips it as `already_set` and leaves the file unchanged, and a blank `export KEY=` is filled in place. The whole file is asserted, so no key gains a second line.
+- [ ] Lines of keys that are not applied, bare or `export`, with or without an inline comment, are kept byte for byte.
 - [ ] The local gate passes; Validate passes on both OSes.
 
-Validation: as for Chunk Fifty-One. Run `PYTHON=$V/bin/python3 bash scripts/validate.sh`, where `V` is a venv with `requirements-dev.txt` installed (reuse a matching `/tmp/claude-1000/*New-Build-Agent/*/scratchpad/devvenv`). Then push to `main`, take the run id from `gh run list --commit <sha>`, and run `timeout 15m gh run watch <id> --exit-status`. If the ubuntu-latest total, rounded down, is above 43, raise `fail_under` to it.
+Validation: as for Chunk Fifty-Two. Run `PYTHON=$V/bin/python3 bash scripts/validate.sh`, where `V` is a venv with `requirements-dev.txt` installed (reuse a matching `/tmp/claude-1000/*New-Build-Agent/*/scratchpad/devvenv`). Then push to `main`, take the run id from `gh run list --commit <full sha>` (a short sha returns an empty list), and run `timeout 15m gh run watch <id> --exit-status`. If the ubuntu-latest total, rounded down, is above 43, raise `fail_under` to it.
 
-Stop condition: stop when the criteria pass. Change only how `update_env_values` matches and rewrites an existing line, not how `parse_env_file` reads values or the file format. If the fix needs more than that, record it in B-13 and stop. Do not start the `validate.ps1` coverage step or the test anti-pattern fixes. Do not edit standards or templates.
+Stop condition: stop when the criteria pass. Change only which lines `apply_sync` matches and rewrites, and the helper's name. Do not change how `parse_env_file` reads values, the sync plan or the file format. If the fix needs more, record it in B-13 and stop. Do not repair duplicates the old writers left, start the `validate.ps1` coverage step or the test anti-pattern fixes. Do not edit standards or templates.
 
-Close-out: mark this section complete with findings and validation. Add its row to Recent Completed Work, and update B-13 (`docs/audits/remediation-backlog-2026-07-10.md:183-263`), `docs/CHANGELOG.md` and `CARRY_FORWARD.md`. If no chunk is ready, define the next one here in this same compact form, then point `CARRY_FORWARD.md` at it.
+Close-out: mark this section complete with findings and validation. Add its row to Recent Completed Work, and update B-13 (`docs/audits/remediation-backlog-2026-07-10.md:183-283`), `docs/CHANGELOG.md` and `CARRY_FORWARD.md`. If no chunk is ready, define the next one here in this same compact form, then point `CARRY_FORWARD.md` at it.
 
-Alternates, only if the owner names one: tests for `governance_audit.py`, `project_registry.py`, `audit_projects.py` or `promotion_remediate.py` (the rest of B-13's test item); the `validate.ps1` coverage step (B-13), so the Windows gate enforces the same floor; or the B-13 test anti-pattern fixes.
+Alternates, only if the owner names one: tests for `governance_audit.py`, `project_registry.py`, `audit_projects.py` or `promotion_remediate.py` (the rest of B-13's test item); the `validate.ps1` coverage step (B-13), so the Windows gate enforces the same floor; the B-13 test anti-pattern fixes; or `merge` refusing a missing `--source` or `--master` (B-13).
+
+## Chunk Fifty-Two - The Env Writer Finds Keys The Way The Reader Does
+
+Status: complete · Completion target: Task complete · Budget class: Small
+
+Timestamp: 2026-11-10T18:26:14-06:00
+
+Source: chunk 52, the default set at the Chunk Fifty-One close-out: the writer mismatch Chunk Fifty-One found and recorded in AUD-ENG-004 B-13.
+
+Objective: `env_file.update_env_values` finds a key's existing line the way `parse_env_file` reads it, so `set` and `merge` without `--overwrite` keep a value written as `export KEY=v`, on an indented line or as `KEY = v`, instead of appending a second line that wins.
+
+Acceptance criteria:
+
+- [x] `tests/test_env_file.py` gains two tests that failed first. A table test covers an `export` line, an indented line and a `KEY = v` line: each is filled when blank, kept without `overwrite` and rewritten in place with it, keeping the text before `=`. It asserts the whole file, so a second line for the key cannot pass. An agreement test checks that the writer claims a line exactly when `parse_env_file` reads the key from it. It claims `export  KEY=` (two spaces), a tab-indented line and `  export KEY = v`, and leaves `# KEY=`, `#export KEY=`, `export<TAB>KEY=`, `EXPORT KEY=` and `KEY v` alone.
+- [x] `tests/test_master_env.py` gains two: `set` without `--overwrite` on `export SHARED_KEY=<fake>` prints `skipped` and leaves the file byte for byte; with `--overwrite` it prints `updated` and rewrites the line in place, keeping `export `.
+- [x] The local gate passes; Validate passes on both OSes.
+
+Findings:
+
+- The fix: `env_file._assignment_key(line)`, placed under `parse_env_file`, follows the reader step by step. It strips the line, skips blank, comment and no-`=` lines, splits at the first `=`, removes an `export ` prefix, then strips and validates the key. `update_env_values` matches with it, and a rewrite keeps `line.split("=", 1)[0]`, so `KEY = old` becomes `KEY =new`. `_ASSIGNMENT_RE` is gone; nothing else used it. `parse_env_file` is unchanged, and the agreement test fails if the two drift apart.
+- Before the fix, 14 cases failed with `added`: all nine table cases, the three claimed agreement lines that are not a bare `KEY=`, and both `master_env` tests. The five lines the writer must leave alone already passed, because the old regex never claimed too much.
+- The Chunk Fifty-One repro, rerun through the CLI on a scratch master: `set` without `--overwrite` printed `skipped` for `export SHARED_KEY=old`, `  INDENTED_KEY=keep` and `SPACED_KEY = keep2` and left the file byte for byte; `--overwrite` rewrote each line in place.
+- Found, not fixed, and recorded in B-13: `env_sync.apply_sync` has its own writer with the same bare-`KEY=` regex. Without `--overwrite` it skips correctly, because its skip check reads parsed values. With `--overwrite`, or when filling a blank `export KEY=`, it keeps the old line and appends a second one, so a rotated-out value stays in the project file. Its loop also re-renders every bare line already in the target, applied or not, which drops an inline comment. Ready as Chunk Fifty-Three.
+- Also recorded in B-13: a file that already holds a duplicate from the old writer (`export KEY=old` plus an appended `KEY=new`) is not repaired. Without `--overwrite` both lines stay; with it both get the new value.
+
+Validation: the fail-first run showed the 14 cases above failing. The local gate then passed (220 tests, 2 skipped; total 43.32%, up from 43.25%; `env_file.py` 91%). Validate run 42930877191 passed on ubuntu-latest (222 tests, 2 skipped; total 43%: 4,621 statements, 2,532 missed) and windows-latest (222 tests, 6 skipped). Build Windows Launcher run 42930877190 passed. The total rounds down to 43, so `fail_under` stays at 43. `graphify update . --no-cluster` exit 0.
 
 ## Chunk Fifty-One - Tests For The Master Env Commands
 
@@ -690,6 +717,7 @@ Stop condition: stop before any risk-tier/governance-level decision, dependency 
 | Chunk Fifty - Token-Efficient Handover And Agent Writing Guidance | complete | 2026-11-09T20:29:23-06:00 | The context hygiene standard and project templates now carry the next-chunk handover and compact agent-writing guidance as guidance, not rules. Another agent's compression notes were compared; the compression tool and the Jev or Laya checking layer are deferred. |
 | Chunk Forty-Nine - First Tests For The Stripe Provisioning Module | complete | 2026-11-09T21:23:40-06:00 | 23 tests take `stripe_provision.py` from 0% to 86% covered, with no network or real key. Two fixes: a mode such as `Live` no longer skips the `--allow-live` check, and apply no longer drops a new webhook secret when the manifest names no `secret_env`. Coverage floor 25 to 41. |
 | Chunk Fifty-One - Tests For The Master Env Commands | complete | 2026-11-09T21:41:21-06:00 | 19 new tests take `master_env.py` from 36% to 99% covered, with temporary files only. Fix: `set` refuses a value with a line break, which used to read back as a blank key that `missing` printed. An env writer bug found here is ready as Chunk Fifty-Two. Coverage floor 41 to 43. |
+| Chunk Fifty-Two - The Env Writer Finds Keys The Way The Reader Does | complete | 2026-11-10T18:26:14-06:00 | `update_env_values` finds a key's line the way `parse_env_file` reads it (`export`, indented, `KEY = v`) and keeps the text before `=`, so `set` and `merge` without `--overwrite` no longer append a second line that wins. Four tests failed first. `env_sync`'s own writer has the same mismatch with `--overwrite`; ready as Chunk Fifty-Three. Floor stays 43. |
 
 Full history: `docs/archive/pathway-history.md`
 

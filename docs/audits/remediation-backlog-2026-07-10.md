@@ -6,7 +6,7 @@ Status: active
 Owner: Project Owner
 Approver: Project Owner
 Effective Date: 2026-07-10
-Last Reviewed: 2026-11-09
+Last Reviewed: 2026-11-10
 Next Review: 2026-12-08
 
 Source: `docs/audits/repository-audit-2026-07-10.md` (AUD-ENG-003).
@@ -224,15 +224,34 @@ short, and a continuation line such as `QmFzZTY0ZmFrZTE=` read back as a
 blank key, which `missing` printed. `set` now refuses such a value before
 anything is written. `fail_under` rose from 41 to 43.
 
+Done 2026-11-10 (Chunk Fifty-Two): `env_file.update_env_values` used to
+find a key's line with a regex that matched only a bare `KEY=` at the
+start of a line, while `parse_env_file` also reads `export KEY=`, indented
+lines and `KEY = v`. For such a line, `set` or `merge` without
+`--overwrite` appended a second line, reported `added`, and the new value
+won on read. The writer now finds the key with `_assignment_key`, which
+follows `parse_env_file` step by step, and a rewrite keeps the text before
+`=`. `parse_env_file` is unchanged. Four tests failed first, including an
+agreement test that fails if the writer and reader drift apart.
+`stripe_provision.py` writes through the same function. The floor stays at
+43 (43.32% locally).
+
+Found by Chunk Fifty-Two, not fixed:
+- `env_sync.apply_sync` has its own writer with the same bare-`KEY=` regex
+  (`automation/env_sync.py:271`). Its skip check reads parsed values, so
+  without `--overwrite` it skips an `export` line correctly. With
+  `--overwrite`, or when filling a blank `export KEY=`, it keeps the old
+  line and appends a second one that wins on read. Repro: a project file
+  holding `export SHARED_KEY=old_fake`, a master holding
+  `SHARED_KEY=rotated_fake`, and `apply_sync(..., overwrite=True)`. The
+  rotated-out value stays in the file. Its loop also re-renders every
+  bare line already in the target from its parsed value, applied or not,
+  which drops an inline comment. Ready as Chunk Fifty-Three.
+- A file that already holds a duplicate from the old writer (`export
+  KEY=old` plus an appended `KEY=new`) is not repaired: without
+  `--overwrite` both lines stay, and with it both get the new value.
+
 Found by Chunk Fifty-One, not fixed:
-- `env_file.update_env_values` finds a key's line with `_ASSIGNMENT_RE`,
-  which matches only a bare `KEY=` at the start of a line. But
-  `parse_env_file` also reads `export KEY=`, indented lines and `KEY = v`.
-  For such a line, `set` or `merge` without `--overwrite` appends a second
-  `KEY=new` line, reports `added`, and the new value wins on read. Repro: a
-  master holding `export SHARED_KEY=old`, then `master_env.py --master
-  <file> set SHARED_KEY --value new`. `stripe_provision.py` writes through
-  the same function. Ready as Chunk Fifty-Two.
 - The env writer has no line-break guard of its own: `format_env_value`
   writes a line break raw. `master_env` now refuses such values, and
   `stripe_provision`'s values (ids and a webhook secret) cannot carry one.
