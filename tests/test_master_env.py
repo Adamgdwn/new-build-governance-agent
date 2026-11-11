@@ -299,6 +299,28 @@ class SetTests(MasterEnvCase):
         self.assertEqual(f"SHARED_KEY={FAKE_NEW}\n", self.master.read_text(encoding="utf-8"))
         self.assert_no_value_printed(out, err)
 
+    def test_existing_export_value_is_kept_without_overwrite(self):
+        # The writer once missed an `export` line: it appended a second line for the
+        # key, which won on read, and printed `added`.
+        self.write_master(f"export SHARED_KEY={FAKE_OLD}\n")
+
+        code, out, err = self.run_cli("set", "SHARED_KEY", "--value", FAKE_NEW)
+
+        self.assertEqual(0, code)
+        self.assertEqual("skipped\tSHARED_KEY\n", out)
+        self.assertEqual(f"export SHARED_KEY={FAKE_OLD}\n", self.master.read_text(encoding="utf-8"))
+        self.assert_no_value_printed(out, err)
+
+    def test_overwrite_rewrites_an_export_line_in_place(self):
+        self.write_master(f"export SHARED_KEY={FAKE_OLD}\n")
+
+        code, out, err = self.run_cli("set", "SHARED_KEY", "--value", FAKE_NEW, "--overwrite")
+
+        self.assertEqual(0, code)
+        self.assertEqual("updated\tSHARED_KEY\n", out)
+        self.assertEqual(f"export SHARED_KEY={FAKE_NEW}\n", self.master.read_text(encoding="utf-8"))
+        self.assert_no_value_printed(out, err)
+
     def test_refuses_a_value_that_spans_lines(self):
         # The env file holds one line per key. Written across lines, a value is cut
         # short, and a continuation such as "QmFzZTY0ZmFrZTE=" reads back as a blank

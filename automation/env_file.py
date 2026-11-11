@@ -23,7 +23,6 @@ from pathlib import Path
 from typing import NamedTuple
 
 ENV_KEY_RE = re.compile(r"[A-Za-z_][A-Za-z0-9_]*")
-_ASSIGNMENT_RE = re.compile(r"^([A-Za-z_][A-Za-z0-9_]*)=(.*)$")
 _SID_RE = re.compile(r"S-1-\d+(?:-\d+)+")
 _TOOL_TIMEOUT_SECONDS = 30
 # Windows SDK values: SDDL_REVISION_1 (sddl.h), SE_FILE_OBJECT (accctrl.h), and
@@ -77,6 +76,20 @@ def parse_env_file(path: Path) -> dict[str, str]:
         if is_valid_env_key(key):
             values[key] = parse_env_value(raw_value)
     return values
+
+
+def _assignment_key(line: str) -> str | None:
+    """Return the key parse_env_file reads from line, or None if it reads none.
+
+    Follows parse_env_file step by step, so the writer finds a key in exactly
+    the lines the reader reads it from: ``export KEY=``, indented lines and
+    ``KEY = v`` included. Keep the two in step.
+    """
+    stripped = line.strip()
+    if not stripped or stripped.startswith("#") or "=" not in stripped:
+        return None
+    key = stripped.split("=", 1)[0].removeprefix("export ").strip()
+    return key if is_valid_env_key(key) else None
 
 
 def format_env_value(value: str) -> str:
@@ -280,8 +293,10 @@ def update_env_values(
 ) -> dict[str, str]:
     """Update KEY=VALUE lines in place, appending new keys under a comment.
 
-    Existing keys are rewritten only when ``overwrite`` is True or their
-    current value is blank. Non-assignment lines (comments, blanks) are kept
+    A key's existing line is found the way parse_env_file reads it. Existing
+    keys are rewritten only when ``overwrite`` is True or their current value
+    is blank, and a rewrite keeps the text before "=" (indentation, an
+    ``export `` prefix). Non-assignment lines (comments, blanks) are kept
     verbatim. Returns a map of key -> "filled" | "updated" | "added".
     """
     lines = read_env_lines(path, missing_file_header)
@@ -291,14 +306,15 @@ def update_env_values(
     rendered: list[str] = []
 
     for line in lines:
-        match = _ASSIGNMENT_RE.match(line)
-        if not match:
+        key = _assignment_key(line)
+        if key is None:
             rendered.append(line)
             continue
-        key = match.group(1)
         seen.add(key)
         if key in updates and (overwrite or not existing.get(key)):
-            rendered.append(f"{key}={format_env_value(updates[key])}")
+            # Keep the text before "=", so a file a shell sources keeps `export`.
+            before_equals = line.split("=", 1)[0]
+            rendered.append(f"{before_equals}={format_env_value(updates[key])}")
             applied[key] = "updated" if existing.get(key) else "filled"
         else:
             rendered.append(line)

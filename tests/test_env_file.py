@@ -160,6 +160,62 @@ class UpdateEnvValuesTests(unittest.TestCase):
             self.assertIn("export EXPORTED=kept", text)
             self.assertIn("UNTOUCHED=stays", text)
 
+    def test_updates_export_indented_and_spaced_lines_in_place(self):
+        # parse_env_file reads these lines too. A missed line gains a second line that
+        # wins on read, so a value kept without overwrite would still be replaced. A
+        # rewrite keeps the text before "=", so a file a shell sources keeps `export`.
+        new = '"new value"'  # format_env_value quotes a value with a space
+        cases = [
+            # (line before, overwrite, status, line after)
+            ("export KEY=", False, "filled", f"export KEY={new}"),
+            ("export KEY=old", False, None, "export KEY=old"),
+            ("export KEY=old", True, "updated", f"export KEY={new}"),
+            ("  KEY=", False, "filled", f"  KEY={new}"),
+            ("  KEY=old", False, None, "  KEY=old"),
+            ("  KEY=old", True, "updated", f"  KEY={new}"),
+            ("KEY = ", False, "filled", f"KEY ={new}"),
+            ("KEY = old", False, None, "KEY = old"),
+            ("KEY = old", True, "updated", f"KEY ={new}"),
+        ]
+        for before, overwrite, status, after in cases:
+            with (
+                self.subTest(line=before, overwrite=overwrite),
+                tempfile.TemporaryDirectory() as tmp,
+            ):
+                path = Path(tmp) / ".env"
+                path.write_text(f"# header\n{before}\nOTHER=x\n", encoding="utf-8")
+
+                applied = env_file.update_env_values(path, {"KEY": "new value"}, overwrite)
+
+                self.assertEqual({"KEY": status} if status else {}, applied)
+                # The whole file, so a second line for the key cannot pass unseen.
+                self.assertEqual(f"# header\n{after}\nOTHER=x\n", path.read_text(encoding="utf-8"))
+
+    def test_claims_a_line_exactly_when_parse_env_file_reads_the_key_from_it(self):
+        # The writer must agree with the reader both ways. Claiming a line the reader
+        # ignores would report the key updated while it still reads as unset.
+        cases = [
+            # (line, whether parse_env_file reads KEY from it)
+            ("KEY=old", True),
+            ("export  KEY=old", True),
+            ("\tKEY=old", True),
+            ("  export KEY = old", True),
+            ("# KEY=old", False),
+            ("#export KEY=old", False),
+            ("export\tKEY=old", False),
+            ("EXPORT KEY=old", False),
+            ("KEY old", False),
+        ]
+        for line, reads_key in cases:
+            with self.subTest(line=line), tempfile.TemporaryDirectory() as tmp:
+                path = Path(tmp) / ".env"
+                path.write_text(line + "\n", encoding="utf-8")
+                self.assertEqual(reads_key, "KEY" in env_file.parse_env_file(path))
+
+                applied = env_file.update_env_values(path, {"KEY": "new"}, overwrite=True)
+
+                self.assertEqual({"KEY": "updated" if reads_key else "added"}, applied)
+
     def test_writes_through_the_protected_path(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / ".env"
