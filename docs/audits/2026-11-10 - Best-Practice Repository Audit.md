@@ -17,6 +17,9 @@ building.
 Builds on AUD-ENG-003 (repository audit, 2026-07-10) and AUD-ENG-004 (its
 remediation backlog).
 
+Owner decision, 2026-11-10: closed as a record. The recommendations below are
+not adopted and are not planned work.
+
 ---
 
 ## The Two Answers
@@ -350,8 +353,8 @@ Verified defects in this repository:
 
 ## Recommendations
 
-For the owner to accept, amend or reject. None of these has been added to the
-pathway as a chunk. Sizes are estimates, in chunks.
+Not adopted (owner decision, 2026-11-10). Kept as a record only. Sizes are
+estimates, in chunks.
 
 Recommendations 1 to 4 are the line at which this becomes a repository of best
 practices for building: a new project starts with working machinery, honest
